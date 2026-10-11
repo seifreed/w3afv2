@@ -22,7 +22,7 @@ import io
 import unittest
 from contextlib import redirect_stdout
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.tests.helpers.home_dir import use_temporary_home
 from w3af.tests.helpers.sqli_site import PRIVATE_IP, SQLInjectionSite
@@ -35,7 +35,7 @@ class TestConsoleScanLocalSite(unittest.TestCase):
 
     def setUp(self):
         use_temporary_home(self)
-        kb.kb.cleanup()
+        kb.cleanup()
         self.site = SQLInjectionSite.serve_for(self)
 
     def scan_commands(self):
@@ -79,3 +79,6 @@ class TestConsoleScanLocalSite(unittest.TestCase):
 
         exceptions = console._w3af.exception_handler.get_all_exceptions()
         self.assertEqual([e.get_summary() for e in exceptions], [])
+
+
+kb = DBKnowledgeBase()

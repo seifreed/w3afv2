@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 from w3af.core.data.kb.kb_url_extensions import get_url_extensions_from_kb
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 
 
@@ -45,3 +45,6 @@ class TestKBURLExtensions(unittest.TestCase):
             kb.add_url(URL(url))
 
         self.assertEqual(get_url_extensions_from_kb(kb), {"php", "js", ""})
+
+
+kb = DBKnowledgeBase()

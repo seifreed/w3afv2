@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -47,14 +47,14 @@ class TestLang(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = lang()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def _grep(self, text, content_type="text/html"):
         body = f"<html><body><p>{text}</p></body></html>"
@@ -64,12 +64,15 @@ class TestLang(unittest.TestCase):
 
     def test_id_en(self):
         self._grep(ENGLISH_TEXT)
-        self.assertEqual("en", kb.kb.raw_read("lang", "lang"))
+        self.assertEqual("en", kb.raw_read("lang", "lang"))
 
     def test_id_es(self):
         self._grep(SPANISH_TEXT)
-        self.assertEqual("es", kb.kb.raw_read("lang", "lang"))
+        self.assertEqual("es", kb.raw_read("lang", "lang"))
 
     def test_not_text_is_ignored(self):
         self._grep(ENGLISH_TEXT, content_type="image/png")
-        self.assertEqual([], kb.kb.raw_read("lang", "lang"))
+        self.assertEqual([], kb.raw_read("lang", "lang"))
+
+
+kb = DBKnowledgeBase()

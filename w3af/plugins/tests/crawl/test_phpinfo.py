@@ -25,10 +25,10 @@ from pathlib import Path
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.crawl.phpinfo import (
@@ -167,15 +167,15 @@ class TestPHPInfo433(PHPInfoScanMixin, PluginTest):
 class TestPHPInfoFilenames(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
         self.addCleanup(cf.save, "target_os", cf.get("target_os"))
 
     def test_windows_fingerprint_uses_lowercase_names(self):
-        kb.kb.raw_write("fingerprint_os", "operating_system_str", "Windows")
+        kb.raw_write("fingerprint_os", "operating_system_str", "Windows")
 
         plugin = phpinfo()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
         self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES_LOWERCASE)
 
@@ -183,7 +183,7 @@ class TestPHPInfoFilenames(unittest.TestCase):
         cf.save("target_os", "unix")
 
         plugin = phpinfo()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
         self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES)
 
@@ -197,8 +197,8 @@ class TestPHPInfoAnalysis(unittest.TestCase):
     """
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
     def findings(self, *rows):
         url = URL(TARGET_URL + "phpinfo.php")
@@ -207,9 +207,9 @@ class TestPHPInfoAnalysis(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
 
         for analysis_function in ANALYSIS_FUNCTIONS:
-            analysis_function(response, kb.kb, om.out)
+            analysis_function(response, kb, om.out)
 
-        return {i.get_name() for i in kb.kb.get("phpinfo", "phpinfo")}
+        return {i.get_name() for i in kb.get("phpinfo", "phpinfo")}
 
     def test_empty_page(self):
         self.assertEqual(self.findings("nothing here"), set())
@@ -280,9 +280,12 @@ class TestPHPInfoAnalysis(unittest.TestCase):
         }
 
         for version, findings in expected.items():
-            kb.kb.cleanup()
+            kb.cleanup()
             row = f'<h1 class="p">PHP Version {version}</h1>'
             self.assertEqual(self.findings(row), findings, version)
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

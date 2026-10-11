@@ -34,8 +34,8 @@ from typing import ClassVar
 
 from clamav_client.clamd import ClamdNetworkSocket, ClamdUnixSocket
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.plugins.grep.clamav import ScanResult, clamav
 from w3af.plugins.tests.grep.grep_test_utils import make_request, make_response
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -123,7 +123,7 @@ class LocalClamd:
 class ClamAVTestCase(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.clear("clamav", "malware")
+        kb.clear("clamav", "malware")
         self.pool = Pool(3)
         self.addCleanup(self.pool.terminate_join)
 
@@ -149,7 +149,7 @@ class ClamAVTestCase(unittest.TestCase):
         self.pool.close()
         self.pool.join()
 
-        return kb.kb.get("clamav", "malware")
+        return kb.get("clamav", "malware")
 
 
 class TestClamAV(ClamAVTestCase):
@@ -306,7 +306,7 @@ class TestClamAVScan(PluginTest):
         }
         self._scan(self.target_url, plugins)
 
-        findings = kb.kb.get("clamav", "malware")
+        findings = kb.get("clamav", "malware")
 
         self.assertEqual(len(findings), 4)
 
@@ -321,3 +321,6 @@ class TestClamAVScan(PluginTest):
             self.assertIn(finding.get_url().get_file_name(), expected_files)
             self.assertEqual(finding.get_name(), "Malware identified")
             self.assertIn("ClamAV identified malware", finding.get_desc())
+
+
+kb = DBKnowledgeBase()

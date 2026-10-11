@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.tests.local_http_server import (
     LocalHTTPServer,
@@ -35,6 +34,7 @@ from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -78,8 +78,8 @@ def new_info(url):
 
 class TestPlugin(unittest.TestCase):
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
     def test_get_desc_trivial(self):
         p = Plugin()
@@ -133,7 +133,7 @@ class TestPlugin(unittest.TestCase):
     def test_kb_append_uniq(self):
         plugin = Plugin()
         plugin.set_output(om.out)
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         recorder = start_recording_output()
 
         self.assertTrue(
@@ -143,19 +143,19 @@ class TestPlugin(unittest.TestCase):
             plugin.kb_append_uniq("a", "b", new_info("http://w3af.org/"), "URL")
         )
 
-        self.assertEqual(len(kb.kb.get("a", "b")), 1)
+        self.assertEqual(len(kb.get("a", "b")), 1)
         self.assertEqual(len(recorder.messages_of("vulnerability")), 1)
 
     def test_kb_append_uniq_group(self):
         plugin = Plugin()
         plugin.set_output(om.out)
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         recorder = start_recording_output()
 
         for url in ("http://w3af.org/1", "http://w3af.org/2"):
             plugin.kb_append_uniq_group("a", "b", new_info(url), FindingSet)
 
-        info_sets = kb.kb.get("a", "b")
+        info_sets = kb.get("a", "b")
         self.assertEqual(len(info_sets), 1)
         self.assertIsInstance(info_sets[0], FindingSet)
         self.assertEqual(len(info_sets[0].infos), 2)
@@ -164,7 +164,7 @@ class TestPlugin(unittest.TestCase):
     def test_kb_append(self):
         plugin = Plugin()
         plugin.set_output(om.out)
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         configuration = Config()
         configuration.save("vulndb_language", "es")
         plugin.set_configuration(configuration)
@@ -174,12 +174,12 @@ class TestPlugin(unittest.TestCase):
         plugin.kb_append("a", "b", info)
         plugin.kb_append("a", "b", new_info("http://w3af.org/"))
 
-        self.assertEqual(len(kb.kb.get("a", "b")), 2)
+        self.assertEqual(len(kb.get("a", "b")), 2)
         self.assertEqual(len(recorder.messages_of("vulnerability")), 2)
 
     def test_private_kb_append_configures_without_reporting(self):
         plugin = Plugin()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         configuration = Config()
         configuration.save("vulndb_language", "es")
         plugin.set_configuration(configuration)
@@ -188,8 +188,8 @@ class TestPlugin(unittest.TestCase):
         plugin._kb_append("a", "b", info)
 
         self.assertEqual(info.get_vulndb_lang(), "es")
-        self.assertEqual(len(kb.kb.get("a", "b")), 1)
-        stored_info = kb.kb.get("a", "b")[0]
+        self.assertEqual(len(kb.get("a", "b")), 1)
+        stored_info = kb.get("a", "b")[0]
         self.assertEqual(stored_info.get_vulndb_lang(), "es")
         self.assertNotIn("_configuration", vars(stored_info))
 
@@ -300,3 +300,6 @@ class TestUrlOpenerProxy(unittest.TestCase):
         plugin.set_url_opener(self.uri_opener)
 
         self.assertIs(plugin._uri_opener.settings, self.uri_opener.settings)
+
+
+kb = DBKnowledgeBase()

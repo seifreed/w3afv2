@@ -27,8 +27,8 @@ from typing import ClassVar
 
 import pytest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.infrastructure.php_eggs import EggQueryResult, md5_hash, php_eggs
@@ -142,10 +142,10 @@ def _egg_query_result(body, egg_desc):
 
 class TestPHPEggsVersionExtraction(unittest.TestCase):
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
         self.plugin = php_eggs()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
         self.plugin.EGG_DB = {
             "5.3.2": dict(EGG_HASHES),
             "5.2.0": {**EGG_HASHES, "credits": md5_hash("other")},
@@ -156,7 +156,7 @@ class TestPHPEggsVersionExtraction(unittest.TestCase):
 
         self.plugin._extract_version_from_egg(query_results)
 
-        php_version = kb.kb.get("php_eggs", "version")
+        php_version = kb.get("php_eggs", "version")
         self.assertEqual(len(php_version), 1, php_version)
         self.assertEqual(php_version[0]["version"], ["5.3.2"])
         self.assertIn("identified as:\n- 5.3.2", php_version[0].get_desc())
@@ -166,10 +166,10 @@ class TestPHPEggsVersionExtraction(unittest.TestCase):
 
         self.plugin._extract_version_from_egg(query_results)
 
-        self.assertEqual(kb.kb.get("php_eggs", "version"), [])
+        self.assertEqual(kb.get("php_eggs", "version"), [])
 
     def test_php_version_from_powered_by(self):
-        kb.kb.raw_write(
+        kb.raw_write(
             "server_header", "powered_by_string", ["ASP.NET", "PHP", "PHP/5.3.2"]
         )
 
@@ -183,3 +183,6 @@ class TestPHPEggsVersionExtraction(unittest.TestCase):
             self.plugin.get_plugin_deps(), ["infrastructure.server_header"]
         )
         self.assertIn("PHP Credits", self.plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

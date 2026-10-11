@@ -3,7 +3,7 @@ import unittest
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.constants import severity
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
@@ -248,3 +248,6 @@ class TestExploit(AttackPluginTestCase):
                     "The exploitation failed due to HTTP exception",
                     str(context.exception),
                 )
+
+
+kb = DBKnowledgeBase()

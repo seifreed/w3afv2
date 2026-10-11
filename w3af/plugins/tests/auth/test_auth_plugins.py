@@ -24,8 +24,8 @@ import socket
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import BaseFrameworkException
@@ -101,7 +101,7 @@ class AuthPluginTestCase(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
 
         previous_blacklist = cf.get("blacklist_audit")
         self.addCleanup(cf.save, "blacklist_audit", previous_blacklist)
@@ -116,7 +116,7 @@ class AuthPluginTestCase(unittest.TestCase):
         self.base = f"http://127.0.0.1:{self.server.port}"
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def url(self, path, base=None):
         return URL((base or self.base) + path)
@@ -128,7 +128,7 @@ class AuthPluginTestCase(unittest.TestCase):
         plugin.set_options(options)
         plugin.set_url_opener(self.uri_opener)
         plugin.set_configuration(cf)
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_output(om.out)
         return plugin
 
@@ -308,9 +308,12 @@ class TestAuthenticationFailureReport(AuthPluginTestCase):
         for _ in range(plugin.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT):
             plugin.login()
 
-        errors = kb.kb.get("authentication", "error")
+        errors = kb.get("authentication", "error")
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors[0].get_uri(), self.url("/login"))
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

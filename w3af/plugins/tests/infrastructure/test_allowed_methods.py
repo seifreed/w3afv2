@@ -25,7 +25,7 @@ from typing import ClassVar
 
 import pytest
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
@@ -217,15 +217,15 @@ class TestRunOnce(AllowedMethodsTest):
         self.plugin.discover(fuzzable_request, 1)
 
         self.assertRaises(RunOnce, self.plugin.discover, fuzzable_request, 2)
-        self.assertEqual(kb.kb.get("allowed_methods", "methods"), [])
+        self.assertEqual(kb.get("allowed_methods", "methods"), [])
 
 
 class TestEnd(unittest.TestCase):
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
         self.plugin = allowed_methods()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
 
     def test_reports_dav_methods_grouped_by_url(self):
         self.plugin._analyze_methods(URL(DAV_ROOT), ["GET", "PROPFIND"], [1])
@@ -233,7 +233,7 @@ class TestEnd(unittest.TestCase):
 
         self.plugin.end()
 
-        self.assertEqual(len(kb.kb.get("allowed_methods", "dav-methods")), 2)
+        self.assertEqual(len(kb.get("allowed_methods", "dav-methods")), 2)
 
     def test_options_round_trip(self):
         options = self.plugin.get_options()
@@ -247,3 +247,6 @@ class TestEnd(unittest.TestCase):
 
     def test_long_description(self):
         self.assertIn("run_once", self.plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

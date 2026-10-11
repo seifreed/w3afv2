@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -35,7 +35,7 @@ class test_blank_body(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = blank_body()
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
@@ -48,14 +48,14 @@ class test_blank_body(unittest.TestCase):
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("blank_body", "blank_body")), 1)
+        self.assertEqual(len(kb.get("blank_body", "blank_body")), 1)
 
     def test_blank_body_none(self):
         body = "header body footer"
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 0)
 
     def test_blank_body_method(self):
         body = ""
@@ -63,7 +63,7 @@ class test_blank_body(unittest.TestCase):
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         request = FuzzableRequest(self.url, method="ARGENTINA")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 0)
 
     def test_blank_body_code(self):
         body = ""
@@ -71,4 +71,7 @@ class test_blank_body(unittest.TestCase):
         response = HTTPResponse(401, body, headers, self.url, self.url, _id=1)
         request = FuzzableRequest(self.url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("blank_body", "blank_body")), 0)
+        self.assertEqual(len(kb.get("blank_body", "blank_body")), 0)
+
+
+kb = DBKnowledgeBase()

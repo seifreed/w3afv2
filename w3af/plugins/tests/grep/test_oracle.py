@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -35,7 +35,7 @@ class test_oracle(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = oracle()
 
     def tearDown(self):
@@ -48,7 +48,7 @@ class test_oracle(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("oracle", "oracle")), 0)
+        self.assertEqual(len(kb.get("oracle", "oracle")), 0)
 
     def test_oracle_long(self):
         body = "ABC " * 10000
@@ -57,7 +57,7 @@ class test_oracle(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("oracle", "oracle")), 0)
+        self.assertEqual(len(kb.get("oracle", "oracle")), 0)
 
     def test_oracle_positive(self):
         body = "ABC " * 100
@@ -68,4 +68,7 @@ class test_oracle(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("oracle", "oracle")), 1)
+        self.assertEqual(len(kb.get("oracle", "oracle")), 1)
+
+
+kb = DBKnowledgeBase()

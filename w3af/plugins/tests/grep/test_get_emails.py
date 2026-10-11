@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -86,7 +86,7 @@ class TestGetEmails(PluginTest):
 class RawTestGetEmail(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = get_emails()
 
     def tearDown(self):
@@ -107,7 +107,7 @@ class RawTestGetEmail(unittest.TestCase):
         resp_2 = HTTPResponse(200, body_2, headers, url_2, url_2, _id=2)
         self.plugin.grep(request_2, resp_2)
 
-        info_sets = kb.kb.get("emails", "emails")
+        info_sets = kb.get("emails", "emails")
         self.assertEqual(len(info_sets), 1)
 
         expected_desc = (
@@ -120,3 +120,6 @@ class RawTestGetEmail(unittest.TestCase):
         info_set = info_sets[0]
         self.assertEqual(info_set.get_id(), [1, 2])
         self.assertEqual(info_set.get_desc(), expected_desc)
+
+
+kb = DBKnowledgeBase()

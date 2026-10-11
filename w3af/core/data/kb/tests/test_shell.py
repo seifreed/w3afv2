@@ -24,7 +24,7 @@ import copy
 import socket
 import unittest
 
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.shell import NO_PAYLOAD_HANDLER_MSG, Shell
 from w3af.core.data.kb.tests.local_shells import LocalExecShell, payload_catalog
 from w3af.core.data.kb.tests.test_vuln import MockVuln
@@ -191,3 +191,6 @@ class TestShellPayloads(unittest.TestCase):
             "The payload could not be run because the current shell doesn't"
             " have the required capabilities.",
         )
+
+
+kb = DBKnowledgeBase()

@@ -24,7 +24,6 @@ import re
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
     CrawlInfrastructure,
@@ -46,6 +45,7 @@ from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -108,12 +108,12 @@ class TestTimeLimit(PluginTest):
 
 class CrawlConsumerTest(unittest.TestCase):
     def setUp(self):
-        self.core = w3afCore(configuration=cf)
+        self.core = w3afCore(knowledge_base=kb, configuration=cf)
         self.addCleanup(self.core.worker_pool.terminate_join)
         self.core.status.start()
         cf.save("baseURLs", [URL(BASE)])
         self.addCleanup(cf.save, "baseURLs", [])
-        self.addCleanup(kb.kb.cleanup)
+        self.addCleanup(kb.cleanup)
         self.recorder = start_recording_output()
 
     def start_consumer(self, plugins, max_discovery_time=NEVER, observer=None):
@@ -125,7 +125,7 @@ class CrawlConsumerTest(unittest.TestCase):
             plugins,
             self.core,
             max_discovery_time,
-            knowledge_base=kb.kb,
+            knowledge_base=kb,
             output=om.out,
             configuration=self.core.configuration,
         )
@@ -224,7 +224,7 @@ class TestRouting(CrawlConsumerTest):
             [plugin],
             self.core,
             max_discovery_time=0,
-            knowledge_base=kb.kb,
+            knowledge_base=kb,
             output=om.out,
             configuration=self.core.configuration,
         )
@@ -329,7 +329,7 @@ class TestPluginErrors(CrawlConsumerTest):
             [plugin],
             self.core,
             NEVER,
-            knowledge_base=kb.kb,
+            knowledge_base=kb,
             output=om.out,
             configuration=self.core.configuration,
         )
@@ -342,3 +342,6 @@ class TestPluginErrors(CrawlConsumerTest):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -35,11 +35,11 @@ class TestCacheControl(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = cache_control()
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_cache_control_http(self):
         """
@@ -55,7 +55,7 @@ class TestCacheControl(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cache_control", "cache_control")
+        infos = kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_images(self):
@@ -72,7 +72,7 @@ class TestCacheControl(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cache_control", "cache_control")
+        infos = kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_empty_body(self):
@@ -89,7 +89,7 @@ class TestCacheControl(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cache_control", "cache_control")
+        infos = kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_correct_headers(self):
@@ -111,7 +111,7 @@ class TestCacheControl(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cache_control", "cache_control")
+        infos = kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_correct_meta(self):
@@ -132,7 +132,7 @@ class TestCacheControl(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cache_control", "cache_control")
+        infos = kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_incorrect_headers(self):
@@ -155,7 +155,7 @@ class TestCacheControl(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cache_control", "cache_control")
+        infos = kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 1)
 
     def test_cache_control_no_headers(self):
@@ -171,8 +171,11 @@ class TestCacheControl(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cache_control", "cache_control")
+        infos = kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 1)
 
         info = infos[0]
         self.assertEqual(info.get_name(), "Missing cache control for HTTPS content")
+
+
+kb = DBKnowledgeBase()

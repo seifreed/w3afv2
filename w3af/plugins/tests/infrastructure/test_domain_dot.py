@@ -23,7 +23,7 @@ import re
 import unittest
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.infrastructure.domain_dot import domain_dot
@@ -93,13 +93,16 @@ class TestDomainDotMisconfiguration(PluginTest):
 
 class TestDomainDotRequestError(unittest.TestCase):
     def test_error_is_reported(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         plugin = domain_dot()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin._uri_opener = ExtendedUrllib()
         self.addCleanup(plugin._uri_opener.end)
 
         plugin.discover(FuzzableRequest(closed_port_url()), 1)
 
-        self.assertEqual(kb.kb.get("domain_dot", "domain_dot"), [])
+        self.assertEqual(kb.get("domain_dot", "domain_dot"), [])
         self.assertIn("trailing dot", plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

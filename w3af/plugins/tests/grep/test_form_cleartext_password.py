@@ -19,8 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -33,7 +33,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
     def setUp(self):
         super().setUp()
         self.plugin = self.configure_plugin(form_cleartext_password())
-        kb.kb.clear("form_cleartext_password", "form_cleartext_password")
+        kb.clear("form_cleartext_password", "form_cleartext_password")
 
     def tearDown(self):
         self.plugin.end()
@@ -52,12 +52,10 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 1
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 1
         )
         self.assertEqual(
-            kb.kb.get("form_cleartext_password", "form_cleartext_password")[
-                0
-            ].get_name()
+            kb.get("form_cleartext_password", "form_cleartext_password")[0].get_name()
             == "Insecure password submission over HTTP",
             1,
         )
@@ -73,12 +71,10 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 1
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 1
         )
         self.assertEqual(
-            kb.kb.get("form_cleartext_password", "form_cleartext_password")[
-                0
-            ].get_name()
+            kb.get("form_cleartext_password", "form_cleartext_password")[0].get_name()
             == "Insecure password submission over HTTP",
             1,
         )
@@ -91,12 +87,10 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 1
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 1
         )
         self.assertEqual(
-            kb.kb.get("form_cleartext_password", "form_cleartext_password")[
-                0
-            ].get_name()
+            kb.get("form_cleartext_password", "form_cleartext_password")[0].get_name()
             == "Insecure password submission over HTTP",
             1,
         )
@@ -112,12 +106,10 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 1
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 1
         )
         self.assertEqual(
-            kb.kb.get("form_cleartext_password", "form_cleartext_password")[
-                0
-            ].get_name()
+            kb.get("form_cleartext_password", "form_cleartext_password")[0].get_name()
             == "Insecure password submission over HTTP",
             1,
         )
@@ -133,12 +125,10 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 1
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 1
         )
         self.assertEqual(
-            kb.kb.get("form_cleartext_password", "form_cleartext_password")[
-                0
-            ].get_name()
+            kb.get("form_cleartext_password", "form_cleartext_password")[0].get_name()
             == "Insecure password submission over HTTP",
             1,
         )
@@ -157,12 +147,10 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 1
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 1
         )
         self.assertEqual(
-            kb.kb.get("form_cleartext_password", "form_cleartext_password")[
-                0
-            ].get_name()
+            kb.get("form_cleartext_password", "form_cleartext_password")[0].get_name()
             == "Insecure password form access over HTTP",
             1,
         )
@@ -183,12 +171,10 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 1
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 1
         )
         self.assertEqual(
-            kb.kb.get("form_cleartext_password", "form_cleartext_password")[
-                0
-            ].get_name()
+            kb.get("form_cleartext_password", "form_cleartext_password")[0].get_name()
             == "Insecure password form access over HTTP",
             1,
         )
@@ -207,7 +193,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
 
     def test_n2(self, *args):
@@ -221,7 +207,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
 
     def test_n3(self, *args):
@@ -235,7 +221,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
 
     def test_n4(self, *args):
@@ -249,7 +235,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
 
     def test_n5(self, *args):
@@ -260,7 +246,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
 
     def test_n6(self, *args):
@@ -271,7 +257,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
 
     def test_n7(self, *args):
@@ -285,7 +271,7 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
 
     def test_n8(self, *args):
@@ -299,5 +285,8 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("form_cleartext_password", "form_cleartext_password")), 0
+            len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
+
+
+kb = DBKnowledgeBase()

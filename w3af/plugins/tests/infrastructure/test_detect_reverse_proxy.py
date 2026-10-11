@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
@@ -49,7 +49,7 @@ class ReverseProxyTest(CannedServerPluginTest):
 
     def discover(self):
         self.plugin.discover(TARGET, 1)
-        return kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy")
+        return kb.get("detect_reverse_proxy", "detect_reverse_proxy")
 
     def received_methods(self):
         return [request.command for request in self.server.requests]
@@ -75,9 +75,7 @@ class TestViaHeader(ReverseProxyTest):
     def test_get_is_not_sent_behind_a_transparent_proxy(self):
         desc = "Your ISP seems to have a transparent proxy installed."
         transparent = Info("Transparent proxy detected", desc, 1, "plugin")
-        kb.kb.append(
-            "detect_transparent_proxy", "detect_transparent_proxy", transparent
-        )
+        kb.append("detect_transparent_proxy", "detect_transparent_proxy", transparent)
 
         self.assertEqual(self.discover(), [])
         self.assertEqual(self.received_methods(), ["TRACE", "TRACK"])
@@ -117,3 +115,6 @@ class TestNoReverseProxy(ReverseProxyTest):
             self.plugin.get_plugin_deps(), ["infrastructure.detect_transparent_proxy"]
         )
         self.assertIn("reverse proxy", self.plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from functools import partial
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -50,7 +50,7 @@ class test_symfony(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = symfony()
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
@@ -94,7 +94,7 @@ class test_symfony(unittest.TestCase):
         )
         request = FuzzableRequest(self.url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("symfony", "symfony")), 0)
+        self.assertEqual(len(kb.get("symfony", "symfony")), 0)
 
     def test_symfony_unprotected(self):
         request = FuzzableRequest(self.url, method="GET")
@@ -102,4 +102,7 @@ class test_symfony(unittest.TestCase):
             read=self.UNPROTECTED_BODY, headers=self.SYMFONY_HEADERS
         )
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("symfony", "symfony")), 1)
+        self.assertEqual(len(kb.get("symfony", "symfony")), 1)
+
+
+kb = DBKnowledgeBase()

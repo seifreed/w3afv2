@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -33,7 +33,7 @@ from w3af.plugins.grep.private_ip import private_ip
 class test_private_ip(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = private_ip()
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
@@ -48,7 +48,7 @@ class test_private_ip(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("private_ip", "HTML")), 0)
+        self.assertEqual(len(kb.get("private_ip", "HTML")), 0)
 
     def test_private_ip_find(self):
         body = "<html><head>192.168.1.1</head></html>"
@@ -57,7 +57,7 @@ class test_private_ip(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("private_ip", "HTML")), 1)
+        self.assertEqual(len(kb.get("private_ip", "HTML")), 1)
 
     def test_private_ip_broken_html(self):
         body = "<html><head>192.168.1.1</html>"
@@ -66,7 +66,7 @@ class test_private_ip(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("private_ip", "HTML")), 1)
+        self.assertEqual(len(kb.get("private_ip", "HTML")), 1)
 
     def test_private_ip_find_10(self):
         body = "header 10.2.34.2 footer"
@@ -75,7 +75,7 @@ class test_private_ip(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("private_ip", "HTML")), 1)
+        self.assertEqual(len(kb.get("private_ip", "HTML")), 1)
 
     def test_private_ip_find_header(self):
         body = "header content footer"
@@ -84,7 +84,7 @@ class test_private_ip(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("private_ip", "header")), 1)
+        self.assertEqual(len(kb.get("private_ip", "header")), 1)
 
     def test_private_ip_find_header_group(self):
         body = "header content footer"
@@ -100,7 +100,7 @@ class test_private_ip(unittest.TestCase):
         request_2 = FuzzableRequest(url_2, method="GET")
         self.plugin.grep(request_2, response_2)
 
-        info_sets = kb.kb.get("private_ip", "header")
+        info_sets = kb.get("private_ip", "header")
         self.assertEqual(len(info_sets), 1)
 
         info_set = info_sets[0]
@@ -131,7 +131,7 @@ class test_private_ip(unittest.TestCase):
         request_2 = FuzzableRequest(url_2, method="GET")
         self.plugin.grep(request_2, response_2)
 
-        info_sets = kb.kb.get("private_ip", "header")
+        info_sets = kb.get("private_ip", "header")
         self.assertEqual(len(info_sets), 2)
 
     def test_private_ip_no(self):
@@ -143,5 +143,8 @@ class test_private_ip(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("private_ip", "HTML")), 0)
-        self.assertEqual(len(kb.kb.get("private_ip", "header")), 0)
+        self.assertEqual(len(kb.get("private_ip", "HTML")), 0)
+        self.assertEqual(len(kb.get("private_ip", "header")), 0)
+
+
+kb = DBKnowledgeBase()

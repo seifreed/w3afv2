@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
@@ -30,13 +30,13 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 class TestUpdateURLs(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_basic(self):
         u1 = URL("http://w3af.org/")
         r1 = FuzzableRequest(u1, method="GET")
-        kb.kb.add_fuzzable_request(r1)
-        result = kb.kb.get_all_known_urls()
+        kb.add_fuzzable_request(r1)
+        result = kb.get_all_known_urls()
         self.assertEqual(len(result), 1)
         self.assertEqual("http://w3af.org/", next(iter(result)).url_string)
 
@@ -44,11 +44,14 @@ class TestUpdateURLs(unittest.TestCase):
         r2 = FuzzableRequest(u2, method="GET")
         u3 = URL("http://w3af.org/")
         r3 = FuzzableRequest(u3, method="GET")
-        kb.kb.add_fuzzable_request(r1)
-        kb.kb.add_fuzzable_request(r2)
-        kb.kb.add_fuzzable_request(r3)
+        kb.add_fuzzable_request(r1)
+        kb.add_fuzzable_request(r2)
+        kb.add_fuzzable_request(r3)
 
-        result = kb.kb.get_all_known_urls()
+        result = kb.get_all_known_urls()
         self.assertEqual(len(result), 2)
         expected_set = {"http://w3af.org/", "http://w3af.org/blog/"}
         self.assertEqual(expected_set, {u.url_string for u in result})
+
+
+kb = DBKnowledgeBase()

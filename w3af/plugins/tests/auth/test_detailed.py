@@ -23,7 +23,7 @@ import re
 import urllib.parse
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -199,7 +199,7 @@ class TestDetailedFailAuth(PluginTest):
     def test_failed_login_invalid_password(self):
         self._scan(self._run_config["target"], self._run_config["plugins"])
 
-        infos = kb.kb.get("authentication", "error")
+        infos = kb.get("authentication", "error")
 
         self.assertEqual(len(infos), 1)
         info = infos[0]
@@ -437,3 +437,6 @@ class TestDetailedSquareBrackets(PluginTest):
         vuln = vulns[0]
         self.assertEqual(vuln.get_name(), "Cross site scripting vulnerability")
         self.assertEqual(vuln.get_token_name(), "text")
+
+
+kb = DBKnowledgeBase()

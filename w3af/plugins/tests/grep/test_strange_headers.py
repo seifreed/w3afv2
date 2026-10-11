@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -36,9 +36,9 @@ class TestStrangeHeaders(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = strange_headers()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
 
     def tearDown(self):
         self.plugin.end()
@@ -52,7 +52,7 @@ class TestStrangeHeaders(unittest.TestCase):
         resp_positive = HTTPResponse(200, body, headers, url, url, _id=1)
         self.plugin.grep(request, resp_positive)
 
-        info_sets = kb.kb.get("strange_headers", "strange_headers")
+        info_sets = kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(info_sets), 1)
 
         info = info_sets[0]
@@ -98,7 +98,7 @@ class TestStrangeHeaders(unittest.TestCase):
         resp_2 = HTTPResponse(200, body, headers_2, url_2, url_2, _id=2)
         self.plugin.grep(request_2, resp_2)
 
-        info_sets = kb.kb.get("strange_headers", "strange_headers")
+        info_sets = kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(info_sets), 2)
 
     def test_strange_headers_group(self):
@@ -116,7 +116,7 @@ class TestStrangeHeaders(unittest.TestCase):
         resp_2 = HTTPResponse(200, body, headers_2, url_2, url_2, _id=2)
         self.plugin.grep(request_2, resp_2)
 
-        info_sets = kb.kb.get("strange_headers", "strange_headers")
+        info_sets = kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(info_sets), 1)
 
     def test_strange_headers_negative(self):
@@ -128,5 +128,8 @@ class TestStrangeHeaders(unittest.TestCase):
         resp_positive = HTTPResponse(200, body, headers, url, url, _id=1)
         self.plugin.grep(request, resp_positive)
 
-        infos = kb.kb.get("strange_headers", "strange_headers")
+        infos = kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(infos), 0)
+
+
+kb = DBKnowledgeBase()

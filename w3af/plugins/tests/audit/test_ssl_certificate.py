@@ -24,7 +24,7 @@ import tempfile
 import threading
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.audit.ssl_certificate import (
@@ -168,15 +168,15 @@ class TestSSLCertificate(PluginTest):
 class SslCertificatePluginTest(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
         self.plugin = ssl_certificate()
 
     def audit(self, url):
         self.plugin.audit(FuzzableRequest(URL(url)), None, "plugin-test")
 
     def kb_items(self, name):
-        return kb.kb.get("ssl_certificate", name)
+        return kb.get("ssl_certificate", name)
 
     def test_unreachable_server_is_ignored(self):
         self.audit(f"https://127.0.0.1:{free_closed_port()}/")
@@ -302,3 +302,6 @@ class TestMatchHostname(unittest.TestCase):
 
         self.assertIsNotNone(pattern.match("www.example.com"))
         self.assertIsNone(pattern.match("a.example.com"))
+
+
+kb = DBKnowledgeBase()

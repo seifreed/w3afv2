@@ -19,8 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -72,25 +72,25 @@ class TestFormAutocomplete(GrepPluginTestCase):
             )
             self._grep(body, URL(base + filename))
 
-        vulns = kb.kb.get("form_autocomplete", "form_autocomplete")
+        vulns = kb.get("form_autocomplete", "form_autocomplete")
         found = sorted(v.get_url().get_file_name() for v in vulns)
         self.assertEqual(sorted(filenames), found)
 
     def test_autocomplete_off_form(self):
         self._grep(FORM_OFF, URL("http://www.w3af.com/off.html"))
-        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
+        self.assertEqual(0, len(kb.get("form_autocomplete", "form_autocomplete")))
 
     def test_autocomplete_off_field(self):
         self._grep(FORM_FIELD_OFF, URL("http://www.w3af.com/field-off.html"))
-        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
+        self.assertEqual(0, len(kb.get("form_autocomplete", "form_autocomplete")))
 
     def test_no_password_field(self):
         self._grep(FORM_WITHOUT_USERNAME, URL("http://www.w3af.com/no-pass.html"))
-        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
+        self.assertEqual(0, len(kb.get("form_autocomplete", "form_autocomplete")))
 
     def test_not_text(self):
         self._grep(FORM_DEFAULT, URL("http://www.w3af.com/x.png"), "image/png")
-        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
+        self.assertEqual(0, len(kb.get("form_autocomplete", "form_autocomplete")))
 
 
 class TestFormAutocompleteRaw(GrepPluginTestCase):
@@ -123,6 +123,9 @@ class TestFormAutocompleteRaw(GrepPluginTestCase):
             " - http://www.w3af.com/2\n"
         )
 
-        (info_set,) = kb.kb.get("form_autocomplete", "form_autocomplete")
+        (info_set,) = kb.get("form_autocomplete", "form_autocomplete")
         self.assertEqual(set(info_set.get_urls()), {url_1, url_2})
         self.assertEqual(info_set.get_desc(), expected_desc)
+
+
+kb = DBKnowledgeBase()

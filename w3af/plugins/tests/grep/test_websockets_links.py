@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -33,7 +33,7 @@ class TestWebsocketsLinks(unittest.TestCase):
 
     def setUp(self):
         self.plugin = websockets_links()
-        kb.kb.clear("websockets_links", "websockets_links")
+        kb.clear("websockets_links", "websockets_links")
 
     def tearDown(self):
         self.plugin.end()
@@ -54,7 +54,7 @@ class TestWebsocketsLinks(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 1)
+        self.assertEqual(len(kb.get("websockets_links", "websockets_links")), 1)
 
     def test_sl_2(self, *args):
         """
@@ -73,7 +73,7 @@ class TestWebsocketsLinks(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 2)
+        self.assertEqual(len(kb.get("websockets_links", "websockets_links")), 2)
 
     def test_sl_3(self, *args):
         """
@@ -89,7 +89,7 @@ class TestWebsocketsLinks(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 1)
+        self.assertEqual(len(kb.get("websockets_links", "websockets_links")), 1)
 
     def test_dl_1(self, *args):
         """
@@ -107,7 +107,7 @@ class TestWebsocketsLinks(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 0)
+        self.assertEqual(len(kb.get("websockets_links", "websockets_links")), 0)
 
     def test_fl_1(self, *args):
         """
@@ -123,7 +123,7 @@ class TestWebsocketsLinks(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 0)
+        self.assertEqual(len(kb.get("websockets_links", "websockets_links")), 0)
 
     def test_no_link(self, *args):
         """
@@ -135,7 +135,7 @@ class TestWebsocketsLinks(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 0)
+        self.assertEqual(len(kb.get("websockets_links", "websockets_links")), 0)
 
     def test_static_link_group_by_ws_url(self, *args):
         """
@@ -162,7 +162,7 @@ class TestWebsocketsLinks(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        ws_info_sets = kb.kb.get("websockets_links", "websockets_links")
+        ws_info_sets = kb.get("websockets_links", "websockets_links")
         self.assertEqual(len(ws_info_sets), 1)
 
         info_set = ws_info_sets[0]
@@ -176,3 +176,6 @@ class TestWebsocketsLinks(unittest.TestCase):
         self.assertEqual(len(info_set.infos), 2)
         self.assertEqual(info_set.get_id(), [1, 2])
         self.assertEqual(info_set.get_desc(), expected_desc)
+
+
+kb = DBKnowledgeBase()

@@ -35,7 +35,7 @@ from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.w3af_core import w3afCore
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.plugins.grep.private_ip import private_ip
 
 WAIT_TIMEOUT = 10
@@ -292,3 +292,6 @@ class TestPoolStateThreads(unittest.TestCase):
 
     def test_end_without_threads(self):
         ThreadStateObserver(om.out).end()
+
+
+kb = DBKnowledgeBase()

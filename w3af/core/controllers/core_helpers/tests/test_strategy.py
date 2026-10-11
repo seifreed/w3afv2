@@ -28,13 +28,13 @@ from urllib.parse import parse_qs, unquote_plus, urlsplit
 
 import pytest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.tests.grep_exception_raise import GrepFailureError
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.plugins.tests.helper import (
@@ -117,7 +117,7 @@ class TestDeterministicResults(unittest.TestCase):
     """
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.site = LocalHTTPServer(xss_site).start()
         self.addCleanup(self.site.close)
 
@@ -152,7 +152,7 @@ class TestDeterministicResults(unittest.TestCase):
 
     def test_1557_same_results_in_every_scan(self):
         first_scan = self.found_vulnerable_urls()
-        kb.kb.cleanup()
+        kb.cleanup()
         second_scan = self.found_vulnerable_urls()
 
         expected = {
@@ -188,11 +188,11 @@ class TestScanConsumers(unittest.TestCase):
     """
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.max_scan_time = cf.get("max_scan_time")
         self.addCleanup(cf.save, "max_scan_time", self.max_scan_time)
 
-        self.core = w3afCore(configuration=cf)
+        self.core = w3afCore(knowledge_base=kb, configuration=cf)
         self.addCleanup(self.core.quit)
 
     def start_scan(self, responder, plugins):
@@ -258,7 +258,7 @@ class TestScanConsumers(unittest.TestCase):
             {GrepFailureError.__name__},
         )
         self.assertEqual({e.phase for e in exceptions}, {"grep"})
-        self.assertEqual(kb.kb.get("authentication", "error"), [])
+        self.assertEqual(kb.get("authentication", "error"), [])
 
     def test_scan_stops_at_max_scan_time(self):
         cf.save("max_scan_time", 0.02)
@@ -273,3 +273,6 @@ class TestScanConsumers(unittest.TestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

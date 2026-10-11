@@ -24,7 +24,7 @@ import re
 import unittest
 from contextlib import redirect_stdout
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.tests.helpers.home_dir import use_temporary_home
 
 ANSI_ESCAPE = re.compile(r"\x1b[^m]*m")
@@ -62,7 +62,7 @@ class ConsoleTestHelper(unittest.TestCase):
 
     def setUp(self):
         use_temporary_home(self)
-        kb.kb.cleanup()
+        kb.cleanup()
         self._captured_stdout = CapturedStdout()
         self.enterContext(redirect_stdout(self._captured_stdout))
 
@@ -125,3 +125,6 @@ class ConsoleTestHelper(unittest.TestCase):
     def generate_msg(self, line):
         msg = '"%s" was not found in:\n%s'
         return msg % (line, "".join(self._captured_stdout.messages))
+
+
+kb = DBKnowledgeBase()

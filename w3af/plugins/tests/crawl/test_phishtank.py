@@ -24,9 +24,9 @@ import os
 import unittest
 from pathlib import Path
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.data.constants.severity import MEDIUM
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import BaseFrameworkException
@@ -62,19 +62,19 @@ def drain(output_queue):
 class TestPhishtank(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
     def crawl(self, url, phishtank_db=LOCAL_PHISHTANK_DB):
         plugin = phishtank(phishtank_db=phishtank_db)
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.crawl(FuzzableRequest(url), "debugging-id")
         return plugin
 
     def test_phishtank_no_match_for_unresolvable_domain(self):
         plugin = self.crawl(UNRESOLVABLE_URL)
 
-        self.assertEqual(kb.kb.get("phishtank", "phishtank"), [])
+        self.assertEqual(kb.get("phishtank", "phishtank"), [])
         self.assertEqual(drain(plugin.output_queue), [])
 
     def test_phishtank_match_ip_address(self):
@@ -83,7 +83,7 @@ class TestPhishtank(unittest.TestCase):
         found_urls = [fr.get_url().url_string for fr in drain(plugin.output_queue)]
         self.assertEqual(found_urls, ["http://127.0.0.1/phish/"])
 
-        vulns = kb.kb.get("phishtank", "phishtank")
+        vulns = kb.get("phishtank", "phishtank")
         self.assertEqual(len(vulns), 1, vulns)
 
         vuln = vulns[0]
@@ -130,3 +130,6 @@ class TestPhishtank(unittest.TestCase):
 
     def test_long_description_mentions_database(self):
         self.assertIn("phishtank database", phishtank().get_long_desc())
+
+
+kb = DBKnowledgeBase()

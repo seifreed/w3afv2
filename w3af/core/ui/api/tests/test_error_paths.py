@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.ui.api.application import app
@@ -43,16 +43,16 @@ class APIErrorPathsTest(APIUnitTest):
 
     def setUp(self):
         super().setUp()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         super().tearDown()
 
     def _register_scan(self, with_core=True, with_output=False):
         scan_info = ScanInfo()
         if with_core:
-            scan_info.w3af_core = w3afCore()
+            scan_info.w3af_core = w3afCore(knowledge_base=kb)
             self.addCleanup(scan_info.w3af_core.quit)
         if with_output:
             scan_info.output = RESTAPIOutput()
@@ -168,7 +168,7 @@ class APIErrorPathsTest(APIUnitTest):
             "sqli",
         )
         vuln.set_url(URL(VULN_URL))
-        kb.kb.append("sqli", "sqli", vuln)
+        kb.append("sqli", "sqli", vuln)
 
         status, data = self._get(f"/scans/{scan_id}/kb/")
         self.assertEqual(status, 200)
@@ -185,3 +185,6 @@ class APIErrorPathsTest(APIUnitTest):
 
         status, _ = self._get(f"/scans/{scan_id}/kb/7")
         self.assertEqual(status, 404)
+
+
+kb = DBKnowledgeBase()

@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -35,9 +35,9 @@ class TestHttpInBody(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = http_in_body()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
@@ -52,7 +52,7 @@ class TestHttpInBody(unittest.TestCase):
     def test_found_request(self):
         self._grep("A debug trace: GET /index.html HTTP/1.0 was logged here")
 
-        infos = kb.kb.get("http_in_body", "request")
+        infos = kb.get("http_in_body", "request")
         self.assertEqual(1, len(infos), infos)
         info = infos[0]
         self.assertEqual(severity.INFORMATION, info.get_severity())
@@ -61,25 +61,28 @@ class TestHttpInBody(unittest.TestCase):
     def test_found_response(self):
         self._grep("The upstream said HTTP/1.1 200 OK in the body")
 
-        infos = kb.kb.get("http_in_body", "response")
+        infos = kb.get("http_in_body", "response")
         self.assertEqual(1, len(infos), infos)
         info = infos[0]
         self.assertEqual("HTTP Response in HTTP body", info.get_name())
 
     def test_no_http_in_body(self):
         self._grep("<html><body>regular content</body></html>")
-        self.assertEqual(0, len(kb.kb.get("http_in_body", "request")))
-        self.assertEqual(0, len(kb.kb.get("http_in_body", "response")))
+        self.assertEqual(0, len(kb.get("http_in_body", "request")))
+        self.assertEqual(0, len(kb.get("http_in_body", "response")))
 
     def test_501_is_skipped(self):
         self._grep("<h2>HTTP/1.1 501 Not Implemented</h2>", code=501)
-        self.assertEqual(0, len(kb.kb.get("http_in_body", "response")))
+        self.assertEqual(0, len(kb.get("http_in_body", "response")))
 
     def test_not_text(self):
         self._grep("GET /index.html HTTP/1.0", content_type="image/png")
-        self.assertEqual(0, len(kb.kb.get("http_in_body", "request")))
+        self.assertEqual(0, len(kb.get("http_in_body", "request")))
 
     def test_end_reporting(self):
         self._grep("A debug trace: GET /index.html HTTP/1.0 was logged here")
         self.plugin.end()
-        self.assertEqual(1, len(kb.kb.get("http_in_body", "request")))
+        self.assertEqual(1, len(kb.get("http_in_body", "request")))
+
+
+kb = DBKnowledgeBase()

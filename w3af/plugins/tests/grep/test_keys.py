@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -35,7 +35,7 @@ class TestKeys(PluginTest):
 
     def setUp(self):
         self.plugin = keys()
-        kb.kb.clear("keys", "keys")
+        kb.clear("keys", "keys")
 
     def tearDown(self):
         self.plugin.end()
@@ -48,7 +48,7 @@ class TestKeys(PluginTest):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get("keys", "keys")
+        data = kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
         self.assertEqual(type(data[0]), Vuln)
 
@@ -60,7 +60,7 @@ class TestKeys(PluginTest):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get("keys", "keys")
+        data = kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
         self.assertEqual(type(data[0]), Info)
 
@@ -72,7 +72,7 @@ class TestKeys(PluginTest):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get("keys", "keys")
+        data = kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
 
     def test_public_ecdsa_key(self):
@@ -83,7 +83,7 @@ class TestKeys(PluginTest):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get("keys", "keys")
+        data = kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
         self.assertEqual(type(data[0]), Info)
 
@@ -98,7 +98,7 @@ class TestKeys(PluginTest):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get("keys", "keys")
+        data = kb.get("keys", "keys")
         self.assertEqual(len(data), 3)
 
     def test_no_match(self):
@@ -109,5 +109,8 @@ class TestKeys(PluginTest):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get("keys", "keys")
+        data = kb.get("keys", "keys")
         self.assertEqual(len(data), 0)
+
+
+kb = DBKnowledgeBase()

@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.plugins.attack.payloads.shell_handler import get_shell_code, get_webshells
 
 
@@ -30,7 +30,7 @@ class TestShellHandler(unittest.TestCase):
     TEST_CMD = "ls"
 
     def test_get_shell_code_extension(self):
-        shells = get_shell_code("php", self.TEST_CMD, knowledge_base=kb.kb)
+        shells = get_shell_code("php", self.TEST_CMD, knowledge_base=kb)
 
         self.assertEqual(len(shells), 2)
         php_shell_code, lang, _shellcode_generator = shells[0]
@@ -39,7 +39,7 @@ class TestShellHandler(unittest.TestCase):
         self.assertIn("echo ", php_shell_code)
 
     def test_get_shell_code_extension_force(self):
-        shells = get_shell_code("php", self.TEST_CMD, True, knowledge_base=kb.kb)
+        shells = get_shell_code("php", self.TEST_CMD, True, knowledge_base=kb)
 
         self.assertEqual(len(shells), 1)
         php_shell_code, lang, _shellcode_generator = shells[0]
@@ -48,7 +48,7 @@ class TestShellHandler(unittest.TestCase):
         self.assertIn("echo ", php_shell_code)
 
     def test_get_shell_code_no_extension(self):
-        shells = get_shell_code("", self.TEST_CMD, knowledge_base=kb.kb)
+        shells = get_shell_code("", self.TEST_CMD, knowledge_base=kb)
 
         self.assertEqual(len(shells), 2)
         php_shell_code, lang, _shellcode_generator = shells[0]
@@ -57,7 +57,7 @@ class TestShellHandler(unittest.TestCase):
         self.assertIn("echo ", php_shell_code)
 
     def test_get_shell_code_invalid_extension(self):
-        shells = get_shell_code("123456", self.TEST_CMD, knowledge_base=kb.kb)
+        shells = get_shell_code("123456", self.TEST_CMD, knowledge_base=kb)
 
         self.assertEqual(len(shells), 2)
         php_shell_code, lang, _shellcode_generator = shells[0]
@@ -66,7 +66,7 @@ class TestShellHandler(unittest.TestCase):
         self.assertIn("echo ", php_shell_code)
 
     def test_get_web_shell_extension(self):
-        shells = get_webshells("php", knowledge_base=kb.kb)
+        shells = get_webshells("php", knowledge_base=kb)
 
         self.assertEqual(len(shells), 6)
         # The first one is PHP since we asked for it when we passed PHP as
@@ -77,7 +77,7 @@ class TestShellHandler(unittest.TestCase):
         self.assertIn("echo ", php_shell_code)
 
     def test_get_web_shell_code_extension_force(self):
-        shells = get_webshells("php", True, knowledge_base=kb.kb)
+        shells = get_webshells("php", True, knowledge_base=kb)
 
         # Only one returned since we're forcing the extension
         self.assertEqual(len(shells), 1)
@@ -87,19 +87,19 @@ class TestShellHandler(unittest.TestCase):
         self.assertIn("echo ", php_shell_code)
 
     def test_get_web_shell_code_no_extension(self):
-        shells = get_webshells("", knowledge_base=kb.kb)
+        shells = get_webshells("", knowledge_base=kb)
 
         # All returned when invalid extension
         self.assertEqual(len(shells), 6)
 
     def test_get_web_shell_code_invalid_extension(self):
-        shells = get_webshells("123456", knowledge_base=kb.kb)
+        shells = get_webshells("123456", knowledge_base=kb)
 
         # All returned when invalid extension
         self.assertEqual(len(shells), 6)
 
     def test_with_kb_data(self):
-        kb.kb.raw_write(
+        kb.raw_write(
             "server_header",
             "powered_by_string",
             [
@@ -107,7 +107,7 @@ class TestShellHandler(unittest.TestCase):
             ],
         )
 
-        shells = get_webshells("", knowledge_base=kb.kb)
+        shells = get_webshells("", knowledge_base=kb)
 
         # TODO: The shells list has duplicates, fix in the future. Not really a
         #       big issue since it would translate into 1 more HTTP request and
@@ -121,4 +121,7 @@ class TestShellHandler(unittest.TestCase):
         self.assertEqual(lang, "asp")
         self.assertIn("WSCRIPT.SHELL", asp_shell_code)
 
-        kb.kb.cleanup()
+        kb.cleanup()
+
+
+kb = DBKnowledgeBase()

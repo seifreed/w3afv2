@@ -23,9 +23,9 @@ from typing import ClassVar
 
 import pytest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -70,12 +70,12 @@ class TestErrorPages(PluginTest):
 
     def setUp(self):
         super().setUp()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_found_vuln_max_reports(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         plugin = error_pages()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
 
         body = plugin.ERROR_PAGES[5]
         headers = Headers(list({"content-type": "text/html"}.items()))
@@ -90,13 +90,13 @@ class TestErrorPages(PluginTest):
         plugin.end()
 
         self.assertEqual(
-            len(kb.kb.get("error_pages", "error_page")), plugin.MAX_REPORTED_PER_MSG + 1
+            len(kb.get("error_pages", "error_page")), plugin.MAX_REPORTED_PER_MSG + 1
         )
 
     def test_found_vuln_max_reports_two_different(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         plugin = error_pages()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
 
         body = plugin.ERROR_PAGES[5]
         headers = Headers(list({"content-type": "text/html"}.items()))
@@ -119,5 +119,8 @@ class TestErrorPages(PluginTest):
         plugin.end()
 
         self.assertEqual(
-            len(kb.kb.get("error_pages", "error_page")), plugin.MAX_REPORTED_PER_MSG + 2
+            len(kb.get("error_pages", "error_page")), plugin.MAX_REPORTED_PER_MSG + 2
         )
+
+
+kb = DBKnowledgeBase()

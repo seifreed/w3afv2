@@ -31,9 +31,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.data.constants import severity
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.grep.retirejs import retirejs
@@ -194,7 +194,7 @@ class RetireJSUnitTest(GrepPluginTestCase):
         plugin.grep(make_request(url=url, method=method), response)
 
     def vulns(self):
-        return kb.kb.get("retirejs", "js")
+        return kb.get("retirejs", "js")
 
 
 class TestRetireJSInstallationChecks(RetireJSUnitTest):
@@ -360,3 +360,6 @@ class TestRetireJSOutputHandling(RetireJSUnitTest):
         plugin._json_to_kb(batch, {"data": [{"file": filename, "results": results}]})
 
         self.assertEqual(self.vulns(), [])
+
+
+kb = DBKnowledgeBase()

@@ -42,7 +42,7 @@ from w3af.core.controllers.tests.local_http_server import (
     closed_local_port,
 )
 from w3af.core.controllers.w3af_core import w3afCore
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopException
 
 TLS_HELPERS = os.path.join(ROOT_PATH, "core", "data", "url", "tests", "helpers")
@@ -127,7 +127,7 @@ class TestStrategy(unittest.TestCase):
         self.server = LocalHTTPServer(responder).start()
 
     def get_core(self, target_url):
-        core = w3afCore()
+        core = w3afCore(knowledge_base=kb)
         self.addCleanup(core.quit)
 
         target = core.target.get_options()
@@ -307,3 +307,6 @@ class TestStrategy(unittest.TestCase):
         fingerprint_404_singleton(cleanup=True)
 
         setup_404_detection(core, om.out, core.configuration)
+
+
+kb = DBKnowledgeBase()

@@ -40,7 +40,7 @@ from w3af.core.controllers.output_manager.manager import OutputManager
 from w3af.core.controllers.tests.recording_output import recording_output
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.data.kb.info import Info
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.plugins.output.console import console
 
 WAIT_SECONDS = 10
@@ -356,3 +356,6 @@ class TestLogSink(unittest.TestCase):
             sink.debug("lost message")
 
         self.assertIn("LogSink queue communication lost", output.getvalue())
+
+
+kb = DBKnowledgeBase()

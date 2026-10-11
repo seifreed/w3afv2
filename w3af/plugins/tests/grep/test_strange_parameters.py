@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -33,7 +33,7 @@ from w3af.plugins.grep.strange_parameters import strange_parameters
 class TestStrangeParameters(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = strange_parameters()
         self.url = URL("http://www.w3af.com/")
         self.headers = Headers([("content-type", "text/html")])
@@ -46,31 +46,31 @@ class TestStrangeParameters(unittest.TestCase):
         body = ""
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 0)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 0)
 
     def test_strange_parameters_not_find_1(self):
         body = '<html><a href="/?id=3">x</a></html>'
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 0)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 0)
 
     def test_strange_parameters_not_find_2(self):
         body = '<html><a href="/?id=3&id=3&id=5&foo=bar">x</a></html>'
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 0)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 0)
 
     def test_strange_parameters_not_find_3(self):
         body = '<html><a href="http://moth/abc.jsp?id=3&id=3&id=5&foo=bar">x</a></html>'
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 0)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 0)
 
     def test_strange_parameters_find(self):
         body = '<html><a href="http://moth/abc.jsp?call=s(12,3)">x</a></html>'
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 1)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 1)
 
     def test_strange_parameters_find_sql(self):
         body = (
@@ -80,7 +80,7 @@ class TestStrangeParameters(unittest.TestCase):
         )
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 1)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 1)
 
     def test_multi(self):
         body = """<html>
@@ -89,7 +89,7 @@ class TestStrangeParameters(unittest.TestCase):
                   </html>"""
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        vulns = kb.kb.get("strange_parameters", "strange_parameters")
+        vulns = kb.get("strange_parameters", "strange_parameters")
         self.assertEqual(len(vulns), 2, vulns)
 
     def test_strange_parameters_sent_false_positive_01(self):
@@ -106,11 +106,14 @@ class TestStrangeParameters(unittest.TestCase):
         request = FuzzableRequest(url)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 0)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 0)
 
     def test_strange_parameters_sent_false_positive_02(self):
         body = '<a href="http://news.google.se/news/url?url=http%3A%2F%2Fwww.foo.com%2F">xyz</a>'
 
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_parameters", "strange_parameters")), 0)
+        self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 0)
+
+
+kb = DBKnowledgeBase()

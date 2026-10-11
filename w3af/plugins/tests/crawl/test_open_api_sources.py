@@ -28,9 +28,9 @@ from typing import ClassVar
 import yaml
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
     NestedModel,
     PetstoreSimpleModel,
@@ -207,8 +207,8 @@ class TestOpenAPIWithoutUrlPartsDiscovery(PluginTest):
 class TestOpenAPIPluginInternals(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
         self.addCleanup(MiscSettings(cf).set_default_values)
 
         self.plugin = open_api()
@@ -250,3 +250,6 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

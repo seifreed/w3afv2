@@ -21,8 +21,8 @@ Unit tests for the bruteforce plugins which do not need a full scan.
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.filesystem import create_temp_dir
@@ -39,19 +39,19 @@ class TestBruteforcePackage(unittest.TestCase):
 class TestBasicAuth(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_audit_skips_url_without_basic_auth(self):
         plugin = basic_auth()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
 
         # http_auth_detect did not report this URL, so audit() returns early
         plugin.audit(FuzzableRequest(URL("http://w3af.org/not-protected/")))
 
-        self.assertEqual(kb.kb.get("basic_auth", "auth"), [])
+        self.assertEqual(kb.get("basic_auth", "auth"), [])
 
     def test_long_description(self):
         self.assertIn("bruteforces basic authentication", basic_auth().get_long_desc())
@@ -62,24 +62,24 @@ class TestBasicAuth(unittest.TestCase):
         # http_auth_detect reported a basic-auth protected directory
         info = Info("HTTP basic auth", "desc for a basic auth endpoint", 1, "x")
         info.set_url(url)
-        kb.kb.append("http_auth_detect", "auth", info)
+        kb.append("http_auth_detect", "auth", info)
 
         plugin = basic_auth()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin._already_tested.append(url.get_domain_path())
 
         # audit() returns without bruteforcing because the URL is in the
         # already-tested list
         plugin.audit(FuzzableRequest(url))
 
-        self.assertEqual(kb.kb.get("basic_auth", "auth"), [])
+        self.assertEqual(kb.get("basic_auth", "auth"), [])
 
     def test_end_without_findings_is_a_noop(self):
         plugin = basic_auth()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.end()
 
-        self.assertEqual(kb.kb.get("basic_auth", "auth"), [])
+        self.assertEqual(kb.get("basic_auth", "auth"), [])
 
 
 class TestFailedLoginPage(unittest.TestCase):
@@ -126,3 +126,6 @@ class TestFailedLoginPage(unittest.TestCase):
         page = FailedLoginPage(body(failed), body(failed))
 
         self.assertFalse(page.matches(body(success)))
+
+
+kb = DBKnowledgeBase()

@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -38,13 +38,13 @@ class TestCSP(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = csp()
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def _grep(self, csp_value, url=None):
         url = url or self.url
@@ -58,7 +58,7 @@ class TestCSP(unittest.TestCase):
         self._grep(PERMISSIVE_CSP)
         self.plugin.end()
 
-        vulns = kb.kb.get("csp", "csp")
+        vulns = kb.get("csp", "csp")
 
         expected = {
             "Directive 'default-src' allows all sources.",
@@ -82,12 +82,15 @@ class TestCSP(unittest.TestCase):
         response = HTTPResponse(200, "", headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
         self.plugin.end()
-        self.assertEqual(len(kb.kb.get("csp", "csp")), 0)
+        self.assertEqual(len(kb.get("csp", "csp")), 0)
 
     def test_url_analyzed_once(self):
         self._grep(PERMISSIVE_CSP)
         self._grep(PERMISSIVE_CSP)
         self.plugin.end()
-        vulns = kb.kb.get("csp", "csp")
+        vulns = kb.get("csp", "csp")
         vuln_urls = {v.get_url().url_string for v in vulns}
         self.assertEqual(vuln_urls, {self.url.url_string})
+
+
+kb = DBKnowledgeBase()

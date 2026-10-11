@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -33,7 +33,7 @@ from w3af.plugins.grep.ssn import ssn
 class test_ssn(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = ssn()
         self.plugin._already_inspected = set()
         self.url = URL("http://www.w3af.com/")
@@ -48,21 +48,21 @@ class test_ssn(unittest.TestCase):
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin._already_inspected = set()
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 0)
 
     def test_ssn_separated(self):
         body = "header 771-12-9876 footer"
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 1)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 1)
 
     def test_ssn_with_html(self):
         body = "header <b>771</b>-<b>12</b>-<b>9878</b> footer"
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 1)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 1)
 
     def test_ssn_with_complex_html(self):
         """
@@ -79,21 +79,21 @@ class test_ssn(unittest.TestCase):
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 0)
 
     def test_ssn_together(self):
         body = "header 771129876 footer"
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 1)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 1)
 
     def test_ssn_extra_number(self):
         body = "header 7711298761 footer"
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
+        self.assertEqual(len(kb.get("ssn", "ssn")), 0)
 
     def test_find_ssn(self):
         EXPECTED = {
@@ -116,3 +116,6 @@ class test_ssn(unittest.TestCase):
         res.append(self.plugin._find_SSN("header 771129876 771129875 footer"))
 
         self.assertEqual(EXPECTED, set(res))
+
+
+kb = DBKnowledgeBase()

@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -39,7 +39,7 @@ class test_strange_http_codes(unittest.TestCase):
 
     def tearDown(self):
         self.plugin.end()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_strange_http_codes(self):
         body = ""
@@ -59,18 +59,14 @@ class test_strange_http_codes(unittest.TestCase):
         KNOWN_BAD = [resp_999, resp_123, resp_567, resp_666, resp_777]
 
         for resp in KNOWN_GOOD:
-            kb.kb.cleanup()
+            kb.cleanup()
             self.plugin.grep(request, resp)
-            self.assertEqual(
-                len(kb.kb.get("strange_http_codes", "strange_http_codes")), 0
-            )
+            self.assertEqual(len(kb.get("strange_http_codes", "strange_http_codes")), 0)
 
         for resp in KNOWN_BAD:
-            kb.kb.cleanup()
+            kb.cleanup()
             self.plugin.grep(request, resp)
-            self.assertEqual(
-                len(kb.kb.get("strange_http_codes", "strange_http_codes")), 1
-            )
+            self.assertEqual(len(kb.get("strange_http_codes", "strange_http_codes")), 1)
 
     def test_strange_http_codes_group_by_code(self):
         body = ""
@@ -86,7 +82,7 @@ class test_strange_http_codes(unittest.TestCase):
         resp_2 = HTTPResponse(666, body, headers, url_2, url_2, _id=2)
         self.plugin.grep(request_2, resp_2)
 
-        info_sets = kb.kb.get("strange_http_codes", "strange_http_codes")
+        info_sets = kb.get("strange_http_codes", "strange_http_codes")
         self.assertEqual(len(info_sets), 1, info_sets)
 
         expected_desc = (
@@ -114,7 +110,7 @@ class test_strange_http_codes(unittest.TestCase):
         resp_2 = HTTPResponse(667, body, headers, url_2, url_2, _id=2)
         self.plugin.grep(request_2, resp_2)
 
-        info_sets = kb.kb.get("strange_http_codes", "strange_http_codes")
+        info_sets = kb.get("strange_http_codes", "strange_http_codes")
         self.assertEqual(len(info_sets), 2, info_sets)
 
     def test_strange_http_codes_heavy_load(self):
@@ -128,6 +124,9 @@ class test_strange_http_codes(unittest.TestCase):
         KNOWN_BAD = [resp_503, resp_509]
 
         for resp in KNOWN_BAD:
-            kb.kb.cleanup()
+            kb.cleanup()
             self.plugin.grep(request, resp)
-            self.assertEqual(len(kb.kb.get("strange_http_codes", "heavy_load")), 1)
+            self.assertEqual(len(kb.get("strange_http_codes", "heavy_load")), 1)
+
+
+kb = DBKnowledgeBase()

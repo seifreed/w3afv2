@@ -24,8 +24,8 @@ from typing import ClassVar
 
 import pytest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -84,7 +84,7 @@ class TestHTMLCommentsUnit(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = html_comments()
 
     def tearDown(self):
@@ -99,7 +99,7 @@ class TestHTMLCommentsUnit(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         self.plugin.grep(request, response)
 
-        info_sets = kb.kb.get("html_comments", "interesting_comments")
+        info_sets = kb.get("html_comments", "interesting_comments")
         self.assertEqual(len(info_sets), 1)
 
     def test_html_comment_profiling(self):
@@ -113,5 +113,8 @@ class TestHTMLCommentsUnit(unittest.TestCase):
         for _ in range(500):
             self.plugin.grep(request, response)
 
-        info_sets = kb.kb.get("html_comments", "interesting_comments")
+        info_sets = kb.get("html_comments", "interesting_comments")
         self.assertEqual(len(info_sets), 1)
+
+
+kb = DBKnowledgeBase()

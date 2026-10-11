@@ -22,10 +22,10 @@ Shared helpers for the grep plugin unit tests.
 import unittest
 from queue import Queue
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.response_uniq_id import get_response_unique_id
@@ -60,14 +60,14 @@ class GrepPluginTestCase(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     @staticmethod
     def configure_plugin(plugin):
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
         plugin.set_output(LogSink(Queue()))
         return plugin
@@ -98,3 +98,6 @@ class GrepPluginTestCase(unittest.TestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

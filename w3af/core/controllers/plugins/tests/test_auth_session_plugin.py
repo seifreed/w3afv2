@@ -5,7 +5,7 @@ from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.helpers import new_no_content_resp
@@ -217,3 +217,6 @@ class TestFailedResponseLog(AuthSessionTestCase):
 
         self.assertFalse(saved)
         self.assertEqual(plugin._session_failed_http_request_ids, [])
+
+
+kb = DBKnowledgeBase()

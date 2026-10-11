@@ -28,7 +28,7 @@ from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
@@ -45,7 +45,7 @@ class TestAuditPlugin(unittest.TestCase):
 
     def setUp(self):
         kb.cleanup()
-        self.w3af = w3afCore()
+        self.w3af = w3afCore(knowledge_base=kb)
 
     def tearDown(self):
         self.w3af.quit()
@@ -223,3 +223,6 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_type(self):
         self.assertEqual(AuditPlugin().get_type(), "audit")
+
+
+kb = DBKnowledgeBase()

@@ -26,8 +26,8 @@ from typing import ClassVar
 import pytest
 from scapy.error import Scapy_Exception
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.plugins.infrastructure.http_vs_https_dist as hvshsdist
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
@@ -65,9 +65,9 @@ class test_http_vs_https_dist(unittest.TestCase):
     }
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugininst = hvshsdist.http_vs_https_dist()
-        self.plugininst.set_knowledge_base(kb.kb)
+        self.plugininst.set_knowledge_base(kb)
 
     def _different_route_traces(self):
         """
@@ -78,7 +78,7 @@ class test_http_vs_https_dist(unittest.TestCase):
         return http_trace, copy.deepcopy(self.tracedict)
 
     def _reported_infos(self):
-        return kb.kb.get("http_vs_https_dist", "http_vs_https_dist")
+        return kb.get("http_vs_https_dist", "http_vs_https_dist")
 
     def _attach_log(self):
         log = TextFileLog()
@@ -237,3 +237,6 @@ class TestHTTPvsHTTPS(PluginTest):
 
         info = infos[0]
         self.assertEqual("HTTP traceroute", info.get_name())
+
+
+kb = DBKnowledgeBase()

@@ -5,7 +5,7 @@ from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.helpers import new_no_content_resp
 from w3af.core.data.url.http_response import HTTPResponse
@@ -261,3 +261,6 @@ class TestKnowledgeBaseReport(AuthPluginTestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

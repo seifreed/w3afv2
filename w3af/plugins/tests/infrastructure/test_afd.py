@@ -25,7 +25,7 @@ import unittest
 import urllib.parse
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -164,7 +164,7 @@ class TestAFDUnreachable(unittest.TestCase):
     """
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = afd()
         self.plugin._uri_opener = ExtendedUrllib()
         self.addCleanup(self.plugin._uri_opener.end)
@@ -172,7 +172,7 @@ class TestAFDUnreachable(unittest.TestCase):
     def test_first_request_fails(self):
         self.plugin.discover(FuzzableRequest(closed_port_url()), 1)
 
-        self.assertEqual(kb.kb.get("afd", "afd"), [])
+        self.assertEqual(kb.get("afd", "afd"), [])
 
     def test_offending_request_fails_is_filtered(self):
         offending_url = closed_port_url()
@@ -183,3 +183,6 @@ class TestAFDUnreachable(unittest.TestCase):
 
     def test_long_description(self):
         self.assertIn("active filter", self.plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

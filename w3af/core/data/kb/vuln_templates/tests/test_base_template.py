@@ -24,7 +24,7 @@ import unittest
 
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 from w3af.core.data.kb.vuln_templates.eval_template import EvalTemplate
 
@@ -122,3 +122,6 @@ class BaseTemplateTest(unittest.TestCase):
         self.assertEqual(
             str(context.exception), "The vulnerable parameter \"'id'\" was not found"
         )
+
+
+kb = DBKnowledgeBase()

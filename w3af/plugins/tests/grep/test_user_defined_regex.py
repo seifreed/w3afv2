@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -34,7 +34,7 @@ class test_user_defined_regex(unittest.TestCase):
 
     def setUp(self):
         self.plugin = user_defined_regex()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
 
     def test_user_defined_regex(self):
         body = '<html><head><script>xhr = new XMLHttpRequest(); xhr.open(GET, "data.txt",  true);'
@@ -48,9 +48,9 @@ class test_user_defined_regex(unittest.TestCase):
         self.plugin.set_options(options)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("user_defined_regex", "user_defined_regex")), 1)
+        self.assertEqual(len(kb.get("user_defined_regex", "user_defined_regex")), 1)
 
-        info_obj = kb.kb.get("user_defined_regex", "user_defined_regex")[0]
+        info_obj = kb.get("user_defined_regex", "user_defined_regex")[0]
         self.assertTrue(
             info_obj.get_desc().startswith('User defined regular expression "')
         )
@@ -58,3 +58,6 @@ class test_user_defined_regex(unittest.TestCase):
 
     def tearDown(self):
         self.plugin.end()
+
+
+kb = DBKnowledgeBase()

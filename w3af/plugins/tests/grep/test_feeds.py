@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -34,7 +34,7 @@ class test_feeds(unittest.TestCase):
 
     def setUp(self):
         self.plugin = feeds()
-        kb.kb.clear("feeds", "feeds")
+        kb.clear("feeds", "feeds")
 
     def tearDown(self):
         self.plugin.end()
@@ -47,8 +47,8 @@ class test_feeds(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
-        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertEqual(len(kb.get("feeds", "feeds")), 1)
+        i = kb.get("feeds", "feeds")[0]
         self.assertTrue("RSS" in i.get_desc())
         self.assertTrue("3" in i.get_desc())
 
@@ -60,8 +60,8 @@ class test_feeds(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
-        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertEqual(len(kb.get("feeds", "feeds")), 1)
+        i = kb.get("feeds", "feeds")[0]
         self.assertTrue("OPML" in i.get_desc())
         self.assertTrue("3" in i.get_desc())
 
@@ -73,8 +73,8 @@ class test_feeds(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
-        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertEqual(len(kb.get("feeds", "feeds")), 1)
+        i = kb.get("feeds", "feeds")[0]
         self.assertTrue("OPML" in i.get_desc())
         self.assertTrue("3" in i.get_desc())
 
@@ -86,7 +86,7 @@ class test_feeds(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 0)
+        self.assertEqual(len(kb.get("feeds", "feeds")), 0)
 
     def test_no_version(self):
         body = 'header <rss foo="3"> footer'
@@ -96,7 +96,10 @@ class test_feeds(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
-        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertEqual(len(kb.get("feeds", "feeds")), 1)
+        i = kb.get("feeds", "feeds")[0]
         self.assertTrue("RSS" in i.get_desc())
         self.assertTrue("unknown" in i.get_desc())
+
+
+kb = DBKnowledgeBase()

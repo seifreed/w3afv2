@@ -6,7 +6,7 @@ import unittest
 from w3af.core.controllers.plugins.bruteforce_plugin import BruteforcePlugin
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.constants import severity
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -229,3 +229,6 @@ class TestOptions(BruteforcePluginTestCase):
         self.assertEqual(target._profiling_number, 7)
         self.assertEqual(target._combo_separator, "|")
         self.assertTrue(target._mask_password_in_report)
+
+
+kb = DBKnowledgeBase()

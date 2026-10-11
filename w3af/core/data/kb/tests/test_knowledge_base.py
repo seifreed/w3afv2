@@ -30,7 +30,7 @@ from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.kb.tests.test_info import MockInfo
 from w3af.core.data.kb.tests.test_vuln import MockVuln
@@ -1022,3 +1022,6 @@ class MockInfoSetFalse(InfoSet):
 class MockInfoSetTrue(InfoSet):
     def match(self, info):
         return True
+
+
+kb = DBKnowledgeBase()

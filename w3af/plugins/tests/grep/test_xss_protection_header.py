@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -34,7 +34,7 @@ class TestXSSProtectionHeader(unittest.TestCase):
 
     def setUp(self):
         self.plugin = xss_protection_header()
-        kb.kb.clear("xss_protection_header", "xss_protection_header")
+        kb.clear("xss_protection_header", "xss_protection_header")
 
     def tearDown(self):
         self.plugin.end()
@@ -47,7 +47,7 @@ class TestXSSProtectionHeader(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("xss_protection_header", "xss_protection_header")), 0
+            len(kb.get("xss_protection_header", "xss_protection_header")), 0
         )
 
     def test_xss_protection_header_enable(self):
@@ -58,7 +58,7 @@ class TestXSSProtectionHeader(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("xss_protection_header", "xss_protection_header")), 0
+            len(kb.get("xss_protection_header", "xss_protection_header")), 0
         )
 
     def test_xss_protection_header_disable(self):
@@ -69,7 +69,7 @@ class TestXSSProtectionHeader(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("xss_protection_header", "xss_protection_header")), 1
+            len(kb.get("xss_protection_header", "xss_protection_header")), 1
         )
 
     def test_xss_protection_header_invalid(self):
@@ -82,7 +82,7 @@ class TestXSSProtectionHeader(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(
-            len(kb.kb.get("xss_protection_header", "xss_protection_header")), 0
+            len(kb.get("xss_protection_header", "xss_protection_header")), 0
         )
 
     def test_xss_protection_header_disable_group(self):
@@ -99,7 +99,7 @@ class TestXSSProtectionHeader(unittest.TestCase):
         request_2 = FuzzableRequest(url_2, method="GET")
         self.plugin.grep(request_2, response_2)
 
-        info_sets = kb.kb.get("xss_protection_header", "xss_protection_header")
+        info_sets = kb.get("xss_protection_header", "xss_protection_header")
         self.assertEqual(len(info_sets), 1)
 
         expected_desc = (
@@ -114,3 +114,6 @@ class TestXSSProtectionHeader(unittest.TestCase):
         info_set = info_sets[0]
         self.assertEqual(info_set.get_id(), [1, 3])
         self.assertEqual(info_set.get_desc(), expected_desc)
+
+
+kb = DBKnowledgeBase()

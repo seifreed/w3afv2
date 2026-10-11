@@ -23,7 +23,7 @@ import re
 import urllib.parse
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.plugins.crawl.wordnet import wordnet
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -95,7 +95,7 @@ class TestWordnet(PluginTest):
             "show.py?color=red",
         )
 
-        frs = kb.kb.get_all_known_fuzzable_requests()
+        frs = kb.get_all_known_fuzzable_requests()
 
         self.assertEqual(
             {fr.get_uri().url_string for fr in frs},
@@ -135,3 +135,6 @@ class TestSearchWordnet:
     def test_long_desc(self):
         if "wordnet database" not in wordnet().get_long_desc():
             raise AssertionError
+
+
+kb = DBKnowledgeBase()

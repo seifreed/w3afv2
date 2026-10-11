@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.helpers import new_no_content_resp
 from w3af.core.data.url.http_response import HTTPResponse
@@ -95,18 +95,18 @@ class TestServerHeaderAnalysis(unittest.TestCase):
     """
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
         self.plugin = server_header()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
 
     def test_no_content_response_is_ignored(self):
         response = new_no_content_resp(URL("http://mock/"))
 
         self.plugin._check_server_header(None, response)
 
-        self.assertEqual(kb.kb.get("server_header", "server"), [])
-        self.assertEqual(kb.kb.get("server_header", "omitted_server_header"), [])
+        self.assertEqual(kb.get("server_header", "server"), [])
+        self.assertEqual(kb.get("server_header", "omitted_server_header"), [])
 
     def test_repeated_headers_are_reported_once(self):
         url = URL("http://mock/")
@@ -117,8 +117,11 @@ class TestServerHeaderAnalysis(unittest.TestCase):
             self.plugin._check_server_header(None, response)
             self.plugin._check_x_power(None, response)
 
-        self.assertEqual(len(kb.kb.get("server_header", "server")), 1)
-        self.assertEqual(len(kb.kb.get("server_header", "powered_by")), 1)
+        self.assertEqual(len(kb.get("server_header", "server")), 1)
+        self.assertEqual(len(kb.get("server_header", "powered_by")), 1)
 
     def test_long_desc_mentions_hmap(self):
         self.assertIn("hmap", self.plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

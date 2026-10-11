@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socket
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
@@ -49,17 +49,17 @@ def closed_address():
 
 class TestDetectTransparentProxy(unittest.TestCase):
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
     def test_every_probe_answered_is_a_transparent_proxy(self):
         address = listening_socket(self)
         plugin = detect_transparent_proxy(probe_addresses=(address, address))
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
-        infos = kb.kb.get("detect_transparent_proxy", "detect_transparent_proxy")
+        infos = kb.get("detect_transparent_proxy", "detect_transparent_proxy")
         self.assertEqual(len(infos), 1, infos)
         self.assertEqual(infos[0].get_name(), "Transparent proxy detected")
         self.assertEqual(infos[0].get_url(), FUZZABLE_REQUEST.get_url())
@@ -67,17 +67,17 @@ class TestDetectTransparentProxy(unittest.TestCase):
     def test_unanswered_probe_means_no_proxy(self):
         address = listening_socket(self)
         plugin = detect_transparent_proxy(probe_addresses=(address, closed_address()))
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
         self.assertEqual(
-            kb.kb.get("detect_transparent_proxy", "detect_transparent_proxy"), []
+            kb.get("detect_transparent_proxy", "detect_transparent_proxy"), []
         )
 
     def test_runs_once(self):
         plugin = detect_transparent_proxy(probe_addresses=(closed_address(),))
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
@@ -88,3 +88,6 @@ class TestDetectTransparentProxy(unittest.TestCase):
 
         self.assertEqual(plugin._probe_addresses[0], ("1.2.3.4", 80))
         self.assertIn("transparent proxies", plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

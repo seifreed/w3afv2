@@ -398,6 +398,3 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
         self.add_url(fuzzable_request.get_url())
         return self.fuzzable_requests.add(fuzzable_request)
-
-
-kb = DBKnowledgeBase()

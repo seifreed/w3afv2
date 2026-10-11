@@ -24,8 +24,8 @@ from typing import ClassVar
 
 import pytest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -114,11 +114,11 @@ class TestCrossDomainJS(PluginTest):
 class TestCrossDomainJSRaw(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = cross_domain_js()
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_cross_domain_third_party_is_secure(self):
         body = '<script src="https://cdn.akamai.net/foo.js"></script>'
@@ -130,7 +130,7 @@ class TestCrossDomainJSRaw(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cross_domain_js", "cross_domain_js")
+        infos = kb.get("cross_domain_js", "cross_domain_js")
         self.assertEqual(len(infos), 0)
 
     def test_cross_domain_third_party_is_insecure(self):
@@ -143,7 +143,7 @@ class TestCrossDomainJSRaw(unittest.TestCase):
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get("cross_domain_js", "cross_domain_js")
+        infos = kb.get("cross_domain_js", "cross_domain_js")
         self.assertEqual(len(infos), 1)
 
     def test_cross_domain_third_party_is_insecure_group_info_set(self):
@@ -170,6 +170,9 @@ class TestCrossDomainJSRaw(unittest.TestCase):
             " - http://www.w3af.com/2\n"
         )
 
-        (info_set,) = kb.kb.get("cross_domain_js", "cross_domain_js")
+        (info_set,) = kb.get("cross_domain_js", "cross_domain_js")
         self.assertEqual(set(info_set.get_urls()), {url_1, url_2})
         self.assertEqual(info_set.get_desc(), expected_desc)
+
+
+kb = DBKnowledgeBase()

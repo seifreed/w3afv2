@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.infrastructure.dot_net_errors import dot_net_errors
@@ -145,7 +145,7 @@ class TestCustomErrorsEnabled(DotNetErrorsTest):
     def test_error_without_details_is_not_reported(self):
         self.plugin._send_and_check(URL("http://httpretty/sample~.aspx"))
 
-        self.assertEqual(kb.kb.get("dot_net_errors", "dot_net_errors"), [])
+        self.assertEqual(kb.get("dot_net_errors", "dot_net_errors"), [])
 
     def test_stops_after_max_tests(self):
         self.plugin.MAX_TESTS = 1
@@ -178,3 +178,6 @@ class TestGenerateURLs(unittest.TestCase):
 
         self.assertEqual(plugin.get_plugin_deps(), ["grep.error_pages"])
         self.assertIn("default~.aspx", plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

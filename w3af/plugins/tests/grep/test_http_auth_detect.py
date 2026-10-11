@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -37,8 +37,8 @@ class test_http_auth_detect(unittest.TestCase):
         self.headers = Headers(list({"content-type": "text/html"}.items()))
         self.request = FuzzableRequest(self.url, method="GET")
         self.plugin = http_auth_detect()
-        self.plugin.set_knowledge_base(kb.kb)
-        kb.kb.cleanup()
+        self.plugin.set_knowledge_base(kb)
+        kb.cleanup()
 
     def tearDown(self):
         self.plugin.end()
@@ -46,15 +46,15 @@ class test_http_auth_detect(unittest.TestCase):
     def test_http_auth_detect_negative(self):
         response = HTTPResponse(200, "", self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "auth")), 0)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "userPassUri")), 0)
+        self.assertEqual(len(kb.get("http_auth_detect", "auth")), 0)
+        self.assertEqual(len(kb.get("http_auth_detect", "userPassUri")), 0)
 
     def test_http_auth_detect_negative_long(self):
         body = "ABC " * 10000
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "auth")), 0)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "userPassUri")), 0)
+        self.assertEqual(len(kb.get("http_auth_detect", "auth")), 0)
+        self.assertEqual(len(kb.get("http_auth_detect", "userPassUri")), 0)
 
     def test_http_auth_detect_uri(self):
         body = "ABC " * 100
@@ -62,15 +62,15 @@ class test_http_auth_detect(unittest.TestCase):
         body += "</br> " * 50
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "auth")), 0)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "userPassUri")), 1)
+        self.assertEqual(len(kb.get("http_auth_detect", "auth")), 0)
+        self.assertEqual(len(kb.get("http_auth_detect", "userPassUri")), 1)
 
     def test_http_auth_detect_non_rfc(self):
         body = ""
         response = HTTPResponse(401, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "non_rfc_auth")), 1)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "userPassUri")), 0)
+        self.assertEqual(len(kb.get("http_auth_detect", "non_rfc_auth")), 1)
+        self.assertEqual(len(kb.get("http_auth_detect", "userPassUri")), 0)
 
     def test_http_auth_detect_simple(self):
         body = ""
@@ -78,5 +78,8 @@ class test_http_auth_detect(unittest.TestCase):
         hdrs = Headers(list(hdrs.items()))
         response = HTTPResponse(401, body, hdrs, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "auth")), 1)
-        self.assertEqual(len(kb.kb.get("http_auth_detect", "userPassUri")), 0)
+        self.assertEqual(len(kb.get("http_auth_detect", "auth")), 1)
+        self.assertEqual(len(kb.get("http_auth_detect", "userPassUri")), 0)
+
+
+kb = DBKnowledgeBase()

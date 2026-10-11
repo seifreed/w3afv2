@@ -37,13 +37,13 @@ import pytest
 from lxml import etree
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.constants import severity
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.db.url_tree import URLTree
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.number_generator import consecutive_number_generator
@@ -152,13 +152,13 @@ class TestXMLOutput(PluginTest):
         self.kb.cleanup()
 
     def test_error_null_byte(self):
-        w3af_core = w3afCore()
+        w3af_core = w3afCore(knowledge_base=kb)
         w3af_core.status.start()
 
         plugin_instance = xml_file_with_output()
         plugin_instance.set_w3af_core(w3af_core)
         plugin_instance.set_configuration(w3af_core.configuration)
-        plugin_instance.set_knowledge_base(kb.kb)
+        plugin_instance.set_knowledge_base(kb)
 
         # https://github.com/andresriancho/w3af/issues/12924
         plugin_instance.error("\0")
@@ -170,18 +170,18 @@ class TestNoDuplicate(unittest.TestCase):
     FILENAME = "output-unittest.xml"
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
         HistoryItem().init()
-        self.w3af_core = w3afCore()
+        self.w3af_core = w3afCore(knowledge_base=kb)
         self.w3af_core.status.start()
 
     def tearDown(self):
         remove_temp_dir()
         HistoryItem().clear()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_no_duplicate_vuln_reports(self):
         # The xml_file plugin had a bug where vulnerabilities were written to
@@ -208,15 +208,15 @@ class TestNoDuplicate(unittest.TestCase):
         # response we just created
         desc = "Just a test for the XML file output plugin."
         v = Vuln("SQL injection", desc, severity.HIGH, _id, "sqli")
-        kb.kb.append("sqli", "sqli", v)
+        kb.append("sqli", "sqli", v)
 
-        self.assertEqual(len(kb.kb.get_all_vulns()), 1)
+        self.assertEqual(len(kb.get_all_vulns()), 1)
 
         # Setup the plugin
         plugin_instance = xml_file_with_output()
         plugin_instance.set_w3af_core(self.w3af_core)
         plugin_instance.set_configuration(self.w3af_core.configuration)
-        plugin_instance.set_knowledge_base(kb.kb)
+        plugin_instance.set_knowledge_base(kb)
 
         # Set the output file for the unittest
         ol = OptionList()
@@ -490,7 +490,7 @@ class XMLNodeGeneratorTest(unittest.TestCase):
 
 class TestHTTPTransaction(XMLNodeGeneratorTest):
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
@@ -499,7 +499,7 @@ class TestHTTPTransaction(XMLNodeGeneratorTest):
     def tearDown(self):
         remove_temp_dir()
         HistoryItem().clear()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_render_simple(self):
         url = URL("http://w3af.com/a/b/c.php")
@@ -600,7 +600,7 @@ class TestHTTPTransaction(XMLNodeGeneratorTest):
 
 class TestScanInfo(XMLNodeGeneratorTest):
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
@@ -609,7 +609,7 @@ class TestScanInfo(XMLNodeGeneratorTest):
     def tearDown(self):
         remove_temp_dir()
         HistoryItem().clear()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_render_simple(self):
         w3af_core = w3afCore()
@@ -670,7 +670,7 @@ class TestScanInfo(XMLNodeGeneratorTest):
 
 class TestScanStatus(XMLNodeGeneratorTest):
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         create_temp_dir()
         # The request counter is global, previous tests in this process
         # would otherwise change the rpm and sent request count
@@ -679,7 +679,7 @@ class TestScanStatus(XMLNodeGeneratorTest):
     def tearDown(self):
         remove_temp_dir()
         HistoryItem().clear()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_render_simple(self):
         w3af_core = w3afCore()
@@ -775,7 +775,7 @@ class TestScanStatus(XMLNodeGeneratorTest):
 
 class TestFinding(XMLNodeGeneratorTest):
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
@@ -784,7 +784,7 @@ class TestFinding(XMLNodeGeneratorTest):
     def tearDown(self):
         remove_temp_dir()
         HistoryItem().clear()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_render_simple(self):
         _id = 2
@@ -1033,7 +1033,7 @@ class TestFinding(XMLNodeGeneratorTest):
 
 class TestFindingsCache(XMLNodeGeneratorTest):
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
@@ -1042,7 +1042,7 @@ class TestFindingsCache(XMLNodeGeneratorTest):
     def tearDown(self):
         remove_temp_dir()
         HistoryItem().clear()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_cache_works_as_expected(self):
         #
@@ -1099,10 +1099,10 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         #
         # Save one vulnerability to the KB and call the cache-user
         #
-        kb.kb.append("a", "b", vuln1)
+        kb.append("a", "b", vuln1)
 
         x = xml_file_with_output()
-        x.set_knowledge_base(kb.kb)
+        x.set_knowledge_base(kb)
         list(x.findings())
 
         self.assertEqual(cache.list(), [vuln1.get_uniq_id()])
@@ -1110,7 +1110,7 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         #
         # Save another vulnerability to the KB and call the cache-user
         #
-        kb.kb.append("a", "c", vuln2)
+        kb.append("a", "c", vuln2)
 
         list(x.findings())
 
@@ -1120,7 +1120,7 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         #
         # Remove one vulnerability and see how it is removed from the cache
         #
-        kb.kb.raw_write("a", "c", "noop")
+        kb.raw_write("a", "c", "noop")
 
         list(x.findings())
 
@@ -1203,7 +1203,7 @@ class TestEscapeFiltersWithAutoescape(unittest.TestCase):
 
 class TestXMLFileEdgeCases(unittest.TestCase):
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
@@ -1214,7 +1214,7 @@ class TestXMLFileEdgeCases(unittest.TestCase):
     def tearDown(self):
         remove_temp_dir()
         HistoryItem().clear()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_took_returns_the_result_of_slow_functions(self):
         @took
@@ -1262,3 +1262,6 @@ class TestXMLFileEdgeCases(unittest.TestCase):
 
         self.assertIn("<vulnerability", xml)
         self.assertIn("<http-transactions>\n    </http-transactions>", xml)
+
+
+kb = DBKnowledgeBase()

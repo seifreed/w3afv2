@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -39,7 +39,7 @@ class TestContentSniffingSecurity(unittest.TestCase):
 
     def tearDown(self):
         self.plugin.end()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_has_content_sniffing_header(self):
         body = ""
@@ -51,7 +51,7 @@ class TestContentSniffingSecurity(unittest.TestCase):
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
 
         self.plugin.grep(request, resp)
-        self.assertEqual(len(kb.kb.get("content_sniffing", "content_sniffing")), 0)
+        self.assertEqual(len(kb.get("content_sniffing", "content_sniffing")), 0)
 
     def test_no_content_sniffing(self):
         body = ""
@@ -62,7 +62,7 @@ class TestContentSniffingSecurity(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        findings = kb.kb.get("content_sniffing", "content_sniffing")
+        findings = kb.get("content_sniffing", "content_sniffing")
         self.assertEqual(len(findings), 1, findings)
 
         info_set = findings[0]
@@ -94,7 +94,7 @@ class TestContentSniffingSecurity(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        findings = kb.kb.get("content_sniffing", "content_sniffing")
+        findings = kb.get("content_sniffing", "content_sniffing")
         self.assertEqual(len(findings), 1, findings)
 
         info_set = findings[0]
@@ -109,3 +109,6 @@ class TestContentSniffingSecurity(unittest.TestCase):
         self.assertEqual(info_set.get_id(), [1, 2])
         self.assertEqual(info_set.get_desc(), expected_desc)
         self.assertEqual(info_set.get_name(), "Missing X-Content-Type-Options header")
+
+
+kb = DBKnowledgeBase()

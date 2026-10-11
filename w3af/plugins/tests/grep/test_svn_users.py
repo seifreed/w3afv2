@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -37,7 +37,7 @@ class TestSVNUsers(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = svn_users()
         self.url = URL("http://www.w3af.com/index.html")
         self.request = FuzzableRequest(self.url)
@@ -53,7 +53,7 @@ class TestSVNUsers(unittest.TestCase):
     def test_found_vuln(self):
         self._grep(f"<html><body>{SVN_SIGNATURE}</body></html>")
 
-        vulns = kb.kb.get("svn_users", "users")
+        vulns = kb.get("svn_users", "users")
         self.assertEqual(1, len(vulns))
 
         v = vulns[0]
@@ -64,13 +64,16 @@ class TestSVNUsers(unittest.TestCase):
     def test_username_collected(self):
         self._grep(f"<html><body>{SVN_SIGNATURE}</body></html>")
 
-        info_set = kb.kb.get("svn_users", "users")[0]
+        info_set = kb.get("svn_users", "users")[0]
         self.assertIn("roberto", info_set.get_desc())
 
     def test_no_signature(self):
         self._grep("<html><body>nothing to see here</body></html>")
-        self.assertEqual(0, len(kb.kb.get("svn_users", "users")))
+        self.assertEqual(0, len(kb.get("svn_users", "users")))
 
     def test_not_text(self):
         self._grep(f"<html>{SVN_SIGNATURE}</html>", content_type="image/png")
-        self.assertEqual(0, len(kb.kb.get("svn_users", "users")))
+        self.assertEqual(0, len(kb.get("svn_users", "users")))
+
+
+kb = DBKnowledgeBase()

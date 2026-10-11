@@ -28,12 +28,12 @@ import unittest
 from pathlib import Path
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.output_file_option import DEV_NULL
 from w3af.core.data.parsers.doc.url import URL
@@ -221,17 +221,17 @@ class TestFileExportErrors(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         _save_config(self, "targets", [TARGET])
         _save_config(self, "target_domains", ["www.w3af.com"])
         self.unwritable = _temp_dir(self)
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_csv_file(self):
         plugin = csv_file()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
         plugin.set_output(om.out)
         plugin.output_file = self.unwritable
@@ -241,7 +241,7 @@ class TestFileExportErrors(unittest.TestCase):
 
     def test_export_requests(self):
         plugin = export_requests()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
         plugin.set_output(om.out)
         plugin.output_file = self.unwritable
@@ -251,7 +251,7 @@ class TestFileExportErrors(unittest.TestCase):
 
     def test_json_file(self):
         plugin = json_file()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
         plugin.set_output(om.out)
         plugin.output_file = self.unwritable
@@ -264,21 +264,21 @@ class TestJsonFileFindings(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         _save_config(self, "targets", [TARGET])
         _save_config(self, "target_domains", [])
         self.output_file = os.path.join(_temp_dir(self), "report.json")
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_info_sets_without_raw_description(self):
         info = Info("Interesting header", VULN_DESC, 1, "plugin")
         info.set_url(TARGET)
-        kb.kb.append("plugin", "location", InfoSet([info]))
+        kb.append("plugin", "location", InfoSet([info]))
 
         plugin = json_file()
-        plugin.set_knowledge_base(kb.kb)
+        plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
         plugin.set_output(om.out)
         plugin.output_file = self.output_file
@@ -293,13 +293,13 @@ class TestJsonFileFindings(unittest.TestCase):
 class TestEmailReport(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.smtp_server = LocalSMTPServer()
         self.smtp_server.start()
         self.addCleanup(self.smtp_server.stop)
 
         self.plugin = email_report()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
         self.plugin.set_configuration(cf)
         self.plugin.set_output(om.out)
         options = self.plugin.get_options()
@@ -310,7 +310,7 @@ class TestEmailReport(unittest.TestCase):
         self.plugin.set_options(options)
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_no_targets_no_email(self):
         self.plugin.end()
@@ -320,7 +320,7 @@ class TestEmailReport(unittest.TestCase):
         _save_config(self, "targets", [TARGET])
         vuln = Vuln("SQL injection", VULN_DESC, severity.HIGH, 1, "sqli")
         vuln.set_url(TARGET)
-        kb.kb.append("sqli", "sqli", vuln)
+        kb.append("sqli", "sqli", vuln)
 
         self.plugin.log_enabled_plugins({}, {})
         self.plugin.end()
@@ -459,3 +459,6 @@ class TestTextFile(unittest.TestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

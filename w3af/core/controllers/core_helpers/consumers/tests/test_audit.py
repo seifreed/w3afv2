@@ -23,7 +23,6 @@ import re
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.audit import audit
 from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
     CrashingObserver,
@@ -36,6 +35,7 @@ from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import ScanMustStopException
@@ -52,10 +52,10 @@ class TestAuditConsumer(unittest.TestCase):
 
     def tearDown(self):
         self.server.close()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_teardown_with_must_stop_exception(self):
-        w3af_core = w3afCore(configuration=cf)
+        w3af_core = w3afCore(knowledge_base=kb, configuration=cf)
         recorder = start_recording_output()
 
         xss_instance = xss()
@@ -76,7 +76,7 @@ class TestAuditConsumer(unittest.TestCase):
         # also initialize all the xss plugin internals to be able to run end()
         # later.
         audit_consumer.in_queue_put(fr)
-        kb.kb.add_fuzzable_request(fr)
+        kb.add_fuzzable_request(fr)
 
         # Now that xss.audit() was called, we want to simulate network errors
         # that will put the uri opener in a state where it always answers with
@@ -105,9 +105,9 @@ class TestAuditConsumerBranches(unittest.TestCase):
     def setUp(self):
         self.server = LocalHTTPServer(hello_world).start()
         self.addCleanup(self.server.close)
-        self.core = w3afCore(configuration=cf)
+        self.core = w3afCore(knowledge_base=kb, configuration=cf)
         self.addCleanup(self.core.worker_pool.terminate_join)
-        self.addCleanup(kb.kb.cleanup)
+        self.addCleanup(kb.cleanup)
         self.recorder = start_recording_output()
 
     def run_audit(self, plugins, urls, observer=None):
@@ -193,3 +193,6 @@ class TestAuditConsumerBranches(unittest.TestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

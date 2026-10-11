@@ -24,11 +24,11 @@ import base64
 import unittest
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.fuzzer.fuzzer import create_mutants
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -44,7 +44,7 @@ SERIALIZED_PHP_OBJECTS = [
 class TestSerializedObject(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
         self.plugin = serialized_object()
 
@@ -67,7 +67,7 @@ class TestSerializedObject(unittest.TestCase):
 
             self.plugin.grep(request, self.response)
 
-        self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 2)
+        self.assertEqual(len(kb.get("serialized_object", "serialized_object")), 2)
 
     def test_php_serialized_objects_query_string_b64(self):
         url = self.url.copy()
@@ -80,7 +80,7 @@ class TestSerializedObject(unittest.TestCase):
 
         self.plugin.grep(request, self.response)
 
-        self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
+        self.assertEqual(len(kb.get("serialized_object", "serialized_object")), 1)
 
     def test_php_serialized_objects_headers(self):
         headers = Headers([("X-API-Key", SERIALIZED_PHP_OBJECTS[0])])
@@ -88,7 +88,7 @@ class TestSerializedObject(unittest.TestCase):
 
         self.plugin.grep(request, self.response)
 
-        self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
+        self.assertEqual(len(kb.get("serialized_object", "serialized_object")), 1)
 
     def test_php_serialized_objects_cookies(self):
         cookie_value = (
@@ -99,7 +99,7 @@ class TestSerializedObject(unittest.TestCase):
 
         self.plugin.grep(request, self.response)
 
-        self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
+        self.assertEqual(len(kb.get("serialized_object", "serialized_object")), 1)
 
     def test_php_serialized_objects_post_data(self):
         post_data = (
@@ -112,7 +112,7 @@ class TestSerializedObject(unittest.TestCase):
 
         self.plugin.grep(request, self.response)
 
-        self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
+        self.assertEqual(len(kb.get("serialized_object", "serialized_object")), 1)
 
     def test_not_php_serialized_objects(self):
         # Note that I'm sending the serialized object in reverse string order
@@ -126,7 +126,7 @@ class TestSerializedObject(unittest.TestCase):
 
         self.plugin.grep(request, self.response)
 
-        self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 0)
+        self.assertEqual(len(kb.get("serialized_object", "serialized_object")), 0)
 
     def test_mutated_request(self):
         # Note that I'm sending the serialized object in reverse string order
@@ -140,7 +140,7 @@ class TestSerializedObject(unittest.TestCase):
         for mutant in mutants:
             self.plugin.grep(mutant, self.response)
 
-        self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
+        self.assertEqual(len(kb.get("serialized_object", "serialized_object")), 1)
 
 
 RUN_CONFIGS = {
@@ -194,3 +194,6 @@ class TestSerializedObjectIntegration(PluginTest):
             vulns_set.add((vuln.get_name(), desc))
 
         self.assertEqual(expected_vulns, vulns_set)
+
+
+kb = DBKnowledgeBase()

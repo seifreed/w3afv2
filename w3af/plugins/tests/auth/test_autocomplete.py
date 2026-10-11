@@ -23,8 +23,8 @@ import unittest
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.plugins.auth.autocomplete import autocomplete
@@ -233,19 +233,19 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
         plugin = autocomplete()
         plugin.set_configuration(cf)
         plugin.set_output(om.out)
-        plugin.set_knowledge_base(kb.kb)
-        kb.kb.cleanup()
+        plugin.set_knowledge_base(kb)
+        kb.cleanup()
 
         for i in range(autocomplete.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT - 1):
             plugin._log_debug(str(i))
             plugin._handle_authentication_failure()
 
-            infos = kb.kb.get("authentication", "error")
+            infos = kb.get("authentication", "error")
             self.assertEqual(len(infos), 0)
 
         plugin._handle_authentication_failure()
 
-        infos = kb.kb.get("authentication", "error")
+        infos = kb.get("authentication", "error")
         self.assertEqual(len(infos), 1)
         info = infos[0]
 
@@ -268,26 +268,26 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
         plugin = autocomplete()
         plugin.set_configuration(cf)
         plugin.set_output(om.out)
-        kb.kb.cleanup()
+        kb.cleanup()
 
         for i in range(autocomplete.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT):
             plugin._log_debug(str(i))
             plugin._handle_authentication_failure()
             plugin._handle_authentication_success(self.login_form)
 
-            infos = kb.kb.get("authentication", "error")
+            infos = kb.get("authentication", "error")
             self.assertEqual(len(infos), 0)
 
         plugin._handle_authentication_failure()
 
-        infos = kb.kb.get("authentication", "error")
+        infos = kb.get("authentication", "error")
         self.assertEqual(len(infos), 0)
 
     def test_mixed_authentication_results_fail_fail_success(self):
         plugin = autocomplete()
         plugin.set_configuration(cf)
         plugin.set_output(om.out)
-        kb.kb.cleanup()
+        kb.cleanup()
 
         for i in range(autocomplete.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT):
             plugin._log_debug(str(i))
@@ -296,13 +296,16 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
             plugin._handle_authentication_failure()
             plugin._handle_authentication_success(self.login_form)
 
-            infos = kb.kb.get("authentication", "error")
+            infos = kb.get("authentication", "error")
             self.assertEqual(len(infos), 0)
 
         plugin._handle_authentication_failure()
 
-        infos = kb.kb.get("authentication", "error")
+        infos = kb.get("authentication", "error")
         self.assertEqual(len(infos), 0)
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

@@ -26,9 +26,9 @@ import unittest
 from pathlib import Path
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.data.constants import severity
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.crawl.find_dvcs import find_dvcs
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -304,7 +304,7 @@ class TestSVN(PluginTest):
     def test_wc_db(self):
         self._scan(self.target_url, RUN_PLUGINS)
 
-        url_list = kb.kb.get_all_known_urls()
+        url_list = kb.get_all_known_urls()
 
         self.assertEqual(
             {u.url_string for u in url_list}, {m.url for m in self.MOCK_RESPONSES}
@@ -312,3 +312,6 @@ class TestSVN(PluginTest):
 
         vulns = self.kb.get("find_dvcs", "svn repository db")
         self.assertEqual(len(vulns), 1, vulns)
+
+
+kb = DBKnowledgeBase()

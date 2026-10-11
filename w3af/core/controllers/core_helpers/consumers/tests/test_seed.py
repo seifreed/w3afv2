@@ -21,7 +21,6 @@ import queue
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.seed import seed
 from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
@@ -30,6 +29,7 @@ from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import 
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.exceptions import ScanMustStopException
 
@@ -39,11 +39,11 @@ class TestSeedConsumer(unittest.TestCase):
         self.server = LocalHTTPServer(lambda method, path: Reply(body="seed"))
         self.server.start()
         self.addCleanup(self.server.close)
-        self.core = w3afCore()
+        self.core = w3afCore(knowledge_base=kb)
         self.addCleanup(self.core.worker_pool.terminate_join)
-        self.addCleanup(kb.kb.cleanup)
+        self.addCleanup(kb.cleanup)
         self.recorder = start_recording_output()
-        self.consumer = seed(self.core, kb.kb, om.out)
+        self.consumer = seed(self.core, kb, om.out)
 
     def errors(self):
         return self.recorder.messages_of("error")
@@ -59,9 +59,7 @@ class TestSeedConsumer(unittest.TestCase):
         self.assertEqual(fuzzable_request.get_uri(), target)
         self.assertEqual(self.consumer.get_result(), POISON_PILL)
         self.assertFalse(self.consumer.has_pending_work())
-        self.assertEqual(
-            list(kb.kb.get_all_known_fuzzable_requests()), [fuzzable_request]
-        )
+        self.assertEqual(list(kb.get_all_known_fuzzable_requests()), [fuzzable_request])
 
     def test_unsupported_protocol_is_reported(self):
         self.consumer.seed_output_queue([URL("ftp://127.0.0.1/")])
@@ -102,3 +100,6 @@ class TestSeedConsumer(unittest.TestCase):
         self.assertRaises(queue.Empty, self.consumer.get_result)
         self.assertIs(self.consumer.out_queue, self.consumer._out_queue)
         self.assertEqual(self.consumer.get_name(), "Seed")
+
+
+kb = DBKnowledgeBase()

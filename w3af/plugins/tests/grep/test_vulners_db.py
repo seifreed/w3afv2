@@ -25,8 +25,8 @@ HTTP server (LocalVulners) which answers from a small vulnerability database.
 import json
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.grep.vulners_db import vulners_db
@@ -215,7 +215,7 @@ class TestVulnersDBUnit(GrepPluginTestCase):
             url=url, content_type=content_type, headers=[("Server", server)]
         )
         plugin.grep(make_request(url=url), response)
-        return kb.kb.get("vulners_db", "HTML")
+        return kb.get("vulners_db", "HTML")
 
     def test_software_rule(self):
         plugin = self.make_plugin()
@@ -326,3 +326,6 @@ class TestVulnersDBUnit(GrepPluginTestCase):
             options["vulners_rules_url"].get_value(), URL(self.api.url("/rules.json"))
         )
         self.assertIn("API key", plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

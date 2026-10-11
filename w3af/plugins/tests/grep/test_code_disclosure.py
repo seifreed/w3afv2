@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -35,7 +35,7 @@ class TestCodeDisclosurePlugin(unittest.TestCase):
 
     def setUp(self):
         self.plugin = code_disclosure()
-        kb.kb.clear("code_disclosure", "code_disclosure")
+        kb.clear("code_disclosure", "code_disclosure")
         configure_never_404(self, URL("http://www.w3af.com/"))
 
     def tearDown(self):
@@ -56,28 +56,28 @@ class TestCodeDisclosurePlugin(unittest.TestCase):
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 1)
+        self.assertEqual(len(kb.get("code_disclosure", "code_disclosure")), 1)
 
     def test_PHP_code_disclosure(self):
         body = "header <?php echo $a; ?> footer"
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 1)
+        self.assertEqual(len(kb.get("code_disclosure", "code_disclosure")), 1)
 
     def test_no_code_disclosure_blank(self):
         body = ""
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 0)
+        self.assertEqual(len(kb.get("code_disclosure", "code_disclosure")), 0)
 
     def test_no_code_disclosure(self):
         body = LOREM
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 0)
+        self.assertEqual(len(kb.get("code_disclosure", "code_disclosure")), 0)
 
     def test_no_code_disclosure_xml(self):
         body = """
@@ -91,11 +91,14 @@ class TestCodeDisclosurePlugin(unittest.TestCase):
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 0)
+        self.assertEqual(len(kb.get("code_disclosure", "code_disclosure")), 0)
 
     def test_no_analysis_content_type(self):
         body = "header <? echo $a; ?> footer"
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 0)
+        self.assertEqual(len(kb.get("code_disclosure", "code_disclosure")), 0)
+
+
+kb = DBKnowledgeBase()

@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -34,7 +34,7 @@ class test_file_upload(unittest.TestCase):
 
     def setUp(self):
         self.plugin = file_upload()
-        kb.kb.clear("file_upload", "file_upload")
+        kb.clear("file_upload", "file_upload")
 
     def tearDown(self):
         self.plugin.end()
@@ -47,8 +47,8 @@ class test_file_upload(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("file_upload", "file_upload")), 1)
-        i = kb.kb.get("file_upload", "file_upload")[0]
+        self.assertEqual(len(kb.get("file_upload", "file_upload")), 1)
+        i = kb.get("file_upload", "file_upload")[0]
         self.assertEqual(i.get_name(), "File upload form")
 
     def test_complex(self):
@@ -59,8 +59,8 @@ class test_file_upload(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("file_upload", "file_upload")), 1)
-        i = kb.kb.get("file_upload", "file_upload")[0]
+        self.assertEqual(len(kb.get("file_upload", "file_upload")), 1)
+        i = kb.get("file_upload", "file_upload")[0]
         self.assertEqual(i.get_name(), "File upload form")
 
     def test_none(self):
@@ -71,4 +71,7 @@ class test_file_upload(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("file_upload", "file_upload")), 0)
+        self.assertEqual(len(kb.get("file_upload", "file_upload")), 0)
+
+
+kb = DBKnowledgeBase()

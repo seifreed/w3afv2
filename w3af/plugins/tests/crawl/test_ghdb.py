@@ -28,13 +28,13 @@ from pathlib import Path
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import BaseFrameworkException
@@ -122,7 +122,7 @@ class TestGHDBMatch(GHDBCrawlTest):
     def test_ghdb_match(self):
         self.crawl()
 
-        vulns = kb.kb.get("ghdb", "vuln")
+        vulns = kb.get("ghdb", "vuln")
         self.assertEqual(len(vulns), 1, vulns)
 
         vuln = vulns[0]
@@ -159,7 +159,7 @@ class TestGHDBPrivateSite(GHDBCrawlTest):
     def test_ghdb_private(self):
         self.crawl("http://127.0.0.1/")
 
-        self.assertEqual(kb.kb.get("ghdb", "vuln"), [])
+        self.assertEqual(kb.get("ghdb", "vuln"), [])
         self.assertEqual(self.server.requests, [])
 
 
@@ -175,7 +175,7 @@ class TestGHDBRequestFailure(GHDBCrawlTest):
     def test_result_that_can_not_be_requested_is_not_reported(self):
         self.crawl()
 
-        self.assertEqual(kb.kb.get("ghdb", "vuln"), [])
+        self.assertEqual(kb.get("ghdb", "vuln"), [])
         self.assertEqual(self.found_urls(), set())
 
 
@@ -258,3 +258,6 @@ class TestGHDBDatabase(unittest.TestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

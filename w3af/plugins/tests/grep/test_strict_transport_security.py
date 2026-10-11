@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -39,7 +39,7 @@ class TestSTSSecurity(unittest.TestCase):
 
     def tearDown(self):
         self.plugin.end()
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def test_http_no_vuln(self):
         body = ""
@@ -50,7 +50,7 @@ class TestSTSSecurity(unittest.TestCase):
 
         self.plugin.grep(request, resp)
         self.assertEqual(
-            len(kb.kb.get("strict_transport_security", "strict_transport_security")), 0
+            len(kb.get("strict_transport_security", "strict_transport_security")), 0
         )
 
     def test_https_with_sts(self):
@@ -70,7 +70,7 @@ class TestSTSSecurity(unittest.TestCase):
 
         self.plugin.grep(request, resp)
         self.assertEqual(
-            len(kb.kb.get("strict_transport_security", "strict_transport_security")), 0
+            len(kb.get("strict_transport_security", "strict_transport_security")), 0
         )
 
     def test_https_without_sts(self):
@@ -82,7 +82,7 @@ class TestSTSSecurity(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        findings = kb.kb.get("strict_transport_security", "strict_transport_security")
+        findings = kb.get("strict_transport_security", "strict_transport_security")
         self.assertEqual(len(findings), 1, findings)
 
         info_set = findings[0]
@@ -116,7 +116,7 @@ class TestSTSSecurity(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        findings = kb.kb.get("strict_transport_security", "strict_transport_security")
+        findings = kb.get("strict_transport_security", "strict_transport_security")
         self.assertEqual(len(findings), 1, findings)
 
         info_set = findings[0]
@@ -133,3 +133,6 @@ class TestSTSSecurity(unittest.TestCase):
         self.assertEqual(
             info_set.get_name(), "Missing Strict Transport Security header"
         )
+
+
+kb = DBKnowledgeBase()

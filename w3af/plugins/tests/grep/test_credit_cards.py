@@ -24,9 +24,9 @@ import os
 import unittest
 from pathlib import Path
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -37,7 +37,7 @@ class TestCreditCards(unittest.TestCase):
 
     def setUp(self):
         self.plugin = credit_cards()
-        kb.kb.clear("credit_cards", "credit_cards")
+        kb.clear("credit_cards", "credit_cards")
 
     def tearDown(self):
         self.plugin.end()
@@ -49,7 +49,7 @@ class TestCreditCards(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("credit_cards", "credit_cards")), 1)
+        self.assertEqual(len(kb.get("credit_cards", "credit_cards")), 1)
 
     def test_find_credit_card_spaces(self):
         body = "3566 0020 2036 0505"
@@ -58,7 +58,7 @@ class TestCreditCards(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("credit_cards", "credit_cards")), 1)
+        self.assertEqual(len(kb.get("credit_cards", "credit_cards")), 1)
 
     def test_find_credit_card_html(self):
         body = "<a> 378282246310005</a>"
@@ -67,7 +67,7 @@ class TestCreditCards(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("credit_cards", "credit_cards")), 1)
+        self.assertEqual(len(kb.get("credit_cards", "credit_cards")), 1)
 
     def test_not_find_credit_cards(self):
         invalid_cards = (
@@ -87,8 +87,8 @@ class TestCreditCards(unittest.TestCase):
             response = HTTPResponse(200, body, headers, url, url, _id=1)
             request = FuzzableRequest(url, method="GET")
             self.plugin.grep(request, response)
-            self.assertEqual(len(kb.kb.get("credit_cards", "credit_cards")), 0)
-            kb.kb.clear("credit_cards", "credit_cards")
+            self.assertEqual(len(kb.get("credit_cards", "credit_cards")), 0)
+            kb.clear("credit_cards", "credit_cards")
 
     def test_invalid_check_not_find_credit_card_spaces(self):
         body = "3566 0020 2036 0705"
@@ -97,7 +97,7 @@ class TestCreditCards(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("credit_cards", "credit_cards")), 0)
+        self.assertEqual(len(kb.get("credit_cards", "credit_cards")), 0)
 
     def test_find_credit_card_performance_true(self):
         credit_card = "3566 0020 2036 0505"
@@ -114,4 +114,7 @@ class TestCreditCards(unittest.TestCase):
         for _ in range(5000):
             self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("credit_cards", "credit_cards")), 1)
+        self.assertEqual(len(kb.get("credit_cards", "credit_cards")), 1)
+
+
+kb = DBKnowledgeBase()

@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -71,7 +71,7 @@ class TestDirectoryIndexingUnit(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = directory_indexing()
         self.url = URL("http://www.w3af.com/secret/")
         self.request = FuzzableRequest(self.url)
@@ -83,24 +83,27 @@ class TestDirectoryIndexingUnit(unittest.TestCase):
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, INDEX_BODY, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("directory_indexing", "directory")), 1)
+        self.assertEqual(len(kb.get("directory_indexing", "directory")), 1)
 
     def test_directory_indexing_not_found(self):
         headers = Headers([("content-type", "text/html")])
         body = "<html><body>regular page</body></html>"
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("directory_indexing", "directory")), 0)
+        self.assertEqual(len(kb.get("directory_indexing", "directory")), 0)
 
     def test_directory_indexing_not_text(self):
         headers = Headers([("content-type", "image/png")])
         response = HTTPResponse(200, INDEX_BODY, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("directory_indexing", "directory")), 0)
+        self.assertEqual(len(kb.get("directory_indexing", "directory")), 0)
 
     def test_directory_indexing_visited_once(self):
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, INDEX_BODY, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("directory_indexing", "directory")), 1)
+        self.assertEqual(len(kb.get("directory_indexing", "directory")), 1)
+
+
+kb = DBKnowledgeBase()

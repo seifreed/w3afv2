@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -46,7 +46,7 @@ class TestDOMXSS(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = dom_xss()
         self.url = URL("http://www.w3af.com/dom-xss.html")
         self.request = FuzzableRequest(self.url)
@@ -62,7 +62,7 @@ class TestDOMXSS(unittest.TestCase):
     def test_found_vuln(self):
         self._grep(VULN_BODY)
 
-        vulns = kb.kb.get("dom_xss", "dom_xss")
+        vulns = kb.get("dom_xss", "dom_xss")
         self.assertEqual(1, len(vulns), vulns)
 
         v = vulns[0]
@@ -74,12 +74,15 @@ class TestDOMXSS(unittest.TestCase):
 
     def test_no_script(self):
         self._grep("<html><body>no javascript here</body></html>")
-        self.assertEqual(0, len(kb.kb.get("dom_xss", "dom_xss")))
+        self.assertEqual(0, len(kb.get("dom_xss", "dom_xss")))
 
     def test_script_without_user_controlled(self):
         self._grep(STATIC_BODY)
-        self.assertEqual(0, len(kb.kb.get("dom_xss", "dom_xss")))
+        self.assertEqual(0, len(kb.get("dom_xss", "dom_xss")))
 
     def test_not_text(self):
         self._grep(VULN_BODY, content_type="image/png")
-        self.assertEqual(0, len(kb.kb.get("dom_xss", "dom_xss")))
+        self.assertEqual(0, len(kb.get("dom_xss", "dom_xss")))
+
+
+kb = DBKnowledgeBase()

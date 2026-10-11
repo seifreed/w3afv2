@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -33,9 +33,9 @@ from w3af.plugins.grep.analyze_cookies import analyze_cookies
 class TestAnalyzeCookies(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = analyze_cookies()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
 
     def tearDown(self):
         self.plugin.end()
@@ -47,8 +47,8 @@ class TestAnalyzeCookies(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 0)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
     def test_analyze_cookies_simple_cookie(self):
         body = ""
@@ -60,8 +60,8 @@ class TestAnalyzeCookies(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
     def test_analyze_cookies_collect_no_group(self):
         body = ""
@@ -80,7 +80,7 @@ class TestAnalyzeCookies(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 2)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 2)
 
     def test_analyze_cookies_collect_one(self):
         body = ""
@@ -92,7 +92,7 @@ class TestAnalyzeCookies(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        cookie_infosets = kb.kb.get("analyze_cookies", "cookies")
+        cookie_infosets = kb.get("analyze_cookies", "cookies")
         self.assertEqual(len(cookie_infosets), 1)
 
         expected_desc = (
@@ -122,7 +122,7 @@ class TestAnalyzeCookies(unittest.TestCase):
         request = FuzzableRequest(url_2, method="GET")
         self.plugin.grep(request, response)
 
-        cookie_infosets = kb.kb.get("analyze_cookies", "cookies")
+        cookie_infosets = kb.get("analyze_cookies", "cookies")
         self.assertEqual(len(cookie_infosets), 1)
 
         expected_desc = (
@@ -158,8 +158,8 @@ class TestAnalyzeCookies(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 2)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 2)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
     def test_analyze_cookies_secure_httponly(self):
         body = ""
@@ -175,8 +175,8 @@ class TestAnalyzeCookies(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
     def test_analyze_cookies_empty(self):
         body = ""
@@ -185,8 +185,8 @@ class TestAnalyzeCookies(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
     def test_analyze_cookies_fingerprint(self):
         body = ""
@@ -204,11 +204,11 @@ class TestAnalyzeCookies(unittest.TestCase):
 
         self.plugin.grep(request, response)
 
-        fingerprint = kb.kb.get("analyze_cookies", "fingerprint")
+        fingerprint = kb.get("analyze_cookies", "fingerprint")
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
         self.assertEqual(len(fingerprint), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
         msg = 'The remote platform is: "PHP"'
         self.assertTrue(any(True for i in fingerprint if msg in i.get_desc()))
@@ -226,11 +226,11 @@ class TestAnalyzeCookies(unittest.TestCase):
 
         self.plugin.grep(request, response)
 
-        false_secure = kb.kb.get("analyze_cookies", "false_secure")
+        false_secure = kb.get("analyze_cookies", "false_secure")
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
         self.assertEqual(len(false_secure), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
         msg = "A cookie marked with the secure flag"
         self.assertTrue(any(True for i in false_secure if msg in i.get_desc()))
@@ -253,11 +253,11 @@ class TestAnalyzeCookies(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        http_only = kb.kb.get("analyze_cookies", "http_only")
+        http_only = kb.get("analyze_cookies", "http_only")
 
         self.assertEqual(len(http_only), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
         info_set = http_only[0]
         expected_desc = (
@@ -289,9 +289,9 @@ class TestAnalyzeCookies(unittest.TestCase):
 
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "http_only")), 0)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "secure")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "http_only")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "secure")), 0)
 
     def test_analyze_cookies_with_httponly_case_sensitive(self):
         body = ""
@@ -309,8 +309,8 @@ class TestAnalyzeCookies(unittest.TestCase):
 
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "http_only")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "http_only")), 0)
 
     def test_analyze_cookies_with_httponly_secure(self):
         body = ""
@@ -328,9 +328,9 @@ class TestAnalyzeCookies(unittest.TestCase):
 
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "http_only")), 0)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "secure")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "http_only")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "secure")), 0)
 
     def test_analyze_cookies_with_httponly_case_sensitive_expires(self):
         body = ""
@@ -343,9 +343,9 @@ class TestAnalyzeCookies(unittest.TestCase):
 
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "http_only")), 0)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "secure")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "http_only")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "secure")), 0)
 
     def test_analyze_cookies_https_value_over_http(self):
         body = ""
@@ -366,11 +366,11 @@ class TestAnalyzeCookies(unittest.TestCase):
         # Send the cookie over HTTP as a parameter value
         self.plugin.grep(request, response)
 
-        secure_via_http = kb.kb.get("analyze_cookies", "secure_via_http")
+        secure_via_http = kb.get("analyze_cookies", "secure_via_http")
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
         self.assertEqual(len(secure_via_http), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "invalid-cookies")), 0)
 
         names = [i.get_name() for i in secure_via_http]
         self.assertIn("Secure cookies over insecure channel", names)
@@ -388,10 +388,10 @@ class TestAnalyzeCookies(unittest.TestCase):
 
         self.plugin.grep(request, response)
 
-        secure_info_sets = kb.kb.get("analyze_cookies", "secure")
+        secure_info_sets = kb.get("analyze_cookies", "secure")
 
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "cookies")), 1)
-        self.assertEqual(len(kb.kb.get("analyze_cookies", "http_only")), 0)
+        self.assertEqual(len(kb.get("analyze_cookies", "cookies")), 1)
+        self.assertEqual(len(kb.get("analyze_cookies", "http_only")), 0)
         self.assertEqual(len(secure_info_sets), 1)
 
         info_set = secure_info_sets[0]
@@ -407,3 +407,6 @@ class TestAnalyzeCookies(unittest.TestCase):
         self.assertEqual(len(info_set.infos), 1)
         self.assertEqual(info_set.get_id(), [1])
         self.assertEqual(info_set.get_desc(), expected_desc)
+
+
+kb = DBKnowledgeBase()

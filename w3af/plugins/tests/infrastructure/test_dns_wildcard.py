@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -82,7 +82,7 @@ class DNSWildcardTest(CannedServerPluginTest):
 
     def discover(self, url):
         self.plugin.discover(FuzzableRequest(URL(url)), 1)
-        return {i.get_name() for i in kb.kb.get("dns_wildcard", "dns_wildcard")}
+        return {i.get_name() for i in kb.get("dns_wildcard", "dns_wildcard")}
 
 
 class TestSameContentEverywhere(DNSWildcardTest):
@@ -128,8 +128,8 @@ class TestRequestErrors(unittest.TestCase):
     """
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
         self.plugin = dns_wildcard()
         self.plugin._uri_opener = ExtendedUrllib()
@@ -142,15 +142,18 @@ class TestRequestErrors(unittest.TestCase):
     def test_dns_request_fails(self):
         self.plugin._test_dns(self.original_response, URL("http://foobar.localhost/"))
 
-        self.assertEqual(kb.kb.get("dns_wildcard", "dns_wildcard"), [])
+        self.assertEqual(kb.get("dns_wildcard", "dns_wildcard"), [])
 
     def test_ip_address_request_fails(self):
         self.plugin._test_ip_address(self.original_response, "localhost")
 
-        self.assertEqual(kb.kb.get("dns_wildcard", "dns_wildcard"), [])
+        self.assertEqual(kb.get("dns_wildcard", "dns_wildcard"), [])
 
     def test_unresolvable_domain(self):
         self.plugin._test_ip_address(self.original_response, "w3af.invalid")
 
-        self.assertEqual(kb.kb.get("dns_wildcard", "dns_wildcard"), [])
+        self.assertEqual(kb.get("dns_wildcard", "dns_wildcard"), [])
         self.assertIn("DNS wildcard", self.plugin.get_long_desc())
+
+
+kb = DBKnowledgeBase()

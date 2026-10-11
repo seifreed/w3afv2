@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -33,7 +33,7 @@ from w3af.plugins.grep.strange_reason import strange_reason
 class TestStrangeReason(unittest.TestCase):
 
     def setUp(self):
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = strange_reason()
         self.url = URL("http://www.w3af.com/")
         self.headers = Headers([("content-type", "text/html")])
@@ -47,7 +47,7 @@ class TestStrangeReason(unittest.TestCase):
             200, "", self.headers, self.url, self.url, _id=1, msg="Ok"
         )
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_reason", "strange_reason")), 0)
+        self.assertEqual(len(kb.get("strange_reason", "strange_reason")), 0)
 
     def test_strange_reason_large(self):
         response = HTTPResponse(
@@ -60,21 +60,21 @@ class TestStrangeReason(unittest.TestCase):
             msg="Multiple Choices",
         )
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_reason", "strange_reason")), 0)
+        self.assertEqual(len(kb.get("strange_reason", "strange_reason")), 0)
 
     def test_strange_reason_found_200(self):
         response = HTTPResponse(
             200, "A" * 4096, self.headers, self.url, self.url, _id=1, msg="Foo!"
         )
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_reason", "strange_reason")), 1)
+        self.assertEqual(len(kb.get("strange_reason", "strange_reason")), 1)
 
     def test_strange_reason_found_300(self):
         response = HTTPResponse(
             300, "A" * 2**10, self.headers, self.url, self.url, _id=1, msg="Multiple"
         )
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get("strange_reason", "strange_reason")), 1)
+        self.assertEqual(len(kb.get("strange_reason", "strange_reason")), 1)
 
     def test_group_by_reason(self):
         response = HTTPResponse(
@@ -87,7 +87,7 @@ class TestStrangeReason(unittest.TestCase):
         )
         self.plugin.grep(self.request, response)
 
-        info_sets = kb.kb.get("strange_reason", "strange_reason")
+        info_sets = kb.get("strange_reason", "strange_reason")
         self.assertEqual(len(info_sets), 1)
 
         expected_desc = (
@@ -112,5 +112,8 @@ class TestStrangeReason(unittest.TestCase):
         )
         self.plugin.grep(self.request, response)
 
-        info_sets = kb.kb.get("strange_reason", "strange_reason")
+        info_sets = kb.get("strange_reason", "strange_reason")
         self.assertEqual(len(info_sets), 2)
+
+
+kb = DBKnowledgeBase()

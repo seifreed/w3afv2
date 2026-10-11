@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -35,7 +35,7 @@ class TestURLInSession(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = url_session()
 
     def tearDown(self):
@@ -50,7 +50,7 @@ class TestURLInSession(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        infos = kb.kb.get("url_session", "url_session")
+        infos = kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 0)
 
     def test_url_session_in_url(self):
@@ -62,7 +62,7 @@ class TestURLInSession(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        infos = kb.kb.get("url_session", "url_session")
+        infos = kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 1)
 
         info = infos[0]
@@ -78,7 +78,7 @@ class TestURLInSession(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        infos = kb.kb.get("url_session", "url_session")
+        infos = kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 1)
 
         info = infos[0]
@@ -94,8 +94,11 @@ class TestURLInSession(unittest.TestCase):
 
         self.plugin.grep(request, resp)
 
-        infos = kb.kb.get("url_session", "url_session")
+        infos = kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 1)
 
         info = infos[0]
         self.assertEqual(info.get_name(), "Session ID in URL")
+
+
+kb = DBKnowledgeBase()

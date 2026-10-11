@@ -24,9 +24,9 @@ import unittest
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.tests.canned_http_server import (
@@ -55,8 +55,8 @@ class CannedServerPluginTest(unittest.TestCase):
     plugin_class: ClassVar[type[Plugin]]
 
     def setUp(self):
-        kb.kb.cleanup()
-        self.addCleanup(kb.kb.cleanup)
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
         self.server = CannedHTTPServer(self.respond)
         self.server.start()
@@ -68,7 +68,7 @@ class CannedServerPluginTest(unittest.TestCase):
 
         self.plugin = self.plugin_class()
         self.plugin.set_url_opener(self.uri_opener)
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
         self.plugin.set_output(om.out)
         self.plugin.set_configuration(cf)
 
@@ -77,3 +77,6 @@ class CannedServerPluginTest(unittest.TestCase):
 
 
 cf = Config()
+
+
+kb = DBKnowledgeBase()

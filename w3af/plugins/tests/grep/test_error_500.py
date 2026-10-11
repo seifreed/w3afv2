@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -34,14 +34,14 @@ class TestError500(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        kb.kb.cleanup()
+        kb.cleanup()
         self.plugin = error_500()
-        self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_knowledge_base(kb)
         self.url = URL("http://www.w3af.com/500.py?id=1")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
-        kb.kb.cleanup()
+        kb.cleanup()
 
     def _grep(self, code, body="<html>error</html>", content_type="text/html"):
         headers = Headers([("content-type", content_type)])
@@ -52,7 +52,7 @@ class TestError500(unittest.TestCase):
         self._grep(500)
         self.plugin.end()
 
-        vulns = kb.kb.get("error_500", "error_500")
+        vulns = kb.get("error_500", "error_500")
         self.assertEqual(1, len(vulns))
 
         vuln = vulns[0]
@@ -62,22 +62,22 @@ class TestError500(unittest.TestCase):
     def test_ignore_404(self):
         self._grep(404)
         self.plugin.end()
-        self.assertEqual(0, len(kb.kb.get("error_500", "error_500")))
+        self.assertEqual(0, len(kb.get("error_500", "error_500")))
 
     def test_ignore_200(self):
         self._grep(200)
         self.plugin.end()
-        self.assertEqual(0, len(kb.kb.get("error_500", "error_500")))
+        self.assertEqual(0, len(kb.get("error_500", "error_500")))
 
     def test_ignore_non_text(self):
         self._grep(500, content_type="image/png")
         self.plugin.end()
-        self.assertEqual(0, len(kb.kb.get("error_500", "error_500")))
+        self.assertEqual(0, len(kb.get("error_500", "error_500")))
 
     def test_false_positive_bad_request(self):
         self._grep(500, body="<h1>Bad Request (Invalid URL)</h1>")
         self.plugin.end()
-        self.assertEqual(0, len(kb.kb.get("error_500", "error_500")))
+        self.assertEqual(0, len(kb.get("error_500", "error_500")))
 
     def test_already_identified_is_skipped(self):
         from w3af.core.data.constants import severity
@@ -85,9 +85,12 @@ class TestError500(unittest.TestCase):
 
         vuln = Vuln("SQL", "A SQL injection was found here", severity.HIGH, 1, "sqli")
         vuln.set_url(self.url)
-        kb.kb.append("sqli", "sqli", vuln)
+        kb.append("sqli", "sqli", vuln)
 
         self._grep(500)
         self.plugin.end()
 
-        self.assertEqual(0, len(kb.kb.get("error_500", "error_500")))
+        self.assertEqual(0, len(kb.get("error_500", "error_500")))
+
+
+kb = DBKnowledgeBase()
