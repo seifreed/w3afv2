@@ -48,7 +48,7 @@ class CorePlugins(PluginCatalog):
         self.initialized = False
         self._plugins_names_dict: dict[str, list[str]]
         self._plugins_options: dict[str, dict[str, Any]]
-        self.plugins: dict[str, list[Plugin]] = {}
+        self._plugins: dict[str, list[Plugin]] = {}
         self.zero_enabled_plugins()
 
     def zero_enabled_plugins(self):
@@ -56,13 +56,13 @@ class CorePlugins(PluginCatalog):
         Init some internal variables; this method is called when the whole
         process starts, and when the user loads a new profile.
         """
-        self._plugin_runtime.release_instances(self.plugins)
+        self._plugin_runtime.release_instances(self._plugins)
         plugin_types = self.get_plugin_types()
         self._plugin_selection.reset(plugin_types)
         self._plugins_names_dict = self._plugin_selection.names
         self._plugins_options = {plugin_type: {} for plugin_type in plugin_types}
         self._plugins_options["attack"] = {}
-        self.plugins = {plugin_type: [] for plugin_type in plugin_types}
+        self._plugins = {plugin_type: [] for plugin_type in plugin_types}
 
         # After we zero all options and enabled plugins we need to call
         # init_plugins again
@@ -71,6 +71,14 @@ class CorePlugins(PluginCatalog):
     def mark_plugin_ended(self, plugin: Plugin) -> None:
         """Record a plugin ended by its scan consumer."""
         self._plugin_runtime.mark_instance_ended(plugin)
+
+    def get_plugin_instances(self, plugin_type: str) -> list[Plugin]:
+        """Return the active instances for a plugin type."""
+        return self._plugins[plugin_type]
+
+    def set_plugin_instances(self, plugin_type: str, plugins: list[Plugin]) -> None:
+        """Replace the active instances for a plugin type."""
+        self._plugins[plugin_type] = plugins
 
     def init_plugins(self):
         """
@@ -91,7 +99,7 @@ class CorePlugins(PluginCatalog):
         #
         # Some extra init steps for mangle plugins
         #
-        mangle = self.plugins["mangle"]
+        mangle = self.get_plugin_instances("mangle")
         self._w3af_core.uri_opener.settings.set_mangle_plugins(mangle)
 
         # The plugin factory might raise an exception due to invalid plugin
@@ -221,7 +229,7 @@ class CorePlugins(PluginCatalog):
         self._plugin_runtime.create_instances(
             self._plugins_names_dict,
             self._plugins_options,
-            self.plugins,
+            self._plugins,
         )
 
     def _set_plugin_generic(self, plugin_type, plugin_list):
@@ -241,4 +249,6 @@ class CorePlugins(PluginCatalog):
         self._plugins_names_dict["evasion"] = evasion_plugins
         self.plugin_factory()
 
-        self._w3af_core.uri_opener.set_evasion_plugins(self.plugins["evasion"])
+        self._w3af_core.uri_opener.set_evasion_plugins(
+            self.get_plugin_instances("evasion")
+        )

@@ -39,7 +39,12 @@ class TestPluginRegistryStructure(unittest.TestCase):
         core_plugins = CorePlugins(None, om.out, om.manager)
         plugin_types = set(core_plugins.get_plugin_types())
 
-        self.assertEqual(set(core_plugins.plugins), plugin_types)
+        empty_plugin_types = {
+            plugin_type
+            for plugin_type in plugin_types
+            if core_plugins.get_plugin_instances(plugin_type) == []
+        }
+        self.assertEqual(empty_plugin_types, plugin_types)
         self.assertEqual(set(core_plugins.get_all_enabled_plugins()), plugin_types)
         self.assertEqual(
             set(core_plugins.get_all_plugin_options()), plugin_types | {"attack"}
@@ -231,7 +236,7 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.core.plugins.set_plugin_options("crawl", "web_spider", options)
         self.core.plugins.init_plugins()
 
-        crawl_plugins = self.core.plugins.plugins["crawl"]
+        crawl_plugins = self.core.plugins.get_plugin_instances("crawl")
         self.assertEqual(len(crawl_plugins), 1)
         self.assertTrue(crawl_plugins[0].get_options()["only_forward"].get_value())
 
@@ -239,25 +244,25 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.core.plugins.set_plugins(["web_spider"], "crawl")
         self.core.plugins.init_plugins()
 
-        plugin = self.core.plugins.plugins["crawl"][0]
+        plugin = self.core.plugins.get_plugin_instances("crawl")[0]
         broken_links = plugin._broken_links
 
         self.core.plugins.zero_enabled_plugins()
 
-        self.assertEqual(self.core.plugins.plugins["crawl"], [])
+        self.assertEqual(self.core.plugins.get_plugin_instances("crawl"), [])
         self.assertEqual(broken_links._state, CLOSED)
 
     def test_zero_enabled_plugins_does_not_end_consumer_plugins_twice(self):
         self.core.plugins.set_plugins(["path_disclosure"], "grep")
         self.core.plugins.init_plugins()
 
-        plugin = self.core.plugins.plugins["grep"][0]
+        plugin = self.core.plugins.get_plugin_instances("grep")[0]
         plugin.end()
         self.core.plugins.mark_plugin_ended(plugin)
 
         self.core.plugins.zero_enabled_plugins()
 
-        self.assertEqual(self.core.plugins.plugins["grep"], [])
+        self.assertEqual(self.core.plugins.get_plugin_instances("grep"), [])
 
     def test_plugin_options_invalid(self):
         self.assertRaises(
@@ -306,12 +311,12 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.core.plugins.init_plugins()
 
         self.assertEqual(
-            len(self.core.plugins.plugins["crawl"]),
+            len(self.core.plugins.get_plugin_instances("crawl")),
             1,
-            self.core.plugins.plugins["crawl"],
+            self.core.plugins.get_plugin_instances("crawl"),
         )
 
-        plugin_inst = next(iter(self.core.plugins.plugins["crawl"]))
+        plugin_inst = next(iter(self.core.plugins.get_plugin_instances("crawl")))
         self.assertEqual(plugin_inst.get_name(), "web_spider")
 
     def test_enable_all(self):
@@ -411,10 +416,12 @@ class TestW3afCorePlugins(unittest.TestCase):
         )
 
         self.assertEqual(
-            self.core.plugins.plugins["infrastructure"][0].get_name(), "server_header"
+            self.core.plugins.get_plugin_instances("infrastructure")[0].get_name(),
+            "server_header",
         )
         self.assertEqual(
-            self.core.plugins.plugins["infrastructure"][1].get_name(), "php_eggs"
+            self.core.plugins.get_plugin_instances("infrastructure")[1].get_name(),
+            "php_eggs",
         )
 
     def test_enable_dependency_different_type(self):

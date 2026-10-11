@@ -358,8 +358,8 @@ class CrawlInfrastructure(BaseConsumer):
         """
         Remove the crawl and bruteforce plugins from memory.
         """
-        self._w3af_core.plugins.plugins["crawl"] = []
-        self._w3af_core.plugins.plugins["infrastructure"] = []
+        self._w3af_core.plugins.set_plugin_instances("crawl", [])
+        self._w3af_core.plugins.set_plugin_instances("infrastructure", [])
 
         self._disabled_plugins = set()
         self._consumer_plugins = []
@@ -422,7 +422,9 @@ class CrawlInfrastructure(BaseConsumer):
         exception during the crawl phase.
         """
         for plugin_type in ("crawl", "infrastructure"):
-            if plugin_to_remove in self._w3af_core.plugins.plugins[plugin_type]:
+            if plugin_to_remove in self._w3af_core.plugins.get_plugin_instances(
+                plugin_type
+            ):
 
                 msg = 'The %s plugin: "%s" wont be run anymore.'
                 self._output.debug(msg % (plugin_type, plugin_to_remove.get_name()))

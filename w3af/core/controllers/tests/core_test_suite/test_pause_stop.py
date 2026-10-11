@@ -59,7 +59,7 @@ class CountTestMixin(unittest.TestCase):
         plugin_inst.set_worker_pool(self.w3afcore.worker_pool)
         plugin_inst.set_output(self.w3afcore.output)
 
-        self.w3afcore.plugins.plugins["crawl"] = [plugin_inst]
+        self.w3afcore.plugins.set_plugin_instances("crawl", [plugin_inst])
         self.w3afcore.plugins._plugins_names_dict["crawl"] = ["count"]
         self.count_plugin = plugin_inst
 

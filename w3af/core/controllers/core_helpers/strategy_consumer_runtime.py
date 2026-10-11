@@ -49,8 +49,10 @@ class StrategyConsumerRuntime:
         return self._seed_producer
 
     def setup_crawl_infrastructure(self):
-        crawl_plugins = self._w3af_core.plugins.plugins["crawl"]
-        infrastructure_plugins = self._w3af_core.plugins.plugins["infrastructure"]
+        crawl_plugins = self._w3af_core.plugins.get_plugin_instances("crawl")
+        infrastructure_plugins = self._w3af_core.plugins.get_plugin_instances(
+            "infrastructure"
+        )
 
         if crawl_plugins or infrastructure_plugins:
             discovery_plugins = infrastructure_plugins + crawl_plugins
@@ -65,7 +67,7 @@ class StrategyConsumerRuntime:
             self._discovery_consumer.start()
 
     def setup_grep(self):
-        grep_plugins = self._w3af_core.plugins.plugins["grep"]
+        grep_plugins = self._w3af_core.plugins.get_plugin_instances("grep")
 
         if grep_plugins:
             self._grep_consumer = grep(
@@ -79,7 +81,7 @@ class StrategyConsumerRuntime:
 
     def setup_audit(self):
         self._output.debug("Called _setup_audit()")
-        audit_plugins = self._w3af_core.plugins.plugins["audit"]
+        audit_plugins = self._w3af_core.plugins.get_plugin_instances("audit")
 
         if audit_plugins:
             self._audit_consumer = audit(
@@ -91,7 +93,7 @@ class StrategyConsumerRuntime:
             self._audit_consumer.start()
 
     def setup_bruteforce(self):
-        bruteforce_plugins = self._w3af_core.plugins.plugins["bruteforce"]
+        bruteforce_plugins = self._w3af_core.plugins.get_plugin_instances("bruteforce")
 
         if bruteforce_plugins:
             self._bruteforce_consumer = bruteforce(
@@ -100,7 +102,7 @@ class StrategyConsumerRuntime:
             self._bruteforce_consumer.start()
 
     def setup_auth(self, timeout=5):
-        auth_plugins = self._w3af_core.plugins.plugins["auth"]
+        auth_plugins = self._w3af_core.plugins.get_plugin_instances("auth")
 
         if auth_plugins:
             self._auth_consumer = auth(

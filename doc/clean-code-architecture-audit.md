@@ -7631,3 +7631,15 @@ Verificación: **58 tests** de urllib y plugins pasan con RSS máximo de
 **215269376 bytes**; la regresión de XML pasa en sus casos binarios y de URL.
 Black, Ruff y mypy pasan en los módulos modificados. Se añadió también el test
 que faltaba para `system_log` en la comprobación de cobertura de plugins.
+
+## Actualización verificada: encapsulación del registro de plugins
+
+La colección mutable de instancias dejó de exponerse como `CorePlugins.plugins`.
+El registro mantiene ahora su almacenamiento privado y ofrece operaciones
+explícitas para obtener o reemplazar las instancias de un tipo. La estrategia,
+el consumidor de discovery y los tests ya no conocen la representación interna
+del registro ni la modifican mediante asignaciones al diccionario.
+
+Verificación: **59 tests** de plugins, estrategia, consumidores y core pasan;
+Black y Ruff pasan en todos los archivos afectados. No quedan referencias a
+`core.plugins.plugins` en el código del proyecto.

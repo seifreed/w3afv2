@@ -119,7 +119,7 @@ class CrawlConsumerTest(unittest.TestCase):
     def start_consumer(self, plugins, max_discovery_time=NEVER, observer=None):
         for plugin in plugins:
             plugin.set_output(om.out)
-            self.core.plugins.plugins[plugin.get_type()].append(plugin)
+            self.core.plugins.get_plugin_instances(plugin.get_type()).append(plugin)
 
         consumer = CrawlInfrastructure(
             plugins,
@@ -174,7 +174,7 @@ class TestRouting(CrawlConsumerTest):
         self.assertEqual(results[-1], POISON_PILL)
         self.assertEqual(plugin.crawled, [BASE])
         self.assertEqual(plugin.end_calls, 1)
-        self.assertEqual(self.core.plugins.plugins["crawl"], [])
+        self.assertEqual(self.core.plugins.get_plugin_instances("crawl"), [])
 
         errors = [
             (result.plugin, str(result.exception))
@@ -263,7 +263,7 @@ class TestRouting(CrawlConsumerTest):
         self.assertEqual(drain_results(consumer), [])
 
         consumer.join()
-        self.assertEqual(self.core.plugins.plugins["crawl"], [])
+        self.assertEqual(self.core.plugins.get_plugin_instances("crawl"), [])
 
 
 class TestPluginErrors(CrawlConsumerTest):

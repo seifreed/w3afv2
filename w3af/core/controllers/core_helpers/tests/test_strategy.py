@@ -237,7 +237,7 @@ class TestScanConsumers(unittest.TestCase):
         plugin_inst = factory(module_name)
         plugin_inst.set_url_opener(self.core.uri_opener)
         plugin_inst.set_worker_pool(self.core.worker_pool)
-        self.core.plugins.plugins["grep"] = [plugin_inst]
+        self.core.plugins.set_plugin_instances("grep", [plugin_inst])
         self.core.plugins._plugins_names_dict["grep"] = [plugin_inst.get_name()]
 
     def test_grep_auth_and_bruteforce_consumers(self):
