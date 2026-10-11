@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
 
+from w3af.core.controllers.core_helpers.status_activity import StatusActivity
 from w3af.core.controllers.core_helpers.status_adjustments import (
     get_audit_adjustment,
     get_crawl_adjustment,
@@ -61,15 +62,7 @@ class CoreStatus:
         self._lifecycle = StatusLifecycle(scans_completed)
         self._request_count_at_start = self._id_generator.get()
 
-        # Init some internal values
-        # This indicates the plugin that is running right now for each
-        # plugin_type
-        self._running_plugin = {}
-        self._latest_ptype, self._latest_pname = None, None
-
-        # The current fuzzable request that the core is analyzing at each phase
-        # where a phase means crawl/audit
-        self._current_fuzzable_request = {}
+        self._activity = StatusActivity()
 
         self._eta_calculator = EtaCalculator()
 
@@ -109,11 +102,11 @@ class CoreStatus:
             return STOPPED
 
         else:
-            crawl_plugin = self.get_running_plugin("crawl")
-            audit_plugin = self.get_running_plugin("audit")
+            crawl_plugin = self._activity.get_running_plugin("crawl")
+            audit_plugin = self._activity.get_running_plugin("audit")
 
-            crawl_fr = self.get_current_fuzzable_request("crawl")
-            audit_fr = self.get_current_fuzzable_request("audit")
+            crawl_fr = self._activity.get_current_fuzzable_request("crawl")
+            audit_fr = self._activity.get_current_fuzzable_request("audit")
 
             if (
                 crawl_plugin is None
@@ -145,21 +138,20 @@ class CoreStatus:
         :param plugin_name: The plugin_type which the w3afCore is running
         :param plugin_name: The plugin_name which the w3afCore is running
         """
-        self._running_plugin[plugin_type] = plugin_name
-        self._latest_ptype, self._latest_pname = plugin_type, plugin_name
+        self._activity.set_running_plugin(plugin_type, plugin_name)
 
     def get_running_plugin(self, plugin_type):
         """
         :return: The plugin that the core is running when the method is called.
         """
-        return self._running_plugin.get(plugin_type, None)
+        return self._activity.get_running_plugin(plugin_type)
 
     def latest_running_plugin(self):
         """
         :return: Tuple with plugin_type and plugin_name for the latest running
                  plugin reported using set_running_plugin.
         """
-        return self._latest_ptype, self._latest_pname
+        return self._activity.latest_running_plugin()
 
     def is_running(self):
         """
@@ -205,21 +197,20 @@ class CoreStatus:
 
     def scan_finished(self):
         self._lifecycle.scan_finished()
-        self._running_plugin = {}
-        self._current_fuzzable_request = {}
+        self._activity.clear()
 
     def get_current_fuzzable_request(self, plugin_type):
         """
         :return: The current fuzzable request that the w3afCore is working on.
         """
-        return self._current_fuzzable_request.get(plugin_type, None)
+        return self._activity.get_current_fuzzable_request(plugin_type)
 
     def set_current_fuzzable_request(self, plugin_type, fuzzable_request):
         """
         :param fuzzable_request: The FuzzableRequest that the w3afCore is
         working on right now.
         """
-        self._current_fuzzable_request[plugin_type] = fuzzable_request
+        self._activity.set_current_fuzzable_request(plugin_type, fuzzable_request)
 
     def get_crawl_input_speed(self):
         return self._consumer_metrics.get_input_speed(CRAWL)
