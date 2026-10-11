@@ -103,7 +103,11 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
             configure_data_logging(second)
             remove_data_logging(first)
 
-            handlers = logger.handlers
+            handlers = [
+                handler
+                for handler in logger.handlers
+                if isinstance(handler, OutputManagerLogHandler)
+            ]
             self.assertEqual(len(handlers), 1)
             handler = handlers[0]
             if not isinstance(handler, OutputManagerLogHandler):

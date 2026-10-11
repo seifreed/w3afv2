@@ -7140,3 +7140,13 @@ Verificación: factory, transferencia y plugins pasan **118 tests, 3 omitidos y
 9 subtests**; Black y Ruff pasan en los tres archivos modificados. La suite
 completa previa alcanzó **524 tests** antes de estos fallos de plataforma; el
 score global continúa en **9.99/10** hasta completar la verificación total.
+
+## Actualización verificada: aislamiento del bridge de logging
+
+La prueba de `remove_data_logging()` contaba handlers externos del logger como
+si fueran handlers del output manager. Ahora filtra por el tipo propio del
+bridge y verifica que solo queda el sink activo; la implementación ya elimina
+los handlers del bridge anteriores al reconfigurar.
+
+Verificación: logging bridge, factory y transferencia pasan **12 tests y 3
+omitidos**; Black y Ruff pasan en el archivo modificado.
