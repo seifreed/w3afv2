@@ -38,7 +38,6 @@ from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.io import NamedStringIO
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.utils.re_extract import ReExtract
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -248,7 +247,9 @@ class file_upload(AuditPlugin):
         :return: All references (links) found in the HTTP response
         """
         try:
-            doc_parser = parser_cache.dpc.get_document_parser_for(mutant_response)
+            doc_parser = self._get_parser_cache().get_document_parser_for(
+                mutant_response
+            )
         except BaseFrameworkException:
             # Failed to find a suitable parser for the document
             return

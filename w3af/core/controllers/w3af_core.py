@@ -75,7 +75,7 @@ from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
-from w3af.core.data.parsers import parser_cache
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import (
     ScanMustStopByUnknownReasonExc,
@@ -95,9 +95,10 @@ NO_MEMORY_MSG = (
 )
 
 
-def _stop_core_resources(output_manager, dns_cache):
+def _stop_core_resources(output_manager, dns_cache, parser_cache):
     output_manager.stop()
     dns_cache.clear()
+    parser_cache.clear()
 
 
 class w3afCore:
@@ -143,8 +144,9 @@ class w3afCore:
         configure_data_logging(output)
         register_parser_multiprocessing(manager)
         self._dns_cache = DNSCache(output)
+        self._parser_cache = ParserCache()
         self._output_manager_finalizer = weakref.finalize(
-            self, _stop_core_resources, manager, self._dns_cache
+            self, _stop_core_resources, manager, self._dns_cache, self._parser_cache
         )
         self._output = output
         self._output_manager = manager
@@ -204,6 +206,7 @@ class w3afCore:
             output.log_http,
             configuration=self._configuration,
             resolver=self._dns_cache.getaddrinfo,
+            parser_cache=self._parser_cache,
         )
         self.uri_opener.set_worker_pool_provider(
             lambda: self.worker_pool,
@@ -407,6 +410,10 @@ class w3afCore:
     def configuration(self):
         return self._configuration
 
+    @property
+    def parser_cache(self):
+        return self._parser_cache
+
     def can_cleanup(self):
         return self.status.get_simplified_status() == STOPPED
 
@@ -437,7 +444,7 @@ class w3afCore:
         self.knowledge_base.cleanup()
 
         # Stop the parser subprocess
-        parser_cache.dpc.clear()
+        self._parser_cache.clear()
 
         if self._fingerprint_404 is not None:
             self._fingerprint_404.cleanup()
@@ -496,7 +503,7 @@ class w3afCore:
         remove_temp_dir(ignore_errors=True)
 
         # Stop the parser subprocess
-        parser_cache.dpc.clear()
+        self._parser_cache.clear()
 
         if self._fingerprint_404 is not None:
             self._fingerprint_404.cleanup()
@@ -522,7 +529,7 @@ class w3afCore:
         This method is called when the process ends normally or by an error.
         """
         stop_profiling(self, self._output, self._output_manager)
-        parser_cache.dpc.clear()
+        self._parser_cache.clear()
 
         try:
             #

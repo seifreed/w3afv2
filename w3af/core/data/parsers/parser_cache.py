@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import atexit
 import logging
 import threading
 from concurrent.futures import TimeoutError
@@ -31,7 +30,7 @@ from w3af.core.data.parsers.document_parser import DocumentParser
 from w3af.core.data.parsers.ipc.serialization import DeserializationError
 from w3af.core.data.parsers.mp_document_parser import (
     DocumentParsingError,
-    mp_doc_parser,
+    MultiProcessingDocumentParser,
 )
 from w3af.core.data.parsers.utils.cache_stats import CacheStats
 from w3af.core.data.parsers.utils.response_uniq_id import (
@@ -39,7 +38,6 @@ from w3af.core.data.parsers.utils.response_uniq_id import (
     get_response_unique_id,
 )
 from w3af.core.exceptions import BaseFrameworkException, ScanMustStopException
-from w3af.core.process import is_main_process
 from w3af.core.profiling import is_core_profiling_enabled
 
 LOGGER = logging.getLogger(__name__)
@@ -56,14 +54,16 @@ class ParserCache(CacheStats):
     MAX_CACHEABLE_BODY_LEN = 1024 * 1024
     DEBUG = is_core_profiling_enabled()
 
-    def __init__(self, mp_parser=mp_doc_parser):
+    def __init__(self, mp_parser=None):
         """
         :param mp_parser: The MultiProcessingDocumentParser that parses the
                           responses which are not in the cache
         """
         super().__init__()
 
-        self._mp_parser = mp_parser
+        self._mp_parser = (
+            MultiProcessingDocumentParser() if mp_parser is None else mp_parser
+        )
         self._cache = SynchronizedLRUDict(self.CACHE_SIZE)
         self._can_parse_cache = SynchronizedLRUDict(self.CACHE_SIZE * 10)
         self._parser_finished_events = {}
@@ -89,6 +89,10 @@ class ParserCache(CacheStats):
         self._can_parse_cache.clear()
         self._parser_finished_events.clear()
         self._parser_blacklist.clear()
+
+    def get_pool_stats(self):
+        """Return worker and input queue sizes for this cache's parser pool."""
+        return self._mp_parser.get_pool_stats()
 
     def should_cache(self, http_response):
         """
@@ -342,13 +346,3 @@ class ParserCache(CacheStats):
                 self._parser_finished_events.pop(hash_string, None)
 
             return tags
-
-
-@atexit.register
-def cleanup_pool():
-    if "dpc" in globals():
-        dpc.clear()
-
-
-if is_main_process():
-    dpc = ParserCache()

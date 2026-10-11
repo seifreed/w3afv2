@@ -57,7 +57,7 @@ class http_in_body(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        body_without_tags = response.get_clear_text_body()
+        body_without_tags = self._get_clear_text_body(response)
 
         uri = response.get_uri()
 

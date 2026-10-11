@@ -21,10 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from queue import Queue
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.ssn import ssn
@@ -35,6 +38,11 @@ class test_ssn(unittest.TestCase):
     def setUp(self):
         kb.cleanup()
         self.plugin = ssn()
+        self.plugin.set_knowledge_base(kb)
+        self.plugin.set_output(LogSink(Queue()))
+        self.parser_cache = ParserCache()
+        self.plugin.set_parser_cache(self.parser_cache)
+        self.addCleanup(self.parser_cache.clear)
         self.plugin._already_inspected = set()
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)

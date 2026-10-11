@@ -37,7 +37,6 @@ from w3af.core.data.misc.iterables import unique_justseen
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL, LIST, REGEX
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.utils.header_link_extract import headers_url_generator
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import BaseFrameworkException
@@ -133,7 +132,7 @@ class web_spider(CrawlPlugin):
         """
         # Try to find forms in the document
         try:
-            dp = parser_cache.dpc.get_document_parser_for(resp)
+            dp = self._get_parser_cache().get_document_parser_for(resp)
         except BaseFrameworkException:
             # Failed to find a suitable parser for the document
             return
@@ -248,7 +247,7 @@ class web_spider(CrawlPlugin):
         # Note: I WANT to follow links that are in the 404 page.
         #
         try:
-            doc_parser = parser_cache.dpc.get_document_parser_for(resp)
+            doc_parser = self._get_parser_cache().get_document_parser_for(resp)
         except BaseFrameworkException as w3:
             self._output.debug(
                 "Failed to find a suitable document parser. " f'Exception "{w3}"'

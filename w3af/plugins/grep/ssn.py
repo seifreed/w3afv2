@@ -60,7 +60,7 @@ class ssn(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        clear_text_body = response.get_clear_text_body()
+        clear_text_body = self._get_clear_text_body(response)
 
         found_ssn, validated_ssn = self._find_SSN(clear_text_body)
 

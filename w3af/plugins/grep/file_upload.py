@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
-from w3af.core.data.parsers import parser_cache
 
 
 class file_upload(GrepPlugin):
@@ -43,7 +42,7 @@ class file_upload(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, ("input",)):
+        for tag in self._get_parser_cache().get_tags_by_filter(response, ("input",)):
             input_type = tag.attrib.get("type", None)
 
             if input_type is None:

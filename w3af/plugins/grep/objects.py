@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
-from w3af.core.data.parsers import parser_cache
 
 
 class objects(GrepPlugin):
@@ -47,7 +46,7 @@ class objects(GrepPlugin):
 
         url = response.get_url()
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, self.TAGS):
+        for tag in self._get_parser_cache().get_tags_by_filter(response, self.TAGS):
             desc = (
                 'The URL: "%s" has an "%s" tag. We recommend you download'
                 " the client side code and analyze it manually."

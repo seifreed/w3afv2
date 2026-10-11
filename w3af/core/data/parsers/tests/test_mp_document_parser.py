@@ -50,7 +50,6 @@ from w3af.core.data.parsers.mp_document_parser import (
     MultiProcessingDocumentParser,
     ParserMemoryLimitError,
     apply_with_return_error,
-    cleanup_pool,
     configure_multiprocessing,
     get_memory_limit,
     init_worker,
@@ -460,12 +459,13 @@ class TestMemoryLimitConfiguration(unittest.TestCase):
 
 
 class TestCleanupPool(unittest.TestCase):
-    def test_cleanup_pool_stops_the_shared_parser(self):
-        mp_module.mp_doc_parser.start_workers()
+    def test_parser_can_stop_its_owned_workers(self):
+        parser = MultiProcessingDocumentParser()
+        parser.start_workers()
 
-        cleanup_pool()
+        parser.stop_workers()
 
-        self.assertIsNone(mp_module.mp_doc_parser._pool)
+        self.assertIsNone(parser._pool)
 
 
 class TestMarkerParsers(unittest.TestCase):

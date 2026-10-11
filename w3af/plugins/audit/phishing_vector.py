@@ -24,7 +24,6 @@ from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.parsers import parser_cache
 
 
 class phishing_vector(AuditPlugin):
@@ -102,7 +101,7 @@ class phishing_vector(AuditPlugin):
         if not self._contains_payload(response):
             return
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, self.TAGS):
+        for tag in self._get_parser_cache().get_tags_by_filter(response, self.TAGS):
             src_attr = tag.attrib.get("src", None)
 
             if src_attr is None:

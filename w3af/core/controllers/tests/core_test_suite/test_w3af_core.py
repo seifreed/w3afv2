@@ -109,6 +109,16 @@ class TestW3afCore(unittest.TestCase):
 
         self.assertFalse(manager.is_alive())
 
+    def test_unreferenced_core_stops_parser_workers(self):
+        core = w3afCore()
+        parser_cache = core.parser_cache
+        parser_cache._mp_parser.start_workers()
+
+        del core
+        gc.collect()
+
+        self.assertIsNone(parser_cache._mp_parser._pool)
+
     def test_unreferenced_core_does_not_mutate_dns_resolver(self):
         original = socket.getaddrinfo
         core = w3afCore()

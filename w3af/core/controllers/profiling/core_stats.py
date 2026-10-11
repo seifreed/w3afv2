@@ -76,7 +76,7 @@ def dump_data(w3af_core, output_manager):
             "Output manager input queue size": get_queue_size(
                 output_manager.get_in_queue()
             ),
-            "Cache stats": get_parser_cache_stats(),
+            "Cache stats": get_parser_cache_stats(w3af_core.parser_cache),
         }
     except Exception as e:
         logging.getLogger(__name__).debug("Failed to collect core stats", exc_info=True)
@@ -111,25 +111,17 @@ def get_queue_size(queue):
         return None
 
 
-def get_parser_cache_stats():
-    from w3af.core.data.parsers import parser_cache
-    from w3af.core.data.parsers.mp_document_parser import mp_doc_parser
-
+def get_parser_cache_stats(parser_cache):
     r = {
-        "hit_rate": parser_cache.dpc.get_hit_rate(),
-        "max_lru_items": parser_cache.dpc.get_max_lru_items(),
-        "current_lru_size": parser_cache.dpc.get_current_lru_items(),
-        "total_cache_queries": parser_cache.dpc.get_total_queries(),
-        "do_not_cache": parser_cache.dpc.get_do_not_cache(),
+        "hit_rate": parser_cache.get_hit_rate(),
+        "max_lru_items": parser_cache.get_max_lru_items(),
+        "current_lru_size": parser_cache.get_current_lru_items(),
+        "total_cache_queries": parser_cache.get_total_queries(),
+        "do_not_cache": parser_cache.get_do_not_cache(),
     }
 
-    if mp_doc_parser._pool is not None:
-        r["Parser pool worker size"] = mp_doc_parser._pool._context.workers
-        r["Parser pool input queue size"] = get_queue_size(
-            mp_doc_parser._pool._context.task_queue
-        )
-    else:
-        r["Parser pool worker size"] = 0
-        r["Parser pool input queue size"] = 0
+    worker_size, queue_size = parser_cache.get_pool_stats()
+    r["Parser pool worker size"] = worker_size
+    r["Parser pool input queue size"] = queue_size
 
     return r

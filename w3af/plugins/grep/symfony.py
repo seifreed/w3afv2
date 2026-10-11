@@ -26,7 +26,6 @@ from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers import parser_cache
 
 
 class symfony(GrepPlugin):
@@ -105,7 +104,7 @@ class symfony(GrepPlugin):
         """
         :return: True if there is CSRF protection enabled in this symfony app
         """
-        for tag in parser_cache.dpc.get_tags_by_filter(response, ("input",)):
+        for tag in self._get_parser_cache().get_tags_by_filter(response, ("input",)):
             input_id = tag.attrib.get("id", "")
             if self._csrf_token_re.search(input_id):
                 return True

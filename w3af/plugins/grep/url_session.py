@@ -24,7 +24,6 @@ from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants.cookies import ALL_COOKIES
 from w3af.core.data.kb.info import Info
-from w3af.core.data.parsers import parser_cache
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -68,7 +67,7 @@ class url_session(GrepPlugin):
         Find session IDs in the URI and store them in the KB.
         """
         try:
-            doc_parser = parser_cache.dpc.get_document_parser_for(response)
+            doc_parser = self._get_parser_cache().get_document_parser_for(response)
         except BaseFrameworkException:
             pass
         else:

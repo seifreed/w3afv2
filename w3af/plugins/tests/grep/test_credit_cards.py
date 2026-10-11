@@ -23,11 +23,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 from pathlib import Path
+from queue import Queue
 
 from w3af import ROOT_PATH
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.credit_cards import credit_cards
@@ -37,6 +40,11 @@ class TestCreditCards(unittest.TestCase):
 
     def setUp(self):
         self.plugin = credit_cards()
+        self.plugin.set_knowledge_base(kb)
+        self.plugin.set_output(LogSink(Queue()))
+        self.parser_cache = ParserCache()
+        self.plugin.set_parser_cache(self.parser_cache)
+        self.addCleanup(self.parser_cache.clear)
         kb.clear("credit_cards", "credit_cards")
 
     def tearDown(self):

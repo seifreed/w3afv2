@@ -25,7 +25,6 @@ import re
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 
 WS_URL = "ws://"
@@ -73,7 +72,7 @@ class websockets_links(GrepPlugin):
         else:
             # if it is html we should search inside <script> tags only
             ws_links = set()
-            get_tags = parser_cache.dpc.get_tags_by_filter
+            get_tags = self._get_parser_cache().get_tags_by_filter
 
             for tag in get_tags(response, ("script",), yield_text=True):
                 for ws_link in find_websockets_links(tag.text):

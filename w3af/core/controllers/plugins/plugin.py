@@ -35,6 +35,7 @@ from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import new_no_content_resp
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class Plugin(Configurable):
@@ -58,6 +59,7 @@ class Plugin(Configurable):
         self._w3af_core = None
         self._configuration = None
         self._knowledge_base = None
+        self._parser_cache = None
         self._fingerprint_404 = None
         self._output = None
         self.worker_pool = None
@@ -112,6 +114,10 @@ class Plugin(Configurable):
         """Set the knowledge store used by this plugin."""
         self._knowledge_base = knowledge_base
 
+    def set_parser_cache(self, parser_cache):
+        """Set the parser cache used by this plugin."""
+        self._parser_cache = parser_cache
+
     def set_fingerprint_404(self, fingerprint_404):
         """Set the 404 detector used by standalone plugin instances."""
         self._fingerprint_404 = fingerprint_404
@@ -124,6 +130,19 @@ class Plugin(Configurable):
         if self._knowledge_base is None:
             raise RuntimeError("Plugin knowledge base has not been configured")
         return self._knowledge_base
+
+    def _get_parser_cache(self):
+        if self._parser_cache is None:
+            raise RuntimeError("Plugin parser cache has not been configured")
+        return self._parser_cache
+
+    def _get_clear_text_body(self, response):
+        try:
+            parser = self._get_parser_cache().get_document_parser_for(response)
+        except BaseFrameworkException:
+            return ""
+
+        return parser.get_clear_text_body()
 
     def get_w3af_core(self):
         return self._w3af_core

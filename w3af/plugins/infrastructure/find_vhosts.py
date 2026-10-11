@@ -34,7 +34,6 @@ from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.ip_address import is_ip_address
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import is_no_content_response
 from w3af.core.exceptions import BaseFrameworkException
@@ -115,7 +114,7 @@ class find_vhosts(InfrastructurePlugin):
         original_response = self._uri_opener.GET(fuzzable_request.get_uri(), cache=True)
 
         try:
-            dp = parser_cache.dpc.get_document_parser_for(original_response)
+            dp = self._get_parser_cache().get_document_parser_for(original_response)
         except BaseFrameworkException:
             # Failed to find a suitable parser for the document
             return

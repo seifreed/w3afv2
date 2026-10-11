@@ -91,7 +91,7 @@ class credit_cards(GrepPlugin):
         if response.get_code() != 200:
             return
 
-        clear_text_body = response.get_clear_text_body()
+        clear_text_body = self._get_clear_text_body(response)
 
         found_cards = self._find_card(clear_text_body)
 

@@ -86,6 +86,7 @@ class ExtendedUrllib:
         sleep=time.sleep,
         configuration=None,
         resolver=None,
+        parser_cache=None,
     ):
         self._configuration = Config() if configuration is None else configuration
         self.settings = opener_settings.OpenerSettings(
@@ -154,6 +155,7 @@ class ExtendedUrllib:
             self._track_rtt,
             self._worker_pool_adjuster.adjust,
             self._grep,
+            parser_cache,
         )
         self._retry_handler = RequestRetryHandler(
             self.send,

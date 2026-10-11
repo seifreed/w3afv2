@@ -24,9 +24,11 @@ from typing import ClassVar
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
@@ -86,6 +88,11 @@ class TestHTMLCommentsUnit(unittest.TestCase):
         create_temp_dir()
         kb.cleanup()
         self.plugin = html_comments()
+        self.plugin.set_output(om.out)
+        self.plugin.set_knowledge_base(kb)
+        self.parser_cache = ParserCache()
+        self.plugin.set_parser_cache(self.parser_cache)
+        self.addCleanup(self.parser_cache.clear)
 
     def tearDown(self):
         self.plugin.end()
@@ -96,7 +103,9 @@ class TestHTMLCommentsUnit(unittest.TestCase):
         headers = Headers([("content-type", "text/html")])
         request = FuzzableRequest(url, method="GET")
 
-        response = HTTPResponse(200, body, headers, url, url, _id=1)
+        response = HTTPResponse(
+            200, body, headers, url, url, _id=1, parser_cache=self.parser_cache
+        )
         self.plugin.grep(request, response)
 
         info_sets = kb.get("html_comments", "interesting_comments")
@@ -108,7 +117,9 @@ class TestHTMLCommentsUnit(unittest.TestCase):
         headers = Headers([("content-type", "text/html")])
         request = FuzzableRequest(url, method="GET")
 
-        response = HTTPResponse(200, body, headers, url, url, _id=1)
+        response = HTTPResponse(
+            200, body, headers, url, url, _id=1, parser_cache=self.parser_cache
+        )
 
         for _ in range(500):
             self.plugin.grep(request, response)

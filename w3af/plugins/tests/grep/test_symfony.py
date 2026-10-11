@@ -23,9 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from functools import partial
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
@@ -52,10 +54,20 @@ class test_symfony(unittest.TestCase):
         create_temp_dir()
         kb.cleanup()
         self.plugin = symfony()
+        self.plugin.set_output(om.out)
+        self.plugin.set_knowledge_base(kb)
+        self.parser_cache = ParserCache()
+        self.plugin.set_parser_cache(self.parser_cache)
+        self.addCleanup(self.parser_cache.clear)
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
         self.http_resp = partial(
-            HTTPResponse, code=200, geturl=self.url, original_url=self.url, _id=1
+            HTTPResponse,
+            code=200,
+            geturl=self.url,
+            original_url=self.url,
+            _id=1,
+            parser_cache=self.parser_cache,
         )
 
     def tearDown(self):

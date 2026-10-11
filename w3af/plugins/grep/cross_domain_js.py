@@ -30,7 +30,6 @@ from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import INPUT_FILE
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.quick_match.multi_in import MultiIn
 
 
@@ -70,7 +69,7 @@ class cross_domain_js(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, ("script",)):
+        for tag in self._get_parser_cache().get_tags_by_filter(response, ("script",)):
             script_src = tag.attrib.get("src", None)
 
             if script_src is None:

@@ -16,12 +16,14 @@ class ResponseSuccessHandler:
         track_rtt,
         adjust_workers,
         grep,
+        parser_cache,
     ) -> None:
         self._log_debug = log_debug
         self._log_successful_response = log_successful_response
         self._track_rtt = track_rtt
         self._adjust_workers = adjust_workers
         self._grep = grep
+        self._parser_cache = parser_cache
 
     def handle(self, request, response, grep, original_url, original_url_inst):
         request_data = request.get_data()
@@ -56,6 +58,7 @@ class ResponseSuccessHandler:
             response,
             original_url=original_url_inst,
             binary_response=request.with_binary_response(),
+            parser_cache=self._parser_cache,
         )
         http_response.set_id(response.id)
         http_response.set_from_cache(from_cache)

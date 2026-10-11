@@ -31,6 +31,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_unicode
 from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.url.http_response import (
     DEFAULT_CHARSET,
     DEFAULT_WAIT_TIME,
@@ -51,11 +52,15 @@ TEST_RESPONSES = {
 class TestHTTPResponse(unittest.TestCase):
 
     def setUp(self):
+        self.parser_cache = ParserCache()
+        self.addCleanup(self.parser_cache.clear)
         self.resp = self.create_resp(Headers([("Content-Type", "text/html")]))
 
     def create_resp(self, headers, body="body"):
         url = URL("http://w3af.com")
-        return HTTPResponse(200, body, headers, url, url)
+        return HTTPResponse(
+            200, body, headers, url, url, parser_cache=self.parser_cache
+        )
 
     def test_unicode_body_no_charset(self):
         self.assertEqual(self.resp.get_body(), "body")
@@ -242,6 +247,7 @@ class TestHTTPResponse(unittest.TestCase):
 
         cmp_attrs = list(orig_resp.__slots__)
         cmp_attrs.remove("_body_lock")
+        cmp_attrs.remove("_parser_cache")
 
         self.assertEqual(
             {k: getattr(orig_resp, k) for k in cmp_attrs},
@@ -333,11 +339,23 @@ class TestHTTPResponseAPI(unittest.TestCase):
 
     URL = URL("http://w3af.com/a/b.html")
 
+    def setUp(self):
+        self.parser_cache = ParserCache()
+        self.addCleanup(self.parser_cache.clear)
+
     def create_resp(self, headers=None, body="body", **kwargs):
         headers = (
             Headers([("Content-Type", "text/html")]) if headers is None else headers
         )
-        return HTTPResponse(200, body, headers, self.URL, self.URL, **kwargs)
+        return HTTPResponse(
+            200,
+            body,
+            headers,
+            self.URL,
+            self.URL,
+            parser_cache=self.parser_cache,
+            **kwargs,
+        )
 
     def test_constructor_validates_types(self):
         url = self.URL

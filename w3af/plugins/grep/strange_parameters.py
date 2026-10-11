@@ -32,7 +32,6 @@ from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.encoding import smart_unicode
-from w3af.core.data.parsers import parser_cache
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -67,7 +66,7 @@ class strange_parameters(GrepPlugin):
         :return: None, all results are saved in the kb.
         """
         try:
-            dp = parser_cache.dpc.get_document_parser_for(response)
+            dp = self._get_parser_cache().get_document_parser_for(response)
         except BaseFrameworkException:
             return
 

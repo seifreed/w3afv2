@@ -19,15 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.lang import lang
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 ENGLISH_TEXT = (
     "The quick brown fox jumps over the lazy dog while the sun is shining and"
@@ -43,18 +40,18 @@ SPANISH_TEXT = (
 )
 
 
-class TestLang(unittest.TestCase):
+class TestLang(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
+        super().setUp()
         self.plugin = lang()
-        self.plugin.set_knowledge_base(kb)
+        self.configure_plugin(self.plugin)
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
-        kb.cleanup()
+        self.plugin.end()
+        super().tearDown()
 
     def _grep(self, text, content_type="text/html"):
         body = f"<html><body><p>{text}</p></body></html>"
@@ -73,6 +70,3 @@ class TestLang(unittest.TestCase):
     def test_not_text_is_ignored(self):
         self._grep(ENGLISH_TEXT, content_type="image/png")
         self.assertEqual([], kb.raw_read("lang", "lang"))
-
-
-kb = DBKnowledgeBase()

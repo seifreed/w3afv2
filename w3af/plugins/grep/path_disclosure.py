@@ -25,7 +25,6 @@ from w3af.core.data.constants import severity
 from w3af.core.data.constants.common_directories import get_common_directories
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.quick_match.multi_re import MultiRE
 
 
@@ -208,7 +207,7 @@ class path_disclosure(GrepPlugin):
             response_body = '...<b>Error while checking /home/image.png</b>...'
             return: False
         """
-        for tag in parser_cache.dpc.get_tags_by_filter(response, None):
+        for tag in self._get_parser_cache().get_tags_by_filter(response, None):
             for value in tag.attrib.values():
                 if path_disclosure_string in value:
                     return True

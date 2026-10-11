@@ -109,7 +109,9 @@ class digit_sum(CrawlPlugin):
         #    - If we changed the query string parameters, we have to check
         #      the content
         elif fuzzy_not_equal(
-            response.get_clear_text_body(), original_resp.get_clear_text_body(), 0.8
+            self._get_clear_text_body(response),
+            self._get_clear_text_body(original_resp),
+            0.8,
         ):
             # In this case what might happen is that the number we changed
             # is "out of range" and when requesting that it will trigger an

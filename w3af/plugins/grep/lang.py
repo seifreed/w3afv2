@@ -58,7 +58,7 @@ class lang(GrepPlugin):
         if self._is_404(response):
             return
 
-        body = response.get_clear_text_body().lower()
+        body = self._get_clear_text_body(response).lower()
 
         # guess_language returns its own falsy (and non-picklable) UNKNOWN
         # sentinel when it can not identify the language. Normalize it to our

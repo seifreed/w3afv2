@@ -34,8 +34,7 @@ from w3af.core.controllers.profiling.core_stats import (
     stop_core_profiling,
 )
 from w3af.core.controllers.w3af_core import w3afCore
-from w3af.core.data.parsers import parser_cache
-from w3af.core.data.parsers.mp_document_parser import mp_doc_parser
+from w3af.core.data.parsers.parser_cache import ParserCache
 
 from .profiling_output import (
     environment_variables,
@@ -48,10 +47,11 @@ from .profiling_output import (
 class TestCoreStats(unittest.TestCase):
     def setUp(self):
         remove_output_files(core_stats.PROFILING_OUTPUT_FMT)
+        self.parser_cache = ParserCache()
+        self.addCleanup(self.parser_cache.clear)
 
     def tearDown(self):
         core_stats.cancel_thread(core_stats.SAVE_THREAD_PTR)
-        mp_doc_parser.stop_workers()
         remove_output_files(core_stats.PROFILING_OUTPUT_FMT)
 
     def started_core(self):
@@ -79,16 +79,16 @@ class TestCoreStats(unittest.TestCase):
         self.assertIn("RuntimeError", "".join(data["Traceback"]))
 
     def test_parser_cache_stats_without_parser_pool(self):
-        stats = get_parser_cache_stats()
+        stats = get_parser_cache_stats(self.parser_cache)
 
         self.assertEqual(stats["Parser pool worker size"], 0)
         self.assertEqual(stats["Parser pool input queue size"], 0)
-        self.assertEqual(stats["max_lru_items"], parser_cache.dpc.get_max_lru_items())
+        self.assertEqual(stats["max_lru_items"], self.parser_cache.get_max_lru_items())
 
     def test_parser_cache_stats_with_parser_pool(self):
-        mp_doc_parser.start_workers()
+        self.parser_cache._mp_parser.start_workers()
 
-        stats = get_parser_cache_stats()
+        stats = get_parser_cache_stats(self.parser_cache)
 
         self.assertGreater(stats["Parser pool worker size"], 0)
         self.assertIn(stats["Parser pool input queue size"], (0, None))

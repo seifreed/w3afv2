@@ -27,7 +27,6 @@ from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.parsers import parser_cache
 from w3af.core.exceptions import BaseFrameworkException
 
 CacheSettings = namedtuple("CacheSettings", ["type", "value"])
@@ -89,7 +88,7 @@ class cache_control(GrepPlugin):
                 res.append(CacheSettings(_type, header_value.lower()))
 
         try:
-            doc_parser = parser_cache.dpc.get_document_parser_for(response)
+            doc_parser = self._get_parser_cache().get_document_parser_for(response)
         except BaseFrameworkException:
             pass
         else:

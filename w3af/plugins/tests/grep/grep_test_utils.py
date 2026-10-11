@@ -27,8 +27,8 @@ from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.parsers.utils.response_uniq_id import get_response_unique_id
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -42,10 +42,12 @@ def make_response(
     content_type="text/html",
     headers=(),
     _id=1,
+    parser_cache=None,
 ):
     url = URL(url) if isinstance(url, str) else url
     all_headers = Headers([("content-type", content_type), *headers])
-    return HTTPResponse(code, body, all_headers, url, url, _id=_id)
+    cache = TEST_PARSER_CACHE if parser_cache is None else parser_cache
+    return HTTPResponse(code, body, all_headers, url, url, _id=_id, parser_cache=cache)
 
 
 def make_request(url="http://www.w3af.com/", method="GET", headers=()):
@@ -62,17 +64,19 @@ class GrepPluginTestCase(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
         kb.cleanup()
+        TEST_PARSER_CACHE.clear()
         self._fingerprint_404_detectors = []
 
     def tearDown(self):
         for detector in self._fingerprint_404_detectors:
             detector.cleanup()
-        parser_cache.dpc.clear()
+        TEST_PARSER_CACHE.clear()
         kb.cleanup()
 
     def configure_plugin(self, plugin):
         plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
+        plugin.set_parser_cache(TEST_PARSER_CACHE)
         output = LogSink(Queue())
         plugin.set_output(output)
         detector = Fingerprint404(output, cf)
@@ -93,7 +97,7 @@ class GrepPluginTestCase(unittest.TestCase):
         """
         kwargs.setdefault("body", f"<html>{self.id()}</html>")
         response = make_response(**kwargs)
-        parser_cache.dpc.add_to_blacklist(get_response_unique_id(response))
+        TEST_PARSER_CACHE.add_to_blacklist(get_response_unique_id(response))
         return response
 
     def mark_as_404(self, marker="ThisIsA404Page"):
@@ -109,3 +113,6 @@ cf = Config()
 
 
 kb = DBKnowledgeBase()
+
+
+TEST_PARSER_CACHE = ParserCache()

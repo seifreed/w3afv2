@@ -32,7 +32,6 @@ from collections.abc import Iterable
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.response_body_decoder import (
     DEFAULT_CHARSET,
@@ -94,6 +93,7 @@ class HTTPResponse(DiskItem):
         "_headers",
         "_info",
         "_msg",
+        "_parser_cache",
         "_raw_body",
         "_realurl",
         "_redirected_uri",
@@ -118,6 +118,7 @@ class HTTPResponse(DiskItem):
         binary_response=False,
         set_body=False,
         debugging_id=None,
+        parser_cache=None,
     ):
         """
         :param code: HTTP code
@@ -169,6 +170,7 @@ class HTTPResponse(DiskItem):
             self._raw_body = read
 
         self._binary_response = binary_response
+        self._parser_cache = parser_cache
         self._content_type = None
         self._dom = None
         # A unique id identifier for the response
@@ -201,7 +203,13 @@ class HTTPResponse(DiskItem):
         self._body_lock = threading.RLock()
 
     @classmethod
-    def from_httplib_resp(cls, httplibresp, original_url=None, binary_response=False):
+    def from_httplib_resp(
+        cls,
+        httplibresp,
+        original_url=None,
+        binary_response=False,
+        parser_cache=None,
+    ):
         """
         Factory function. Build a HTTPResponse object from a
         httplib.HTTPResponse instance
@@ -244,6 +252,7 @@ class HTTPResponse(DiskItem):
             charset=charset,
             time=httplib_time,
             binary_response=binary_response,
+            parser_cache=parser_cache,
         )
 
     @classmethod
@@ -468,7 +477,9 @@ class HTTPResponse(DiskItem):
         :return: A DocumentParser instance or None
         """
         try:
-            return parser_cache.dpc.get_document_parser_for(self)
+            if self._parser_cache is None:
+                raise RuntimeError("HTTP response requires a configured parser cache")
+            return self._parser_cache.get_document_parser_for(self)
         except BaseFrameworkException:
             # Failed to find a suitable parser for the document
             return
@@ -786,8 +797,10 @@ class HTTPResponse(DiskItem):
     def __getstate__(self):
         state = {k: getattr(self, k) for k in self.__slots__}
         state.pop("_body_lock")
+        state.pop("_parser_cache")
         return state
 
     def __setstate__(self, state):
         [setattr(self, k, v) for k, v in state.items()]
+        self._parser_cache = None
         self._body_lock = threading.RLock()

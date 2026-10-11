@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.core.data.parsers import parser_cache
 from w3af.plugins.grep.password_profiling_plugins.base_plugin import (
     BasePwdProfilingPlugin,
 )
@@ -57,7 +56,9 @@ class html(BasePwdProfilingPlugin):
         def filter_by_len(x):
             return len(x) > 3
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, None, yield_text=True):
+        for tag in self._get_parser_cache().get_tags_by_filter(
+            response, None, yield_text=True
+        ):
 
             text = tag.text
 

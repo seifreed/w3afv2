@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import atexit
 import logging
 import multiprocessing
 import os
@@ -46,7 +45,6 @@ from w3af.core.data.parsers.ipc.serialization import (
 )
 from w3af.core.environment import is_running_on_ci
 from w3af.core.exceptions import ScanMustStopException
-from w3af.core.process import is_main_process
 from w3af.core.profiling import (
     is_core_profiling_enabled,
     is_cpu_profiling_enabled,
@@ -198,6 +196,21 @@ class MultiProcessingDocumentParser:
             self._pool.stop()
             self._pool.join()
             self._pool = None
+
+    def get_pool_stats(self):
+        """Return worker and input queue sizes for the owned parser pool."""
+        if self._pool is None:
+            return 0, 0
+
+        try:
+            queue_size = self._pool._context.task_queue.qsize()
+        except NotImplementedError:
+            queue_size = None
+
+        return (
+            self._pool._context.workers,
+            queue_size,
+        )
 
     def get_document_parser_for(self, http_response):
         """
@@ -444,12 +457,6 @@ def process_document_parser(filename, debug, parsers):
     return result_filename
 
 
-@atexit.register
-def cleanup_pool():
-    if mp_doc_parser is not None:
-        mp_doc_parser.stop_workers()
-
-
 def init_worker(worker_initializer, log_queue, mem_limit):
     """
     This function is called right after each Process in the ProcessPool is
@@ -519,6 +526,3 @@ def limit_memory_usage(mem_limit, rlimit=RLIMIT_AS):
     limit_mb = real_memory_limit / 1024 / 1024
     msg = "Using RLIMIT_AS memory usage limit %s MB for new pool process"
     LOGGER.debug(msg % limit_mb)
-
-
-mp_doc_parser = MultiProcessingDocumentParser() if is_main_process() else None

@@ -26,7 +26,6 @@ from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers import parser_cache
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -53,7 +52,7 @@ class get_emails(GrepPlugin):
         :return: None
         """
         try:
-            document_parser = parser_cache.dpc.get_document_parser_for(response)
+            document_parser = self._get_parser_cache().get_document_parser_for(response)
         except BaseFrameworkException:
             return
 

@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.parsers import parser_cache
 
 
 class meta_generator(GrepPlugin):
@@ -70,7 +69,7 @@ class meta_generator(GrepPlugin):
         """
         generators = set()
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, ("meta",)):
+        for tag in self._get_parser_cache().get_tags_by_filter(response, ("meta",)):
             name_attr_val = tag.attrib.get("name", None)
 
             if name_attr_val is None:

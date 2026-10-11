@@ -24,7 +24,6 @@ import threading
 import unittest
 
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.sgml import Tag
 from w3af.core.data.parsers.doc.url import URL
@@ -327,16 +326,6 @@ class TestParserCacheBehaviour(unittest.TestCase):
 
         self.assertEqual(self.dpc._parser_finished_events, {})
         self.assertEqual(len(self.dpc._parser_blacklist), 0)
-
-
-class TestParserCacheCleanup(unittest.TestCase):
-    def test_cleanup_pool_clears_the_shared_cache(self):
-        http_resp = _build_http_response(HTML_OK % "", "text/html")
-        parser_cache.dpc.get_document_parser_for(http_resp)
-
-        parser_cache.cleanup_pool()
-
-        self.assertEqual(len(parser_cache.dpc._cache), 0)
 
 
 class TestWorkerFailureParsers(unittest.TestCase):

@@ -26,7 +26,6 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import STRING
 from w3af.core.data.options.option_types import URL as URL_OPT
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import BaseFrameworkException
@@ -185,7 +184,9 @@ class autocomplete(AuthSessionPlugin):
         # Extract the form from the HTML document
         #
         try:
-            document_parser = parser_cache.dpc.get_document_parser_for(http_response)
+            document_parser = self._get_parser_cache().get_document_parser_for(
+                http_response
+            )
         except BaseFrameworkException as e:
             msg = "Failed to find a parser for the login_form_url: %s"
             self._log_debug(msg % e)

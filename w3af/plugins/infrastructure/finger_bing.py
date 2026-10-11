@@ -28,7 +28,6 @@ from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePl
 from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers import parser_cache
 from w3af.core.data.search_engines.bing import bing
 from w3af.core.exceptions import (
     BaseFrameworkException,
@@ -92,7 +91,7 @@ class finger_bing(InfrastructurePlugin):
         grep = self._domain == page.URL.get_domain()
         response = self._uri_opener.GET(page.URL, cache=True, grep=grep)
 
-        get_document_parser_for = parser_cache.dpc.get_document_parser_for
+        get_document_parser_for = self._get_parser_cache().get_document_parser_for
 
         try:
             document_parser = get_document_parser_for(response, cache=False)
