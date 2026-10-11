@@ -4956,6 +4956,16 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: runs temporales de DiskList
+
+La iteración ordenada de `DiskList` declara las rutas de sus runs temporales
+como `list[str]`, haciendo explícito que el ordenamiento se materializa en
+ficheros temporales y no en una colección de objetos residente en memoria.
+
+Verificación: la suite DiskList pasa **34 tests**; mypy focal, Ruff y Black
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: lifecycle tipado de SQLite
 
 El executor de SQLite declara las operaciones encoladas como `Future`, valida

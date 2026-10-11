@@ -233,7 +233,7 @@ class DiskList:
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            run_paths = []
+            run_paths: list[str] = []
             batch = []
             for row in results:
                 batch.append(self._load(row[0]))
