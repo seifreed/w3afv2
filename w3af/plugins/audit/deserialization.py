@@ -141,6 +141,9 @@ class deserialization(AuditPlugin):
         # a java serialized object was found in the original_value
         #
         is_lang_serialized_obj = self.IS_LANG_FUNCTION_MAP.get(language)
+        if is_lang_serialized_obj is None:
+            return False
+
         return bool(is_lang_serialized_obj(original_value))
 
     def _generate_delay_tests(self, freq):

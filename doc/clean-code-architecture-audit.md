@@ -5919,6 +5919,18 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: lenguaje desconocido en deserialization
+
+`deserialization._should_inject` rechaza explícitamente lenguajes que no están
+en el registro de detectores antes de invocarlos. Los parámetros vacíos siguen
+la regla existente de inyección y la nueva prueba cubre la rama desconocida
+con un valor no vacío.
+
+Verificación: la batería de decisión de deserialization pasa **10 tests**;
+Mypy con cuerpos no tipados, Ruff y Black pasan en producción y fixture. La
+suite completa del módulo quedó pendiente por una ejecución que esperó más de
+dos minutos sin CPU. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: URLs archivadas tipadas
 
 `archive_dot_org` declara la acumulación de URLs y valida que una snapshot de

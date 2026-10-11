@@ -192,6 +192,16 @@ class TestShouldInject(unittest.TestCase):
 
         self.assertTrue(self.plugin._should_inject(mutant, "python"))
 
+    def test_should_not_inject_unknown_language(self):
+        self.url = URL("http://moth/?id=1")
+        freq = FuzzableRequest(self.url)
+
+        mutant = QSMutant.create_mutants(
+            freq, self.payloads, [], False, self.fuzzer_config
+        )[0]
+
+        self.assertFalse(self.plugin._should_inject(mutant, "unknown"))
+
     def test_should_not_inject_qs_with_digit(self):
         self.url = URL("http://moth/?id=1")
         freq = FuzzableRequest(self.url)
