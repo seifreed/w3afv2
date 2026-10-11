@@ -204,6 +204,7 @@ class ExtendedUrllib:
             self._reset_total_requests,
             lambda: self.set_exploit_mode(False),
             self.clear_timeout,
+            self._rtt_sum_debugging_id.clear,
         )
 
     @property

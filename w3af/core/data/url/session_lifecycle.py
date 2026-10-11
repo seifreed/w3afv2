@@ -12,6 +12,7 @@ class SessionLifecycle:
         reset_total_requests,
         reset_exploit_mode,
         clear_timeout,
+        clear_rtt_cache,
     ):
         self._get_settings = get_settings
         self._request_control = request_control
@@ -19,6 +20,7 @@ class SessionLifecycle:
         self._reset_total_requests = reset_total_requests
         self._reset_exploit_mode = reset_exploit_mode
         self._clear_timeout = clear_timeout
+        self._clear_rtt_cache = clear_rtt_cache
         self._opener = None
 
     @property
@@ -31,6 +33,7 @@ class SessionLifecycle:
         self._reset_total_requests()
         self._reset_exploit_mode()
         self._response_history.reset()
+        self._clear_rtt_cache()
 
     def end(self):
         """Release resources owned by this session."""

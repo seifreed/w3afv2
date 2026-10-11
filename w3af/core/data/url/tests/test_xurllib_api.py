@@ -203,6 +203,15 @@ class TestExtendedUrllibAPI(unittest.TestCase):
             first.get_wait_time() + second.get_wait_time(),
         )
 
+    def test_clear_resets_rtt_by_debugging_id(self):
+        self.uri_opener.GET(self.url(), debugging_id="did")
+
+        self.assertIsNotNone(self.uri_opener.get_rtt_for_debugging_id("did"))
+
+        self.uri_opener.clear()
+
+        self.assertIsNone(self.uri_opener.get_rtt_for_debugging_id("did"))
+
     def test_random_user_agent(self):
         self.uri_opener.settings.set_rand_user_agent(True)
 

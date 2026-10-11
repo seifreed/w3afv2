@@ -7595,3 +7595,13 @@ duplicar el cableado ni alterar los atributos públicos del core.
 
 Verificación: **23 tests** del core y **9 tests con 7 subtests** de estrategia
 pasan; Black y Ruff pasan en el módulo modificado.
+
+## Actualización verificada: limpieza de métricas RTT entre scans
+
+El lifecycle de `ExtendedUrllib` reiniciaba la historia de respuestas y el
+contador de requests, pero conservaba la caché acotada de RTT por
+`debugging_id`. `SessionLifecycle.clear()` ahora limpia también esa caché, de
+modo que los identificadores y tiempos de un scan no sobreviven al siguiente.
+
+Verificación: la API de urllib pasa **24 tests** y el manejo de errores pasa
+**6 tests**; Black, Ruff y mypy pasan en los módulos modificados.
