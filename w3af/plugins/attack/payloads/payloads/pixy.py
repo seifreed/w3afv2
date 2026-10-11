@@ -21,7 +21,7 @@ class pixy(Payload):
             - XSS
             - SQLi
         """
-        self.result = {}
+        self.result: dict[str, list[str]] = {}
 
         #
         #    First we check if pixy is actually installed
@@ -72,16 +72,14 @@ class pixy(Payload):
                         self.result[vuln_type] = []
                     self.result[vuln_type].append(location)
 
-        def visitor(_, path, list_of_subitems):
-            for item in list_of_subitems:
+        for path, _, filenames in os.walk(local_temp_dir):
+            for item in filenames:
                 full_path = os.path.join(path, item)
 
                 if os.path.isfile(full_path):
                     stdout_value = run_process([pixy_full, full_path]).stdout
 
                     extract_info(stdout_value)
-
-        os.path.walk(local_temp_dir, visitor, None)
 
         return self.result
 

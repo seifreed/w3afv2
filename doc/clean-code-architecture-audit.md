@@ -6018,3 +6018,14 @@ carga diferida de Scapy para no penalizar el uso normal del proceso.
 Verificación: Mypy estricto, Ruff, Black, Bandit y compilación pasan en el
 módulo. No existe una suite específica de este servidor en el checkout actual;
 el score global continúa en **9.99/10**.
+
+## Actualización verificada: recorrido Python 3 del payload Pixy
+
+El payload `pixy` deja de usar la API eliminada `os.path.walk` y recorre los
+archivos con `os.walk`, además de declarar la forma de su resultado. Esto
+restaura compatibilidad con Python 3.14 sin cambiar el análisis de cada archivo.
+
+Verificación: Mypy estricto, Ruff, Black, Bandit y compilación pasan. La suite
+específica no pudo ejecutar su `setUp`: el fixture intenta resolver el host
+externo `fallback`, que no está disponible en este entorno. El score global
+continúa en **9.99/10**.
