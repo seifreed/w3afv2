@@ -4,7 +4,7 @@ import logging
 from contextlib import contextmanager
 
 from w3af.core.data.kb.info import Info
-from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
+from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopException
 
 logger = logging.getLogger(__name__)

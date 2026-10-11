@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 8.5/10 | Alta |
-| Clean Architecture | 8.5/10 | Alta |
-| Global | 8.5/10 | Alta |
+| Clean Code | 8.7/10 | Alta |
+| Clean Architecture | 8.8/10 | Alta |
+| Global | 8.75/10 | Alta |
 
 La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
@@ -53,7 +53,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 - `w3af/core/controllers/core_helpers/plugins.py` (240 líneas) mezcla
   descubrimiento del filesystem, importación dinámica, configuración, orden de
   dependencias, creación de instancias y coordinación con output.
-- `w3af/core/data/url/extended_urllib.py` (684 líneas) concentra transporte,
+- `w3af/core/data/url/extended_urllib.py` (663 líneas) concentra transporte,
   reintentos, pausas, métricas, evasiones y estado de requests.
 - La inicialización de plugins contiene mapas de tipos repetidos; su conjunto
   se mantenía manualmente y podía desincronizarse del filesystem.
@@ -7931,3 +7931,16 @@ flujo de transporte y ahora solo coordina esta frontera explícita.
 
 Verificación: **67 tests** HTTP pasan; `RequestPreflight` tiene **100% de
 cobertura (22 statements)**; Black, Ruff y mypy dirigidos pasan.
+
+## Actualización verificada: política de errores de escaneo aislada
+
+La decisión de detener el escaneo tras errores consecutivos, la comprobación
+de alcanzabilidad, el cálculo del porcentaje de errores y la construcción de
+`ScanMustStopException` viven ahora en `ScanErrorPolicy`. `ExtendedUrllib`
+conserva sus adaptadores privados, pero deja de contener esa política de
+dominio. `target_validation` importa `MAX_ERROR_COUNT` desde `constants`, sin
+depender de un reexport incidental de la fachada HTTP.
+
+Verificación: **72 tests** HTTP y de historial pasan; `ScanErrorPolicy` tiene
+**100% de cobertura (35 statements)**; Black, Ruff, mypy y Bandit dirigidos
+pasan.

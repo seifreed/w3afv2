@@ -27,14 +27,10 @@ import uuid
 
 from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.number_generator import NumberGenerator
-from w3af.core.data.url.constants import (
-    MAX_ERROR_COUNT,
-    TIMEOUT_ADJUST_LIMIT,
-)
+from w3af.core.data.url.constants import TIMEOUT_ADJUST_LIMIT
 from w3af.core.data.url.failed_response_recorder import FailedResponseRecorder
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.grep_dispatcher import GrepDispatcher
-from w3af.core.data.url.helpers import get_exception_reason
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
 from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.request_builder import RequestBuilder
@@ -49,17 +45,14 @@ from w3af.core.data.url.request_sender import RequestSender
 from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
+from w3af.core.data.url.scan_error_policy import ScanErrorPolicy
 from w3af.core.data.url.server_reachability_checker import ServerReachabilityChecker
 from w3af.core.data.url.session_lifecycle import SessionLifecycle
 from w3af.core.data.url.size_limit_override import SizeLimitOverride
 from w3af.core.data.url.timeout_adjustment_policy import TimeoutAdjustmentPolicy
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
-from w3af.core.exceptions import (
-    ScanMustStopByKnownReasonExc,
-    ScanMustStopByUnknownReasonExc,
-    ScanMustStopException,
-)
+from w3af.core.exceptions import ScanMustStopException
 
 from . import opener_settings
 
@@ -155,6 +148,27 @@ class ExtendedUrllib:
             self.get_timeout,
             LOGGER.debug,
         )
+        self._reachability_checker = ServerReachabilityChecker(
+            self.get_timeout,
+            self.set_timeout,
+            self.add_headers,
+            self.send,
+            LOGGER.debug,
+        )
+        self._request_control = ScanRequestControl()
+        self._request_preflight = RequestPreflight(
+            self._request_control,
+            self._error_pause_controller,
+            self._rate_limiter,
+            self._timeout_adjustment,
+            self._request_metrics,
+        )
+        self._scan_error_policy = ScanErrorPolicy(
+            self._response_history,
+            self._reachability_checker,
+            self._request_control,
+            LOGGER.debug,
+        )
         self._failed_response_recorder = FailedResponseRecorder(
             self._response_history,
             self.get_timeout,
@@ -170,21 +184,6 @@ class ExtendedUrllib:
             self._handle_error_count_exceeded,
             self._worker_pool_adjuster.adjust,
             self._retry,
-        )
-        self._reachability_checker = ServerReachabilityChecker(
-            self.get_timeout,
-            self.set_timeout,
-            self.add_headers,
-            self.send,
-            LOGGER.debug,
-        )
-        self._request_control = ScanRequestControl()
-        self._request_preflight = RequestPreflight(
-            self._request_control,
-            self._error_pause_controller,
-            self._rate_limiter,
-            self._timeout_adjustment,
-            self._request_metrics,
         )
         self._session_lifecycle = SessionLifecycle(
             lambda: self.settings,
@@ -582,18 +581,16 @@ class ExtendedUrllib:
 
     def _should_stop_scan(self, request):
         """Return whether consecutive failures indicate an unreachable server."""
-        return self._response_history.should_stop_scan(
-            lambda: self._server_root_path_is_reachable(request)
-        )
+        return self._scan_error_policy.should_stop_scan(request)
 
     def _server_root_path_is_reachable(self, request):
-        return self._reachability_checker.check(request)
+        return self._scan_error_policy.server_root_path_is_reachable(request)
 
     def get_error_rate(self):
         """
         :return: The error rate as an integer 0-100
         """
-        return self._response_history.get_error_rate()
+        return self._scan_error_policy.get_error_rate()
 
     def _log_error_rate(self):
         """
@@ -602,45 +599,13 @@ class ExtendedUrllib:
 
         :see: https://github.com/andresriancho/w3af/issues/8698
         """
-        error_rate = self.get_error_rate()
-        LOGGER.debug(f"ExtendedUrllib error rate is at {int(error_rate)}%")
+        self._scan_error_policy.log_error_rate()
 
     def _handle_error_count_exceeded(self, error):
         """
         Handle the case where we exceeded MAX_ERROR_COUNT
         """
-        # Create a detailed exception message
-        msg = (
-            "w3af found too many consecutive errors while performing"
-            " HTTP requests. In most cases this means that the remote web"
-            " server is not reachable anymore, the network is down, or"
-            " a WAF is blocking our tests. The last exception message"
-            ' was "%s" (%s.%s).'
-        )
-
-        reason_msg = get_exception_reason(error)
-        args = (error, error.__class__.__module__, error.__class__.__name__)
-
-        # If I got a reason, it means that it is a known exception.
-        stop_exception: ScanMustStopException
-        if reason_msg is not None:
-            # Stop using ExtendedUrllib instance
-            stop_exception = ScanMustStopByKnownReasonExc(msg % args, reason=reason_msg)
-
-        else:
-            last_errors = self._response_history.get_recent_messages(MAX_ERROR_COUNT)
-            stop_exception = ScanMustStopByUnknownReasonExc(
-                msg % args, errs=last_errors
-            )
-
-        LOGGER.debug(
-            "The extended urllib will raise a scan must stop exception"
-            " for each request after this message. The remote server is"
-            " unreachable."
-        )
-        self._stop_exception = stop_exception
-
-        raise stop_exception
+        self._scan_error_policy.handle_error_count_exceeded(error)
 
     def _log_successful_response(self, response):
         host = response.get_url().get_domain()
