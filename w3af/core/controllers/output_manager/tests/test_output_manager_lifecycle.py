@@ -229,6 +229,18 @@ class TestOutputManagerPlugins(unittest.TestCase):
 
         self.assertTrue(previous.ended.is_set())
 
+    def test_stop_releases_standalone_plugin_database(self):
+        manager = OutputManager()
+        plugin = manager._get_plugin_instance("xml_file")
+        manager.set_output_plugin_inst(plugin)
+        database = manager._standalone_database
+
+        assert database is not None
+        manager.stop()
+
+        self.assertIsNone(manager._standalone_database)
+        self.assertTrue(database.sql_executor.get_received_poison_pill())
+
     def test_end_raises_first_plugin_exception_after_ending_all(self):
         first = EventfulOutput(failure=RuntimeError("first"))
         second = EventfulOutput(failure=ValueError("second"))
@@ -276,8 +288,16 @@ class TestOutputManagerPlugins(unittest.TestCase):
         (plugin,) = manager.get_output_plugin_inst()
         self.assertTrue(plugin.verbose)
 
+    def test_console_does_not_allocate_standalone_plugin_database(self):
+        manager = OutputManager()
+
+        manager.set_output_plugins(["console"])
+
+        self.assertIsNone(manager._standalone_database)
+
     def test_all_enables_every_output_plugin(self):
         manager = OutputManager()
+        self.addCleanup(manager.stop)
 
         manager.set_output_plugins(["all"])
 
@@ -285,7 +305,9 @@ class TestOutputManagerPlugins(unittest.TestCase):
         expected = {
             os.path.splitext(name)[0]
             for name in plugin_files
-            if name.endswith(".py") and name != "__init__.py"
+            if name.endswith(".py")
+            and name != "__init__.py"
+            and name not in {"xml_filters.py", "xml_models.py", "xml_nodes.py"}
         }
         names = {plugin.get_name() for plugin in manager.get_output_plugin_inst()}
         self.assertEqual(names, expected)

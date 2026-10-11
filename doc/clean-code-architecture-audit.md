@@ -4543,6 +4543,21 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: ownership de DB en `OutputManager`
+
+Los `OutputManager` sin `w3afCore` ya no dejan que `xml_file` o `html_file`
+creen su DB en el fallback global. El manager crea una DB standalone solo para
+plugins que declaran necesitarla, la libera al sustituir o finalizar plugins y
+la cierra también en `stop()`. Los plugins ligeros, como `console`, no reservan
+ese executor. El descubrimiento de `all` filtra además los módulos auxiliares
+XML que no son plugins, evitando una regresión introducida al separar esos
+modelos.
+
+Verificación: **25 tests** del ciclo de vida de `OutputManager` y **35 tests**
+XML/HTML pasan; Black, Ruff y mypy focales pasan. El score global continúa en
+**9.99/10**, con los gates heredados, callers standalone de bajo nivel y otros
+módulos grandes todavía pendientes.
+
 ## Actualización verificada: cierre del fallback DB
 
 `close_default_temp_db_instance()` cierra el executor de la base standalone y

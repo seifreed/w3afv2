@@ -115,6 +115,7 @@ class xml_file(OutputPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
+    uses_database = True
     XML_OUTPUT_VERSION = "2.8"
 
     def __init__(self):

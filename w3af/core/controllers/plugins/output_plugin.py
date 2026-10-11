@@ -40,6 +40,7 @@ class OutputPlugin(Plugin):
     """
 
     STRING_CLEAN = (("\0", "\\0"), ("\t", "\\t"), ("\n", "\\n"), ("\r", "\\r"))
+    uses_database = False
 
     def __init__(self):
         Plugin.__init__(self)

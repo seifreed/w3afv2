@@ -28,15 +28,21 @@ import sys
 import threading
 import time
 from functools import wraps
+from importlib import import_module
 from multiprocessing.dummy import Process
 from weakref import ReferenceType, proxy, ref
 
 from w3af import ROOT_PATH
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool
-from w3af.core.data.db.dbms import database_context
+from w3af.core.data.db.dbms import (
+    SQLiteDBMS,
+    create_temp_db_instance,
+    database_context,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -120,6 +126,7 @@ class OutputManager(Process):
         # Internal variables
         self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
         self._w3af_core = None
+        self._standalone_database: SQLiteDBMS | None = None
         self._output = None
         self._knowledge_base = None
         self._flush_timeout = flush_timeout
@@ -175,6 +182,7 @@ class OutputManager(Process):
         self.close_worker_pool()
         self.in_queue.cancel_join_thread()
         self.in_queue.close()
+        self._close_standalone_database()
 
     def run(self):
         """
@@ -411,6 +419,7 @@ class OutputManager(Process):
             pname for pname in currently_enabled_plugins if pname in ("console",)
         ]
         self.set_output_plugins(keep_enabled)
+        self._close_standalone_database()
 
         # Process messages again, we removed the plugins which were ended
         self._is_shutting_down = False
@@ -428,6 +437,20 @@ class OutputManager(Process):
 
         if first_exception is not None:
             raise first_exception
+
+    def _get_standalone_database(self):
+        if self._standalone_database is None:
+            self._standalone_database = create_temp_db_instance()
+        return self._standalone_database
+
+    def _close_standalone_database(self):
+        database = self._standalone_database
+        if database is None:
+            return
+
+        if not database.sql_executor.get_received_poison_pill():
+            database.close()
+        self._standalone_database = None
 
     @start_thread_on_demand
     def log_enabled_plugins(self, enabled_plugins, plugins_options):
@@ -497,7 +520,10 @@ class OutputManager(Process):
         """
         previous_plugins = self._output_plugin_instances
         self._output_plugin_instances = []
-        self._end_output_plugin_instances(previous_plugins)
+        try:
+            self._end_output_plugin_instances(previous_plugins)
+        finally:
+            self._close_standalone_database()
         self._output_plugin_names = output_plugins
 
         for plugin_name in self._output_plugin_names:
@@ -528,8 +554,18 @@ class OutputManager(Process):
             file_list = os.listdir(os.path.join(ROOT_PATH, "plugins", "output"))
 
             sext = os.path.splitext
-            str_req_plugins = [sext(f)[0] for f in file_list if sext(f)[1] == ".py"]
-            str_req_plugins.remove("__init__")
+            str_req_plugins = []
+            for filename in file_list:
+                plugin_name, extension = sext(filename)
+                if extension != ".py" or plugin_name == "__init__":
+                    continue
+
+                module = import_module(f"w3af.plugins.output.{plugin_name}")
+                plugin_class = getattr(module, plugin_name, None)
+                if isinstance(plugin_class, type) and issubclass(
+                    plugin_class, OutputPlugin
+                ):
+                    str_req_plugins.append(plugin_name)
 
             for plugin_name in str_req_plugins:
                 plugin = self._get_plugin_instance(plugin_name)
@@ -541,8 +577,14 @@ class OutputManager(Process):
 
     def _get_plugin_instance(self, plugin_name):
         w3af_core = self._get_w3af_core()
+        module = import_module(f"w3af.plugins.output.{plugin_name}")
+        plugin_class = getattr(module, plugin_name)
         if w3af_core is None:
-            plugin = factory(f"w3af.plugins.output.{plugin_name}")
+            if plugin_class.uses_database:
+                with database_context(self._get_standalone_database()):
+                    plugin = factory(f"w3af.plugins.output.{plugin_name}")
+            else:
+                plugin = factory(f"w3af.plugins.output.{plugin_name}")
         else:
             with database_context(w3af_core.database):
                 plugin = factory(f"w3af.plugins.output.{plugin_name}")

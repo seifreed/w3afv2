@@ -47,6 +47,8 @@ class html_file(OutputPlugin):
     :author: Andres Riancho ((andres.riancho@gmail.com))
     """
 
+    uses_database = True
+
     def __init__(self):
         OutputPlugin.__init__(self)
 
