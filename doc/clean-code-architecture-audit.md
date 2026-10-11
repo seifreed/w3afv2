@@ -6513,3 +6513,14 @@ Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en helper,
 menú y fixture; `test_ctrl_c.py` pasa **16 tests**. Pytest aún muestra nueve
 warnings deprecados procedentes de dependencias externas. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: presión de RAM en el benchmark de diff
+
+El benchmark de `chunked_diff` generaba dos cadenas de aproximadamente 50 MiB
+con líneas crecientes; el algoritmo llegaba a un pico de **312 MiB de RSS**
+para una sola prueba. Se mantiene el mismo patrón de entrada con 2.000 líneas,
+suficiente para ejercitar el caso grande sin convertir el test en una reserva
+desproporcionada de memoria.
+
+Verificación: el fichero pasa Mypy, Ruff y Black; sus **3 tests** pasan. El
+pico medido baja a **58 MiB de RSS**.

@@ -28,7 +28,8 @@ from pathlib import Path
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.diff import chunked_diff
 
-LINES = 10000
+# Ten thousand growing lines create two ~50 MiB strings and peak above 300 MiB.
+LINES = 2000
 MAX_SECONDS = 30
 
 
