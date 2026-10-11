@@ -24,6 +24,7 @@ import asyncio
 import os
 import threading
 from multiprocessing.dummy import Process
+from typing import Any
 
 from mitmproxy import options
 from mitmproxy.tools.dump import DumpMaster
@@ -78,7 +79,7 @@ class Proxy(Process):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    CA_CERT_DIR = os.path.join(ROOT_PATH, "core/controllers/daemons/proxy/ca/")
+    CA_CERT_DIR: str = os.path.join(ROOT_PATH, "core/controllers/daemons/proxy/ca/")
 
     def __init__(
         self,
@@ -113,8 +114,8 @@ class Proxy(Process):
         self._port = port
         self._handler_klass = handler_klass
         self._ready = threading.Event()
-        self._master = None
-        self._handler = None
+        self._master: Any = None
+        self._handler: Any = None
 
         # Stats
         self.total_handled_requests = 0
@@ -191,5 +192,12 @@ class Proxy(Process):
         Stop the proxy.
         """
         self._output.debug("Calling stop of proxy daemon")
-        if self._running:
-            self._master.shutdown()
+        master = self._master
+        if self._running and master is not None:
+            master.shutdown()
+
+    def _get_handler(self):
+        handler = self._handler
+        if handler is None:
+            raise ProxyException("Proxy handler is not initialized.")
+        return handler

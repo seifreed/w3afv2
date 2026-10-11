@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 import re
 
+from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import ProxyException
 
 from .intercept_handler import InterceptProxyHandler
@@ -38,7 +40,7 @@ class InterceptProxy(Proxy):
     DEFAULT_NO_TRAP = r".*\.(gif|jpg|png|css|js|ico|swf|axd|tif)$"
     DEFAULT_TRAP = ".*"
 
-    def __init__(self, ip, port, url_opener, output, ca_certs=Proxy.CA_CERT_DIR):
+    def __init__(self, ip, port, url_opener, output, ca_certs: str = Proxy.CA_CERT_DIR):
         """
         :param ip: IP address to bind
         :param port: Port to bind
@@ -59,17 +61,17 @@ class InterceptProxy(Proxy):
         )
 
         # Internal vars
-        self.requests_pending_modification = queue.Queue()
-        self.requests_already_modified = queue.Queue()
+        self.requests_pending_modification: queue.Queue[HTTPRequest] = queue.Queue()
+        self.requests_already_modified: queue.Queue[HTTPResponse] = queue.Queue()
 
         # User configured parameters
-        self.methods_to_trap = set()
+        self.methods_to_trap: set[str] = set()
         self.what_to_trap = re.compile(self.DEFAULT_TRAP)
         self.what_not_to_trap = re.compile(self.DEFAULT_NO_TRAP)
         self.trap = False
 
     def on_request_edit_finished(self, orig_http_request, head, post_data):
-        return self._handler.on_request_edit_finished(
+        return self._get_handler().on_request_edit_finished(
             orig_http_request, head, post_data
         )
 
@@ -123,4 +125,4 @@ class InterceptProxy(Proxy):
         """
         Let the handler know that the request was dropped.
         """
-        return self._handler.on_request_drop(http_request)
+        return self._get_handler().on_request_drop(http_request)

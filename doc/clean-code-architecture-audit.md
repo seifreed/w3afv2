@@ -5930,3 +5930,15 @@ Verificación: el módulo queda sin errores propios con
 `mypy --check-untyped-defs`, Ruff y Black pasan, y la suite real de Vulners
 pasa **13 tests**. Persisten únicamente tres errores transversales de mypy en
 `opt_factory`/`Vuln`; el score global continúa en **9.99/10**.
+
+## Actualización verificada: ciclo de vida tipado del proxy
+
+El proxy declara sus recursos externos opcionales y comprueba el master antes
+de apagarlo. `InterceptProxy` expone colas tipadas para requests y responses,
+valida el acceso al handler tras el arranque y declara el conjunto de métodos
+interceptados como texto.
+
+Verificación: proxy e intercept proxy pasan `mypy --check-untyped-defs`, Ruff,
+Black y Bandit; sus pruebas de integración pasan **23 tests**. Persisten solo
+dos warnings externos de `ldap3/pyasn1`; el score global continúa en
+**9.99/10**.
