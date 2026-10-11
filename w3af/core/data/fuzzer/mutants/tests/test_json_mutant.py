@@ -88,7 +88,7 @@ class TestJSONMutant(unittest.TestCase):
 
     def test_create_mutants_9116(self):
         payment_identifier = "16faba8617708"
-        payment_data = {
+        payment_data_dict = {
             "transaction_amount": 100,
             "reason": "Title of what you are paying for",
             "installments": 1,
@@ -98,7 +98,7 @@ class TestJSONMutant(unittest.TestCase):
             "random_anti_anti_double_click": 11577513359,
             "extra_charge": None,
         }
-        payment_data = json.dumps(payment_data)
+        payment_data = json.dumps(payment_data_dict)
 
         dc = JSONContainer(payment_data)
         freq = FuzzableRequest(self.url, post_data=dc, method="POST")

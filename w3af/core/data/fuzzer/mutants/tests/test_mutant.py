@@ -169,7 +169,7 @@ class TestMutant(unittest.TestCase):
             freq, self.payloads, [], False, self.fuzzer_config
         )
 
-        expected_dc_lst = []
+        expected_dc_lst: list[object] = []
         created_dc_lst = [i.get_dc() for i in created_mutants]
 
         self.assertEqual(created_dc_lst, expected_dc_lst)
@@ -250,12 +250,12 @@ class TestMutant(unittest.TestCase):
         noop = "1" * len(boundary)
 
         expected_data = [encode_as_multipart(f, boundary) for f in expected_forms]
-        expected_data = {s.replace(boundary, noop) for s in expected_data}
+        expected_data_set = {s.replace(boundary, noop) for s in expected_data}
 
         generated_forms = [m.get_dc() for m in generated_mutants]
         generated_data = [str(f).replace(f.boundary, noop) for f in generated_forms]
 
-        self.assertEqual(expected_data, set(generated_data))
+        self.assertEqual(expected_data_set, set(generated_data))
 
         str_file = generated_forms[0]["image"][0]
         self.assertIsInstance(str_file, NamedStringIO)

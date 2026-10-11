@@ -6701,3 +6701,12 @@ dispersos.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; `test_spider_man`
 pasa **4 tests**. Pytest muestra dos warnings deprecados de `ldap3`. El score
 global continúa en **9.99/10**.
+
+## Actualización verificada: etapas de datos en tests de mutants
+
+Las fixtures de multipart separan la lista de payloads esperados de su conjunto
+normalizado, y la fixture JSON separa el diccionario de entrada de su
+serialización. La lista vacía de datos de control también declara su tipo.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en tres fixtures;
+sus **23 tests** pasan. El score global continúa en **9.99/10**.
