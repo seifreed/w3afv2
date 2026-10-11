@@ -143,6 +143,14 @@ class TestStatus(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "before start"):
                 method()
 
+    def test_sent_request_count_is_local_to_the_status(self):
+        consecutive_number_generator.inc()
+        status = CoreStatus(om.out)
+
+        consecutive_number_generator.inc()
+
+        self.assertEqual(status.get_sent_request_count(), 1)
+
     def test_run_time_after_start(self):
         s = CoreStatus(om.out)
         s.start()
@@ -152,9 +160,9 @@ class TestStatus(unittest.TestCase):
         self.assertGreaterEqual(s.get_run_time_seconds(), 120)
         self.assertEqual(s.get_scan_time().strip(), "2 minutes")
         self.assertEqual(
-            s.get_rpm(), int(consecutive_number_generator.get() / s.get_run_time())
+            s.get_rpm(), int(s.get_sent_request_count() / s.get_run_time())
         )
-        self.assertEqual(s.get_sent_request_count(), consecutive_number_generator.get())
+        self.assertEqual(s.get_sent_request_count(), 0)
 
     def test_scan_finished(self):
         s = CoreStatus(om.out, scans_completed=1)
@@ -420,7 +428,9 @@ class TestStatusWithConsumers(unittest.TestCase):
         self.assertEqual(data["eta"]["all"], "0 seconds")
         self.assertEqual(data["progress"], 99)
         self.assertEqual(data["rpm"], self.status.get_rpm())
-        self.assertEqual(data["sent_request_count"], consecutive_number_generator.get())
+        self.assertEqual(
+            data["sent_request_count"], self.status.get_sent_request_count()
+        )
 
     def test_long_status_when_stopped(self):
         self.status.stop()

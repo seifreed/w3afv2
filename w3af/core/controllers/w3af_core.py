@@ -75,7 +75,6 @@ from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
-from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import (
@@ -249,9 +248,6 @@ class w3afCore:
             prepare_tmp_directory()
 
         self._dns_cache_cleanup[0] = enable_dns_cache(self._output)
-
-        # Reset global sequence number generator
-        consecutive_number_generator.reset()
 
         # Now that we know we're going to run a new scan, overwrite the old
         # strategy which might still have data stored in it and create a new

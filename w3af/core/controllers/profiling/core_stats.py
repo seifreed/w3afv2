@@ -29,7 +29,6 @@ import threading
 import traceback
 from functools import partial
 
-from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.profiling import is_core_profiling_enabled
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
@@ -63,7 +62,7 @@ def dump_data(w3af_core, output_manager):
     s = w3af_core.status
     try:
         data = {
-            "Requests sent": consecutive_number_generator.get(),
+            "Requests sent": s.get_sent_request_count(),
             "Requests per minute": s.get_rpm(),
             "Crawl input queue input speed": s.get_crawl_input_speed(),
             "Crawl input queue output speed": s.get_crawl_output_speed(),

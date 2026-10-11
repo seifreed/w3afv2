@@ -56,6 +56,7 @@ class CoreStatus:
         self._output = output
         self._consumer_metrics = consumer_metrics or ConsumerMetrics()
         self._lifecycle = StatusLifecycle(scans_completed)
+        self._request_count_at_start = consecutive_number_generator.get()
 
         # Init some internal values
         # This indicates the plugin that is running right now for each
@@ -197,7 +198,7 @@ class CoreStatus:
         :return: The number of HTTP requests per minute performed since the
                  start of the scan.
         """
-        return int(consecutive_number_generator.get() / self.get_run_time())
+        return int(self.get_sent_request_count() / self.get_run_time())
 
     def scan_finished(self):
         self._lifecycle.scan_finished()
@@ -529,7 +530,7 @@ class CoreStatus:
         """
         :return: The number of HTTP requests that have been sent
         """
-        return consecutive_number_generator.get()
+        return consecutive_number_generator.get() - self._request_count_at_start
 
     def get_long_status(self):
         return StatusPresenter(self).long_status()
