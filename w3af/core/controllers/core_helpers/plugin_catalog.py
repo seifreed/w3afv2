@@ -20,10 +20,13 @@ class PluginCatalog:
     }
 
     def get_plugin_type_desc(self, plugin_type):
+        module_name = f"w3af.plugins.{plugin_type}"
         try:
-            __import__(f"w3af.plugins.{plugin_type}")
-            plugin_module = sys.modules[f"w3af.plugins.{plugin_type}"]
-        except ImportError as exception:
+            __import__(module_name)
+            plugin_module = sys.modules[module_name]
+        except ModuleNotFoundError as exception:
+            if exception.name != module_name:
+                raise
             msg = 'Unknown plugin type: "%s".'
             raise BaseFrameworkException(msg % plugin_type) from exception
         return plugin_module.get_long_description()

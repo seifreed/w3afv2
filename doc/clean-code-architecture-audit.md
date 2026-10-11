@@ -7379,8 +7379,9 @@ modificados.
 ## Actualización verificada: errores de importación visibles
 
 El catálogo de plugins ya no convierte cualquier excepción interna del módulo
-en un falso “tipo desconocido”; sólo traduce errores de importación, mientras
-los fallos reales del plugin siguen propagándose con su causa original.
+en un falso “tipo desconocido”; sólo traduce la ausencia del paquete solicitado,
+mientras los fallos reales del plugin o de sus dependencias siguen propagándose
+con su causa original.
 
 Verificación: la suite de catálogo y plugins mantiene sus pruebas de tipo
 desconocido; Black, Ruff y mypy pasan en el módulo modificado.
