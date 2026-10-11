@@ -93,6 +93,19 @@ class TestExtendedUrllibAPI(unittest.TestCase):
 
         self.assertIsNot(self.uri_opener._opener, opener)
 
+    def test_setup_closes_connections_before_replacing_opener(self):
+        self.uri_opener.setup()
+        previous_handler = self.uri_opener.settings._ka_http
+
+        self.uri_opener.GET(self.url())
+
+        self.assertEqual(previous_handler._cm.get_connections_total(), 1)
+
+        self.uri_opener.settings.need_update = True
+        self.uri_opener.setup()
+
+        self.assertEqual(previous_handler._cm.get_connections_total(), 0)
+
     def test_send_clean(self):
         freq = FuzzableRequest(self.url("/echo?id=1"))
         mutant = QSMutant.create_mutants(freq, ["payload1234"], [], False, {})[0]

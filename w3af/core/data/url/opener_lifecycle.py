@@ -22,7 +22,7 @@ class OpenerLifecycle:
         url_parameter_handler,
         ignore_session_cookies,
     ) -> None:
-        self._built_openers = OpenerBuilder(
+        built_openers = OpenerBuilder(
             self._configuration,
             http_log_callback,
             proxy_url,
@@ -35,14 +35,20 @@ class OpenerLifecycle:
             ignore_session_cookies,
         ).build()
 
+        previous_openers = self._built_openers
+        self._built_openers = built_openers
+        if previous_openers is not None:
+            self._close_connections(previous_openers)
+
     def close_connections(self) -> None:
         if self._built_openers is None:
             return
 
-        for handler in (
-            self._built_openers.http_handler,
-            self._built_openers.https_handler,
-        ):
+        self._close_connections(self._built_openers)
+
+    @staticmethod
+    def _close_connections(built_openers: BuiltOpeners) -> None:
+        for handler in (built_openers.http_handler, built_openers.https_handler):
             handler.close_all()
 
     def get_custom_opener(self):
