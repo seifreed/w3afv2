@@ -26,6 +26,7 @@ import uuid
 from collections.abc import Callable
 
 from w3af.core.constants import POISON_PILL
+from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement
@@ -97,11 +98,11 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         name="Unknown",
         *,
         debug_log: Callable[[str], None] | None = None,
-        db=None,
+        db: SQLiteDBMS | None = None,
     ):
         self.name = name
         self.max_in_memory = maxsize
-        self._db = db
+        self._db = get_default_temp_db_instance() if db is None else db
         self.processed_tasks = 0
         self._debug_log = debug_log or LOGGER.debug
 

@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import queue
 
+from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement
 
@@ -60,10 +61,15 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
     Which allows users to understand how fast a queue is moving.
     """
 
-    def __init__(self, maxsize=0, name="Unknown", db=None):
+    def __init__(
+        self,
+        maxsize=0,
+        name="Unknown",
+        db: SQLiteDBMS | None = None,
+    ):
         self.name = name
         self.max_in_memory = maxsize
-        self._db = db
+        self._db = get_default_temp_db_instance() if db is None else db
         self.processed_tasks = 0
 
         QueueSpeedMeasurement.__init__(self)

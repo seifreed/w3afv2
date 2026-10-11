@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: colas disk-backed con composición explícita
+
+`CachedQueue` y `OrderedCachedQueue` ya resuelven su DB standalone en la capa
+de cola, antes de crear sus `DiskDict`. Cuando forman parte de un core siguen
+recibiendo la DB del core, evitando que cada primitive abra o elija una conexión
+por su cuenta.
+
+Verificación: las suites de ambas colas pasan **25 tests**; mypy y Bandit
+focales están limpios. El score global continúa en **9.99/10**, con los gates
+globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: primitives de almacenamiento con DB explícita
 
 `DiskList`, `DiskDict`, `DiskSet` y `CachedDiskDict` ya no crean la SQLite
