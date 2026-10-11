@@ -22,6 +22,7 @@ Shared helpers for the grep plugin unit tests.
 import unittest
 from queue import Queue
 
+from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
@@ -61,15 +62,22 @@ class GrepPluginTestCase(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
         kb.cleanup()
+        self._fingerprint_404_detectors = []
 
     def tearDown(self):
+        for detector in self._fingerprint_404_detectors:
+            detector.cleanup()
+        parser_cache.dpc.clear()
         kb.cleanup()
 
-    @staticmethod
-    def configure_plugin(plugin):
+    def configure_plugin(self, plugin):
         plugin.set_knowledge_base(kb)
         plugin.set_configuration(cf)
-        plugin.set_output(LogSink(Queue()))
+        output = LogSink(Queue())
+        plugin.set_output(output)
+        detector = Fingerprint404(output, cf)
+        plugin.set_fingerprint_404(detector)
+        self._fingerprint_404_detectors.append(detector)
         return plugin
 
     def save_config(self, name, value):

@@ -24,6 +24,7 @@ import unittest
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
+from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
@@ -71,6 +72,9 @@ class CannedServerPluginTest(unittest.TestCase):
         self.plugin.set_knowledge_base(kb)
         self.plugin.set_output(om.out)
         self.plugin.set_configuration(cf)
+        self.fingerprint_404 = Fingerprint404(om.out, cf)
+        self.plugin.set_fingerprint_404(self.fingerprint_404)
+        self.addCleanup(self.fingerprint_404.cleanup)
 
     def respond(self, request: CannedRequest) -> CannedReply:
         raise NotImplementedError

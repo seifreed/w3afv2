@@ -27,7 +27,7 @@ import traceback
 import weakref
 
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
-from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
+from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.core_helpers.profiles import CoreProfiles
 from w3af.core.controllers.core_helpers.runtime_directories import (
@@ -141,6 +141,7 @@ class w3afCore:
         self._output_manager_finalizer = weakref.finalize(self, manager.stop)
         self._output = output
         self._output_manager = manager
+        self._fingerprint_404 = None
         self.knowledge_base = (
             DBKnowledgeBase() if knowledge_base is None else knowledge_base
         )
@@ -257,11 +258,18 @@ class w3afCore:
         self.strategy.add_observer(ThreadCountObserver(self._output))
         self.strategy.add_observer(ThreadStateObserver(self._output))
 
-        # Init the 404 detection for the whole framework
-        fp_404_db = fingerprint_404_singleton(
-            self._output, self._configuration, cleanup=True
-        )
-        fp_404_db.set_url_opener(self.uri_opener)
+        # Init the 404 detection for this core and scan.
+        if self._fingerprint_404 is not None:
+            self._fingerprint_404.cleanup()
+        self._fingerprint_404 = Fingerprint404(self._output, self._configuration)
+        self._fingerprint_404.set_url_opener(self.uri_opener)
+
+    def is_404(self, http_response):
+        """Return whether a response matches this core's 404 fingerprint."""
+        if self._fingerprint_404 is None:
+            self._fingerprint_404 = Fingerprint404(self._output, self._configuration)
+            self._fingerprint_404.set_url_opener(self.uri_opener)
+        return self._fingerprint_404.is_404(http_response)
 
     def start(self):
         """
@@ -427,6 +435,10 @@ class w3afCore:
         # Stop the parser subprocess
         parser_cache.dpc.clear()
 
+        if self._fingerprint_404 is not None:
+            self._fingerprint_404.cleanup()
+            self._fingerprint_404 = None
+
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #
         # This needs to be done here and not in stop() because we want to keep
@@ -478,6 +490,10 @@ class w3afCore:
 
         # Stop the parser subprocess
         parser_cache.dpc.clear()
+
+        if self._fingerprint_404 is not None:
+            self._fingerprint_404.cleanup()
+            self._fingerprint_404 = None
 
     def pause(self, pause_yes_no):
         """

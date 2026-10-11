@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from queue import Queue
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -36,6 +38,7 @@ class TestAnalyzeCookies(unittest.TestCase):
         kb.cleanup()
         self.plugin = analyze_cookies()
         self.plugin.set_knowledge_base(kb)
+        self.plugin.set_output(LogSink(Queue()))
 
     def tearDown(self):
         self.plugin.end()

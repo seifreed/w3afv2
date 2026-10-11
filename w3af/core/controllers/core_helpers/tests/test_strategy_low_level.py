@@ -26,9 +26,6 @@ from urllib.parse import unquote_plus
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import (
-    fingerprint_404_singleton,
-)
 from w3af.core.controllers.core_helpers.strategy import CoreStrategy
 from w3af.core.controllers.core_helpers.target_validation import (
     alert_if_target_is_301_all,
@@ -303,8 +300,6 @@ class TestStrategy(unittest.TestCase):
     def test_404_detection_without_url_opener_uses_basic_checks(self):
         self.start_server(static_page)
         core = self.get_core(self.server.url("/"))
-
-        fingerprint_404_singleton(cleanup=True)
 
         setup_404_detection(core, om.out, core.configuration)
 

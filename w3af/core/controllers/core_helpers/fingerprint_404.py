@@ -50,8 +50,6 @@ class Fingerprint404:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    _instance = None
-
     def __init__(self, output, configuration):
         #
         #   Set the opener, I need it to perform some tests and gain
@@ -475,28 +473,3 @@ class Fingerprint404:
 
         self._404_responses[query.normalized_path] = known_404.dumps()
         return known_404
-
-
-def fingerprint_404_singleton(output=None, configuration=None, cleanup=False):
-    if cleanup:
-        if Fingerprint404._instance is not None:
-            Fingerprint404._instance.cleanup()
-        Fingerprint404._instance = None
-        if output is None:
-            return None
-
-    if Fingerprint404._instance is None:
-        if output is None or configuration is None:
-            raise RuntimeError("Fingerprint404 requires output and configuration")
-        Fingerprint404._instance = Fingerprint404(output, configuration)
-
-    return Fingerprint404._instance
-
-
-#
-# Helper function
-#
-def is_404(http_response, output, configuration):
-    # Get an instance of the 404 database
-    fp_404_db = fingerprint_404_singleton(output, configuration)
-    return fp_404_db.is_404(http_response)

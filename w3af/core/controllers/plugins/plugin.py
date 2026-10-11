@@ -28,7 +28,6 @@ from itertools import repeat
 from tblib.decorators import Error
 
 from w3af.core.configurable import Configurable
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404 as detect_404
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.data.kb.info import Info
@@ -59,6 +58,7 @@ class Plugin(Configurable):
         self._w3af_core = None
         self._configuration = None
         self._knowledge_base = None
+        self._fingerprint_404 = None
         self._output = None
         self.worker_pool = None
 
@@ -112,6 +112,10 @@ class Plugin(Configurable):
         """Set the knowledge store used by this plugin."""
         self._knowledge_base = knowledge_base
 
+    def set_fingerprint_404(self, fingerprint_404):
+        """Set the 404 detector used by standalone plugin instances."""
+        self._fingerprint_404 = fingerprint_404
+
     def set_output(self, output):
         """Set the output sink used by this plugin."""
         self._output = output
@@ -125,14 +129,11 @@ class Plugin(Configurable):
         return self._w3af_core
 
     def _is_404(self, http_response):
-        configuration = self.get_configuration()
         if self._w3af_core is not None:
-            configuration = self._w3af_core.configuration
-        return detect_404(
-            http_response,
-            self._output,
-            configuration,
-        )
+            return self._w3af_core.is_404(http_response)
+        if self._fingerprint_404 is None:
+            raise RuntimeError("Plugin requires a configured 404 detector")
+        return self._fingerprint_404.is_404(http_response)
 
     def set_options(self, options_list):
         """

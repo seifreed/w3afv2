@@ -30,8 +30,6 @@ import unittest
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     Fingerprint404,
-    fingerprint_404_singleton,
-    is_404,
 )
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
@@ -572,27 +570,23 @@ class Test404LargeResponsesReuseDiff(Generic404Test):
         self.assertEqual(len(self.server.requested_paths), 2)
 
 
-class TestFingerprint404Singleton(unittest.TestCase):
+class TestFingerprint404Instances(unittest.TestCase):
 
-    def tearDown(self):
-        fingerprint_404_singleton(cleanup=True)
+    def test_instances_are_independent(self):
+        first = Fingerprint404(om.out, cf)
+        second = Fingerprint404(om.out, cf)
 
-    def test_returns_the_same_instance(self):
-        self.assertIs(
-            fingerprint_404_singleton(om.out, cf),
-            fingerprint_404_singleton(om.out, cf),
-        )
+        self.addCleanup(first.cleanup)
+        self.addCleanup(second.cleanup)
+        self.assertIsNot(first, second)
 
-    def test_cleanup_creates_a_new_instance(self):
-        instance = fingerprint_404_singleton(om.out, cf)
-
-        self.assertIsNot(fingerprint_404_singleton(om.out, cf, cleanup=True), instance)
-
-    def test_is_404_uses_the_singleton(self):
+    def test_is_404_uses_the_instance(self):
         url = URL("http://w3af.org/missing.html")
         response = HTTPResponse(404, "Not found", Headers(), url, url)
 
-        self.assertTrue(is_404(response, om.out, cf))
+        detector = Fingerprint404(om.out, cf)
+        self.addCleanup(detector.cleanup)
+        self.assertTrue(detector.is_404(response))
 
 
 cf = Config()

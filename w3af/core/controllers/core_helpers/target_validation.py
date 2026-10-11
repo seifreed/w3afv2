@@ -3,7 +3,6 @@
 import logging
 from contextlib import contextmanager
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.data.kb.info import Info
 from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
 from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopException
@@ -154,7 +153,7 @@ def setup_404_detection(w3af_core, output, configuration):
             f' response from "{url}"'
         )
         with _scan_must_stop_on_error(failure, output):
-            current_target_is_404 = is_404(response, output, configuration)
+            current_target_is_404 = w3af_core.is_404(response)
 
         if current_target_is_404:
             targets_with_404.append(url)

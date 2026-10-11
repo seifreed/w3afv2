@@ -25,7 +25,6 @@ import tempfile
 from pathlib import Path
 
 from w3af import ROOT_PATH
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.grep.html_comments import html_comments
@@ -47,6 +46,7 @@ from w3af.plugins.grep.user_defined_regex import user_defined_regex
 from w3af.plugins.grep.websockets_links import websockets_links
 from w3af.plugins.tests.grep.grep_test_utils import (
     GrepPluginTestCase,
+    kb,
     make_request,
     make_response,
 )
@@ -394,6 +394,3 @@ class TestWebSocketsLinksEmptyScript(GrepPluginTestCase):
         body = "<html><script></script><p>ws://w3af.org/socket</p></html>"
         plugin.grep(make_request(), make_response(body=body))
         self.assertEqual(kb.get("websockets_links", "websockets_links"), [])
-
-
-kb = DBKnowledgeBase()

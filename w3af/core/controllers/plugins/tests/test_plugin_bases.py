@@ -23,9 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.core_helpers.fingerprint_404 import (
-    fingerprint_404_singleton,
-)
+from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -191,10 +189,9 @@ class TestCrawlHTTPGetAndParse(unittest.TestCase):
         create_temp_dir()
         self.uri_opener = ExtendedUrllib()
         self.addCleanup(self.uri_opener.end)
-        fingerprint_404_singleton(om.out, cf, cleanup=True).set_url_opener(
-            self.uri_opener
-        )
-        self.addCleanup(fingerprint_404_singleton, cleanup=True)
+        self.fingerprint_404 = Fingerprint404(om.out, cf)
+        self.fingerprint_404.set_url_opener(self.uri_opener)
+        self.addCleanup(self.fingerprint_404.cleanup)
 
         self.site = LocalHTTPServer(site_with_pages).start()
         self.addCleanup(self.site.close)
@@ -202,6 +199,7 @@ class TestCrawlHTTPGetAndParse(unittest.TestCase):
         self.plugin = spider()
         self.plugin.set_output(om.out)
         self.plugin.set_configuration(cf)
+        self.plugin.set_fingerprint_404(self.fingerprint_404)
         self.plugin.set_url_opener(self.uri_opener)
         self.successes = []
 

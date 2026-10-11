@@ -42,9 +42,11 @@ class test_all(unittest.TestCase):
     def setUp(self):
         self.url_str = "http://moth/"
         self.url_inst = URL(self.url_str)
-        configure_never_404(self, self.url_inst)
 
         self._w3af = w3afCore()
+        self.w3afcore = self._w3af
+        self.addCleanup(self._w3af.quit)
+        configure_never_404(self, self.url_inst)
         self._plugins = []
         for pname in self._w3af.plugins.get_plugin_list("grep"):
             self._plugins.append(self._w3af.plugins.get_plugin_inst("grep", pname))

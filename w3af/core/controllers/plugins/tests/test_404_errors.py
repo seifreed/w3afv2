@@ -22,9 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.core_helpers.fingerprint_404 import (
-    fingerprint_404_singleton,
-)
+from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.tests.local_http_server import closed_local_port
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.dc.headers import Headers
@@ -58,11 +56,12 @@ class Test404Errors(unittest.TestCase):
         self.plugin = meta_tags()
         self.plugin.set_output(om.out)
         self.plugin.set_configuration(cf)
-        self.fingerprint_404 = fingerprint_404_singleton(om.out, cf, cleanup=True)
+        self.fingerprint_404 = Fingerprint404(om.out, cf)
+        self.plugin.set_fingerprint_404(self.fingerprint_404)
 
     def tearDown(self):
         kb.cleanup()
-        fingerprint_404_singleton(cleanup=True)
+        self.fingerprint_404.cleanup()
 
     def get_request_response(self):
         # The target port is closed: the 404 detection needs to send HTTP

@@ -29,12 +29,7 @@ from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import (
-    fingerprint_404_singleton,
-)
 from w3af.core.data.constants import severity
-from w3af.core.data.kb.config import Config
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import BaseFrameworkException
@@ -42,6 +37,7 @@ from w3af.plugins.crawl.ghdb import GoogleHack, ghdb
 from w3af.plugins.tests.canned_http_server import CannedReply
 from w3af.plugins.tests.infrastructure.canned_plugin_test import (
     CannedServerPluginTest,
+    kb,
 )
 
 FIXTURES_DIR = os.path.join(ROOT_PATH, "plugins", "tests", "crawl", "ghdb")
@@ -70,9 +66,6 @@ class GHDBCrawlTest(CannedServerPluginTest):
     }
 
     def setUp(self):
-        fingerprint_404_singleton(om.out, cf, cleanup=True)
-        self.addCleanup(fingerprint_404_singleton, cleanup=True)
-
         super().setUp()
         self.plugin._ghdb_file = self.ghdb_file
 
@@ -255,9 +248,3 @@ class TestGHDBDatabase(unittest.TestCase):
 
     def test_long_description_credits_exploit_db(self):
         self.assertIn("Exploit-DB", self.plugin.get_long_desc())
-
-
-cf = Config()
-
-
-kb = DBKnowledgeBase()

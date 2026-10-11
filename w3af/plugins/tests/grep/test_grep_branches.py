@@ -24,7 +24,6 @@ import unittest
 
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins import grep
 from w3af.plugins.grep.analyze_cookies import analyze_cookies
@@ -50,6 +49,7 @@ from w3af.plugins.grep.symfony import symfony
 from w3af.plugins.grep.wsdl_greper import wsdl_greper
 from w3af.plugins.tests.grep.grep_test_utils import (
     GrepPluginTestCase,
+    kb,
     make_request,
     make_response,
 )
@@ -500,6 +500,3 @@ class TestSimpleGuards(GrepPluginTestCase):
         plugin = self.configure_plugin(form_autocomplete())
         plugin.grep(make_request(), self.make_unparseable_response())
         self.assertEqual(kb.get("form_autocomplete", "form_autocomplete"), [])
-
-
-kb = DBKnowledgeBase()
