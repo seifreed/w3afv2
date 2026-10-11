@@ -36,7 +36,7 @@ class TestURLTree(unittest.TestCase):
         url = URL("http://w3af.org/")
         tree.add_url(url)
 
-        expected = {URLNode("http://w3af.org", 1): {}}
+        expected: dict[URLNode, object] = {URLNode("http://w3af.org", 1): {}}
         self.assertEqual(tree.tree, expected)
 
     def test_two_independent_paths(self):
@@ -47,7 +47,7 @@ class TestURLTree(unittest.TestCase):
         tree.add_url(url_1)
         tree.add_url(url_2)
 
-        expected = {
+        expected: dict[URLNode, object] = {
             URLNode("http://w3af.org", 0): {
                 URLNode("foo", 1): {},
                 URLNode("bar", 1): {},
@@ -63,7 +63,7 @@ class TestURLTree(unittest.TestCase):
         tree.add_url(url_1)
         tree.add_url(url_2)
 
-        expected = {
+        expected: dict[URLNode, object] = {
             URLNode("http://w3af.org", 0): {
                 URLNode("foo", 0): {URLNode("bar", 1): {}},
                 URLNode("spam", 0): {URLNode("eggs", 1): {}},
@@ -80,7 +80,7 @@ class TestURLTree(unittest.TestCase):
         tree.add_url(url_1)
         tree.add_url(url_2)
 
-        expected = {
+        expected: dict[URLNode, object] = {
             URLNode("http://w3af.org", 0): {
                 URLNode("foo", 0): {URLNode("bar", 1): {}},
                 URLNode("spam", 0): {URLNode("eggs", 0): {URLNode("123.txt", 1): {}}},

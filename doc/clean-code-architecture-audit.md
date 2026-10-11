@@ -6579,3 +6579,12 @@ dos tipos distintos y hace explícito el paso de preparación de datos.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **6 tests**
 de comparación fuzzy pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: estructuras esperadas de URLTree
+
+Los mapas anidados usados por la fixture de `URLTree` declaran ahora su clave
+`URLNode` y dejan el valor como estructura recursiva. Se conserva exactamente
+la forma de los árboles que se compara contra la implementación.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **8 tests**
+de `URLTree` pasan. El score global continúa en **9.99/10**.
