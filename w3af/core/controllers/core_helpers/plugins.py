@@ -31,14 +31,15 @@ from w3af.core.controllers.core_helpers.plugin_setup import PluginSetup
 from w3af.core.controllers.plugins.plugin import Plugin
 
 
-class CorePlugins(PluginCatalog):
+class CorePlugins:
 
     def __init__(self, w3af_core, output, output_manager):
         self._w3af_core = w3af_core
         self._output = output
         self._output_manager = output_manager
+        self._plugin_catalog = PluginCatalog()
         self._plugin_instance_factory = PluginInstanceFactory(w3af_core, output)
-        self._plugin_selection = PluginSelection(self.get_plugin_list)
+        self._plugin_selection = PluginSelection(self._plugin_catalog.get_plugin_list)
         self._plugin_state = PluginState()
         self._plugin_runtime = PluginRuntime(
             self.get_plugin_inst,
@@ -77,6 +78,15 @@ class CorePlugins(PluginCatalog):
     def get_plugin_instances(self, plugin_type: str) -> list[Plugin]:
         """Return the active instances for a plugin type."""
         return self._plugin_state.get_instances(plugin_type)
+
+    def get_plugin_types(self):
+        return self._plugin_catalog.get_plugin_types()
+
+    def get_plugin_list(self, plugin_type):
+        return self._plugin_catalog.get_plugin_list(plugin_type)
+
+    def get_plugin_type_desc(self, plugin_type):
+        return self._plugin_catalog.get_plugin_type_desc(plugin_type)
 
     def set_plugin_instances(self, plugin_type: str, plugins: list[Plugin]) -> None:
         """Replace the active instances for a plugin type."""
@@ -198,7 +208,9 @@ class CorePlugins(PluginCatalog):
     def get_quick_instance(self, plugin_type, plugin_name, db=None):
         """Create dependency metadata instances on this core's database."""
         database = self._w3af_core.database if db is None else db
-        return super().get_quick_instance(plugin_type, plugin_name, database)
+        return self._plugin_catalog.get_quick_instance(
+            plugin_type, plugin_name, database
+        )
 
     def _set_plugin_generic(self, plugin_type, plugin_list):
         """

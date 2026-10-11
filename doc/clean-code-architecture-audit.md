@@ -7907,3 +7907,16 @@ ejecuten.
 Verificación: **14 tests** pasan con **100% de cobertura** del plugin; la
 colección conserva **4895 tests** y su RSS máximo baja de aproximadamente
 **313 MB a 258 MB** en macOS. Black, Ruff, mypy y Bandit dirigidos pasan.
+
+## Actualización verificada: catálogo de plugins compuesto
+
+`CorePlugins` ya no hereda de `PluginCatalog`. El catálogo filesystem/read-only
+se conserva como colaborador explícito, mientras `CorePlugins` mantiene la
+selección, configuración, estado, creación y lifecycle de las instancias. Las
+APIs públicas de consulta y de quick instances se mantienen delegadas, por lo
+que los consumidores no cambian de contrato y la frontera de runtime queda
+visible en el código.
+
+Verificación: **86 tests** de plugins, urllib y core pasan; la prueba de capas,
+Black y Ruff globales pasan, y mypy/Bandit dirigidos no encuentran errores en
+los módulos modificados.
