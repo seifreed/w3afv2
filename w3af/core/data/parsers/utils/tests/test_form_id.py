@@ -91,7 +91,7 @@ class TestFormID(unittest.TestCase):
         self.assertTrue(match)
 
     def test_match_empty_user_configured_json(self):
-        user_configured_json = {}
+        user_configured_json: dict[str, object] = {}
         form_matcher = self.create_form_matcher(user_configured_json)
         found_form_id = FormID(action=self.ACTION_URL, inputs=["comment", "submit"])
 

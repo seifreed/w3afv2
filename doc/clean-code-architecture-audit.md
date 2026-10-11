@@ -6588,3 +6588,12 @@ la forma de los árboles que se compara contra la implementación.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **8 tests**
 de `URLTree` pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: configuración vacía de FormID
+
+El caso de configuración JSON vacío declara explícitamente su mapa de valores,
+manteniendo el mismo contrato que las configuraciones no vacías y evitando que
+la inferencia de un diccionario vacío se propague al helper de deserialización.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **19 tests**
+de `FormID` pasan. El score global continúa en **9.99/10**.
