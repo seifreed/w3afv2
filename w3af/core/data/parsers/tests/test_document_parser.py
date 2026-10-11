@@ -107,7 +107,7 @@ class TestDocumentParserFactory(unittest.TestCase):
         self.assertIsInstance(parser, DocumentParser)
         self.assertIsInstance(parser._parser, HTMLParser)
 
-        paths = []
+        paths: list[str] = []
         paths.extend(url.get_path_qs() for url in parser.get_references()[0])
         paths.extend(url.get_path_qs() for url in parser.get_references()[1])
 

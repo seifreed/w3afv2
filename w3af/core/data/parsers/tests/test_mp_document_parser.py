@@ -28,7 +28,9 @@ import resource
 import signal
 import time
 import unittest
+from collections.abc import Callable
 from concurrent.futures import TimeoutError
+from multiprocessing.queues import Queue as MultiprocessingQueue
 from queue import Queue
 
 import w3af.core.data.parsers.mp_document_parser as mp_module
@@ -232,7 +234,7 @@ class TestMPDocumentParser(unittest.TestCase):
             at process.py:start():124. The scan will continue but some
             vulnerabilities might not be identified.
         """
-        queue = multiprocessing.Queue()
+        queue: MultiprocessingQueue[bool] = multiprocessing.Queue()
 
         p = multiprocessing.Process(target=daemon_child, args=(queue,))
         p.daemon = True
@@ -245,7 +247,7 @@ class TestMPDocumentParser(unittest.TestCase):
         """
         Making sure that the previous failure is due to "p.daemon = True"
         """
-        queue = multiprocessing.Queue()
+        queue: MultiprocessingQueue[bool] = multiprocessing.Queue()
 
         p = multiprocessing.Process(target=daemon_child, args=(queue,))
         p.start()
@@ -313,7 +315,7 @@ class TestMPDocumentParser(unittest.TestCase):
         self.assertEqual(self.mpdoc.get_tags_by_filter(resp, ("html",)), [])
 
     def test_configured_worker_initializer_receives_log_queue(self):
-        queue = multiprocessing.Queue()
+        queue: MultiprocessingQueue[str] = multiprocessing.Queue()
         parser = MultiProcessingDocumentParser(
             log_queue_provider=lambda: queue,
             worker_initializer=announce_worker,
@@ -392,15 +394,23 @@ class TestWorkerFunctions(unittest.TestCase):
 
 class TestWorkerSetup(unittest.TestCase):
 
+    @staticmethod
+    def _get_address_space_resource() -> int:
+        rlimit_as = mp_module.RLIMIT_AS
+        if rlimit_as is None:
+            raise unittest.SkipTest("RLIMIT_AS is not available")
+        return rlimit_as
+
     def setUp(self):
         sigint = signal.getsignal(signal.SIGINT)
         self.addCleanup(signal.signal, signal.SIGINT, sigint)
 
-        limits = resource.getrlimit(mp_module.RLIMIT_AS)
-        self.addCleanup(resource.setrlimit, mp_module.RLIMIT_AS, limits)
+        rlimit_as = self._get_address_space_resource()
+        limits = resource.getrlimit(rlimit_as)
+        self.addCleanup(resource.setrlimit, rlimit_as, limits)
 
     def test_init_worker(self):
-        received = []
+        received: list[str] = []
 
         init_worker(received.append, "log-queue", 2**40)
 
@@ -413,23 +423,25 @@ class TestWorkerSetup(unittest.TestCase):
         self.assertEqual(signal.getsignal(signal.SIGINT), signal.SIG_IGN)
 
     def test_limit_memory_usage(self):
-        hard = resource.getrlimit(mp_module.RLIMIT_AS)[1]
+        rlimit_as = self._get_address_space_resource()
+        hard = resource.getrlimit(rlimit_as)[1]
 
         limit_memory_usage(2**40)
 
-        soft, new_hard = resource.getrlimit(mp_module.RLIMIT_AS)
+        soft, new_hard = resource.getrlimit(rlimit_as)
         self.assertGreater(soft, 2**40)
         self.assertEqual(new_hard, hard)
 
     def test_limit_memory_usage_unsupported_platform(self):
-        limits = resource.getrlimit(mp_module.RLIMIT_AS)
+        rlimit_as = self._get_address_space_resource()
+        limits = resource.getrlimit(rlimit_as)
         output = io.StringIO()
 
         with contextlib.redirect_stdout(output):
             limit_memory_usage(2**40, rlimit=None)
 
         self.assertIn("only supported in Linux", output.getvalue())
-        self.assertEqual(resource.getrlimit(mp_module.RLIMIT_AS), limits)
+        self.assertEqual(resource.getrlimit(rlimit_as), limits)
 
 
 class TestMemoryLimitConfiguration(unittest.TestCase):
@@ -498,10 +510,10 @@ class TestMarkerParsers(unittest.TestCase):
         self.assertEqual(len(parser.memory), 16)
 
     def test_dying_parser_exits_the_process_with_an_error_code(self):
-        exit_codes = []
+        exit_codes: list[int] = []
 
         class SurvivingParser(DyingParser):
-            EXIT = staticmethod(exit_codes.append)
+            EXIT: Callable[[int], None] = staticmethod(exit_codes.append)
 
         self.build_parser(SurvivingParser).parse()
 
@@ -511,7 +523,7 @@ class TestMarkerParsers(unittest.TestCase):
         self.assertTrue(self.build_parser(DelayedParser).clear())
 
     def test_announce_worker_reports_to_the_log_queue(self):
-        log_queue = Queue()
+        log_queue: Queue[str] = Queue()
 
         announce_worker(log_queue)
 
@@ -569,7 +581,7 @@ class UseMemoryParser(_MarkerParser):
 class DyingParser(_MarkerParser):
     MARKER = "DyingParser"
 
-    EXIT = staticmethod(os._exit)
+    EXIT: Callable[[int], None] = staticmethod(os._exit)
 
     def parse(self):
         self.EXIT(1)

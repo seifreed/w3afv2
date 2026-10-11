@@ -6447,3 +6447,14 @@ Esto elimina propagación de `None` y tipos demasiado amplios en los tests.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los cinco
 ficheros; consola básica pasa **8 tests**, interacción y perfiles **20** y
 plugins básicos **9**. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contratos del parser multiproceso
+
+La fixture del parser declara las colas IPC, los resultados recibidos y los
+códigos de salida; encapsula la disponibilidad de `RLIMIT_AS` y tipa el
+callback de terminación del parser. Se conserva el límite de memoria de 16 MiB
+que evita reservar gigabytes durante las pruebas.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en las dos
+fixtures; el parser multiproceso pasa **38 tests** y el parser base **18**. El
+score global continúa en **9.99/10**.
