@@ -43,6 +43,8 @@ def multipart_params(request, files_only=False):
         is_file = part.get_filename() is not None
         if name is not None and (is_file or not files_only):
             payload = part.get_payload(decode=True)
+            if not isinstance(payload, bytes):
+                raise ValueError("Multipart part does not contain byte content")
             params[name] = payload.decode("utf-8", errors="replace")
 
     return params

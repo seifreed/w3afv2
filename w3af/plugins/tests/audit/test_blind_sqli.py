@@ -316,7 +316,7 @@ class TestOldMothBlindSQLI(PluginTest):
             "random_5_lines_static.php",
             "delay_random.php",
         }
-        skip_startwith = set()
+        skip_startwith: set[str] = set()
         kb_addresses = {("blind_sqli", "blind_sqli")}
 
         self._scan_assert(

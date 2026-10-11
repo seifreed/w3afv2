@@ -29,16 +29,20 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class TestTCP(PayloadTestHelper):
 
-    EXPECTED_RESULT: ClassVar[set] = {"172.18.0.9:8000", "0.0.0.0:8001", "0.0.0.0:8000"}
+    EXPECTED_RESULT: ClassVar[set[str]] = {
+        "172.18.0.9:8000",
+        "0.0.0.0:8001",
+        "0.0.0.0:8000",
+    }
 
     def test_tcp(self):
         result = exec_payload(self.shell, "tcp", use_api=True)
 
-        local_addresses = []
+        local_addresses: list[str] = []
         for conn_data in result.values():
             local_addresses.append(conn_data["local_address"])
 
-        local_addresses = set(local_addresses)
+        local_address_set = set(local_addresses)
 
         for expected_local_address in self.EXPECTED_RESULT:
-            self.assertIn(expected_local_address, local_addresses)
+            self.assertIn(expected_local_address, local_address_set)

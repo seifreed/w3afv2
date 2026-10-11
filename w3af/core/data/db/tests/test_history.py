@@ -375,7 +375,7 @@ class TestHistoryItem(unittest.TestCase):
 
     def test_load_without_table(self):
         h = HistoryItem(db=get_default_temp_db_instance())
-        h._db.drop_table(h.get_table_name()).result()
+        h._require_db().drop_table(h.get_table_name()).result()
 
         self.assertRaises(DBException, h.load, 1)
 

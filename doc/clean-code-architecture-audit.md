@@ -6710,3 +6710,13 @@ serialización. La lista vacía de datos de control también declara su tipo.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en tres fixtures;
 sus **23 tests** pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: límites de datos en History, Blind SQLi y XSS
+
+El test de `HistoryItem` usa su accessor de base de datos validado. Las
+fixtures de Blind SQLi y TCP declaran sus sets y etapas de normalización, y el
+parser multipart de XSS valida que cada payload sea bytes antes de decodificarlo.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en cuatro
+fixtures; History pasa **26 tests** y XSS **16 tests**. El score global
+continúa en **9.99/10**.
