@@ -71,11 +71,12 @@ from w3af.core.controllers.output_manager.logging_bridge import (
     configure_data_logging,
     remove_data_logging,
 )
-from w3af.core.controllers.parser_worker import register_parser_multiprocessing
+from w3af.core.controllers.parser_worker import get_parser_worker_bootstrap
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.misc.number_generator import NumberGenerator
+from w3af.core.data.parsers.mp_document_parser import MultiProcessingDocumentParser
 from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import (
@@ -143,9 +144,14 @@ class w3afCore:
         self._misc_settings = MiscSettings(self._configuration)
         manager, output = create_output_manager()
         configure_data_logging(output)
-        register_parser_multiprocessing(manager)
+        log_queue_provider, worker_initializer = get_parser_worker_bootstrap(manager)
         self._dns_cache = DNSCache(output)
-        self._parser_cache = ParserCache()
+        self._parser_cache = ParserCache(
+            mp_parser=MultiProcessingDocumentParser(
+                log_queue_provider=log_queue_provider,
+                worker_initializer=worker_initializer,
+            )
+        )
         self._id_generator = NumberGenerator()
         self._output_manager_finalizer = weakref.finalize(
             self, _stop_core_resources, manager, self._dns_cache, self._parser_cache

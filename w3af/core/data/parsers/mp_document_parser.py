@@ -54,28 +54,6 @@ from w3af.core.profiling import (
 
 LOGGER = logging.getLogger(__name__)
 
-# Collaborators injected by the controllers layer so that this data-layer module
-# does not depend on the output manager or profiling infrastructure. They stay
-# as no-ops until w3af wires the multiprocessing bootstrap at startup.
-_LOG_QUEUE_PROVIDER = None
-_WORKER_INITIALIZER = None
-
-
-def configure_multiprocessing(log_queue_provider, worker_initializer):
-    """
-    Register the collaborators used to bootstrap parser worker processes.
-
-    :param log_queue_provider: Callable returning the queue that worker logs are
-                               written to, or None to run workers without a log
-                               sink.
-    :param worker_initializer: Callable executed inside each worker process,
-                               receiving the log queue as its only argument.
-    :return: None
-    """
-    global _LOG_QUEUE_PROVIDER, _WORKER_INITIALIZER
-    _LOG_QUEUE_PROVIDER = log_queue_provider
-    _WORKER_INITIALIZER = worker_initializer
-
 
 @return_error
 def apply_with_return_error(args):
@@ -151,6 +129,8 @@ class MultiProcessingDocumentParser:
         max_workers=MAX_WORKERS,
         memory_limit=MEMORY_LIMIT,
         parsers=DocumentParser.PARSERS,
+        log_queue_provider=None,
+        worker_initializer=None,
     ):
         """
         :param parser_timeout: Seconds a worker may spend on one document
@@ -163,6 +143,8 @@ class MultiProcessingDocumentParser:
         self.max_workers = max_workers
         self.memory_limit = memory_limit
         self.parsers = parsers
+        self.log_queue_provider = log_queue_provider
+        self.worker_initializer = worker_initializer
         self._pool = None
         self._start_lock = threading.RLock()
 
@@ -176,13 +158,13 @@ class MultiProcessingDocumentParser:
 
                 # Start the process pool
                 log_queue = (
-                    _LOG_QUEUE_PROVIDER() if _LOG_QUEUE_PROVIDER is not None else None
+                    self.log_queue_provider() if self.log_queue_provider else None
                 )
                 self._pool = ProcessPool(
                     self.max_workers,
                     max_tasks=20,
                     initializer=init_worker,
-                    initargs=(_WORKER_INITIALIZER, log_queue, self.memory_limit),
+                    initargs=(self.worker_initializer, log_queue, self.memory_limit),
                 )
 
         return self._pool

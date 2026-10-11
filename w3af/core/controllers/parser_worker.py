@@ -25,7 +25,6 @@ from functools import partial
 from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.output_manager.logging_bridge import configure_data_logging
 from w3af.core.controllers.profiling import start_profiling_no_core
-from w3af.core.data.parsers.mp_document_parser import configure_multiprocessing
 
 
 def get_parser_log_queue(output_manager):
@@ -58,12 +57,11 @@ def initialize_parser_worker(log_queue):
     start_profiling_no_core()
 
 
-def register_parser_multiprocessing(output_manager):
+def get_parser_worker_bootstrap(output_manager):
     """
-    Wire the multiprocessing document parser to the controllers-layer
-    collaborators that bootstrap its worker processes.
+    Return the collaborators that bootstrap parser worker processes.
 
-    :return: None
+    :return: The log queue provider and worker initializer.
     """
     log_queue_provider = partial(get_parser_log_queue, output_manager)
-    configure_multiprocessing(log_queue_provider, initialize_parser_worker)
+    return log_queue_provider, initialize_parser_worker

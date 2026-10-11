@@ -4395,3 +4395,16 @@ La regresión cubre paginación ordenada y tamaños inválidos. Verificación: *
 tests** de DB y **68 tests** de Knowledge Base pasan; Black, Ruff y mypy sobre
 los módulos modificados pasan. El score global continúa en **9.99/10** hasta
 resolver los estados globales restantes y los gates completos.
+
+## Actualización verificada: bootstrap de parsers sin estado global
+
+La configuración del pool de parsers ya no vive en `_LOG_QUEUE_PROVIDER` ni
+`_WORKER_INITIALIZER` dentro del módulo de datos. `MultiProcessingDocumentParser`
+recibe ambos collaborators en su constructor; `w3afCore` obtiene el bootstrap
+del controller y lo inyecta en su `ParserCache`. Dos cores ya no pueden pisar la
+configuración de logging del pool del otro.
+
+Verificación: **41 tests** de parser worker y **46 tests** de parser cache/core
+pasan; Black, Ruff y mypy focales pasan. El score global continúa en **9.99/10**
+hasta cerrar la base temporal global, los gates completos y los módulos
+heredados de gran tamaño.

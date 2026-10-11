@@ -50,7 +50,6 @@ from w3af.core.data.parsers.mp_document_parser import (
     MultiProcessingDocumentParser,
     ParserMemoryLimitError,
     apply_with_return_error,
-    configure_multiprocessing,
     get_memory_limit,
     init_worker,
     limit_memory_usage,
@@ -312,14 +311,15 @@ class TestMPDocumentParser(unittest.TestCase):
         self.assertEqual(self.mpdoc.get_tags_by_filter(resp, ("html",)), [])
 
     def test_configured_worker_initializer_receives_log_queue(self):
-        previous = (mp_module._LOG_QUEUE_PROVIDER, mp_module._WORKER_INITIALIZER)
-        self.addCleanup(configure_multiprocessing, *previous)
-
         queue = multiprocessing.Queue()
-        configure_multiprocessing(lambda: queue, announce_worker)
+        parser = MultiProcessingDocumentParser(
+            log_queue_provider=lambda: queue,
+            worker_initializer=announce_worker,
+        )
+        self.addCleanup(parser.stop_workers)
 
         response = _build_http_response(HTML_OK % "", "text/html")
-        self.mpdoc.get_tags_by_filter(response, ("a",))
+        parser.get_tags_by_filter(response, ("a",))
 
         self.assertEqual(queue.get(timeout=60), "worker ready")
 
