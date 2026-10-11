@@ -52,7 +52,7 @@ class private_ip(GrepPlugin):
         GrepPlugin.__init__(self)
 
         self._already_inspected = ScalableBloomFilter()
-        self._ignore_if_match = None
+        self._ignore_if_match: set[str] = set()
 
     def grep(self, request, response):
         """
@@ -62,8 +62,8 @@ class private_ip(GrepPlugin):
         :param response: The HTTP response object
         :return: None, results are saved to the kb.
         """
-        if self._ignore_if_match is None:
-            self._generate_ignores(response)
+        if not self._ignore_if_match:
+            self._ignore_if_match = self._generate_ignores(response)
 
         if (request.get_url(), request.get_data()) in self._already_inspected:
             return
@@ -189,25 +189,26 @@ class private_ip(GrepPlugin):
                     self, "HTML", v, group_klass=HTMLPrivateIPInfoSet
                 )
 
-    def _generate_ignores(self, response):
+    def _generate_ignores(self, response) -> set[str]:
         """
         Generate the list of strings we want to ignore as private IP addresses
         """
-        if self._ignore_if_match is None:
-            self._ignore_if_match = set()
+        ignore_if_match = set()
 
-            requested_domain = response.get_url().get_domain()
-            self._ignore_if_match.add(requested_domain)
+        requested_domain = response.get_url().get_domain()
+        ignore_if_match.add(requested_domain)
 
-            self._ignore_if_match.add(get_local_ip(requested_domain))
-            self._ignore_if_match.add(get_local_ip())
+        ignore_if_match.add(get_local_ip(requested_domain))
+        ignore_if_match.add(get_local_ip())
 
-            try:
-                ip_address = socket.gethostbyname(requested_domain)
-            except OSError:
-                pass
-            else:
-                self._ignore_if_match.add(ip_address)
+        try:
+            ip_address = socket.gethostbyname(requested_domain)
+        except OSError:
+            pass
+        else:
+            ignore_if_match.add(ip_address)
+
+        return ignore_if_match
 
     def get_long_desc(self):
         """

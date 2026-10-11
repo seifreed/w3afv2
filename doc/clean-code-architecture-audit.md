@@ -6211,3 +6211,16 @@ el output real y el helper de logging accede al manager tipado.
 Verificación: infraestructura HTTP/HTTPS pasa **14 tests**; Mypy con cuerpos
 no tipados, Ruff y Black pasan en producción y tests. El score global continúa
 en **9.99/10**.
+
+## Actualización verificada: conjunto de ignorados de private IP
+
+`private_ip` inicializa explícitamente el conjunto de direcciones ignoradas y
+separa la construcción del conjunto de su almacenamiento en el plugin. Esto
+mantiene el comportamiento de la primera respuesta y elimina el estado
+opcional que podía propagarse a los analizadores de cabeceras y HTML.
+
+Verificación: las ramas reales de private IP pasan **3 tests**; Mypy con
+cuerpos no tipados, Ruff y Black pasan en el módulo. La suite histórica
+`test_private_ip.py` aún requiere configurar su KB antes de ejecutarse y no se
+considera evidencia contra este cambio. El score global continúa en
+**9.99/10**.
