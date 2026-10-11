@@ -4956,6 +4956,20 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: fixtures deterministas y hashes no criptográficos
+
+El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos
+tokenizados sin depender de un shell y proporciona fixtures mínimos para
+`/proc/sys/kernel/ostype` y `/proc/cpuinfo`, de modo que el test no depende del
+sistema operativo del runner. Los MD5 de los fixtures de WordPress y de los
+identificadores del crawler se declaran explícitamente como hashes no destinados
+a seguridad, y el generador codifica correctamente sus entradas en Python 3.
+
+Verificación: los tres módulos pasan **14 tests**; Bandit focalizado en `w3af`
+queda con **0 hallazgos altos** y **0 issues** en el umbral alto; Black y mypy
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: comandos Docker sin shell injection
 
 Los helpers Docker propios dejaron de interpolar comandos en `shell=True`.

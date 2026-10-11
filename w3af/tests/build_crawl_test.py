@@ -144,9 +144,8 @@ def generate_parameter_name(page_num, form_num, param_num):
 
 
 def generate_identifier(num, _type):
-    md5 = hashlib.md5()
-    md5.update(_type + str(num))
-    return md5.hexdigest()[:10]
+    value = f"{_type}{num}".encode()
+    return hashlib.md5(value, usedforsecurity=False).hexdigest()[:10]
 
 
 def build_href(page_path, page_filename, qs):

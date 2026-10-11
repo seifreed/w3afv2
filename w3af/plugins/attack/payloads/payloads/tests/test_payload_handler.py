@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import shlex
 import subprocess
 import unittest
 
@@ -138,7 +139,11 @@ class FakeExecShell(ExecShell):
         super().__init__(vuln, None, None)
 
     def execute(self, command):
-        return subprocess.getoutput(command)
+        if command == "cat /proc/sys/kernel/ostype":
+            return "Linux\n"
+        return subprocess.run(
+            shlex.split(command), capture_output=True, text=True, check=False
+        ).stdout
 
     def end(self):
         pass
@@ -156,6 +161,10 @@ class FakeReadShell(ReadShell):
         super().__init__(vuln, None, None)
 
     def read(self, filename):
+        if filename == "/proc/sys/kernel/ostype":
+            return "Linux\n"
+        if filename == "/proc/cpuinfo":
+            return "model name\t: Test CPU\ncpu cores\t: 1\n"
         return open(filename).read()
 
     def end(self):

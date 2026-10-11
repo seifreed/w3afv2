@@ -26,6 +26,7 @@ from typing import ClassVar
 
 import pytest
 
+from w3af.core.controllers.tests.recording_output import recording_output
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.crawl.wordpress_fingerprint import (
     FileFingerPrint,
@@ -46,7 +47,7 @@ WP_VERSIONS_XML = f"""<?xml version="1.0" encoding="UTF-8"?>
     </hash>
   </file>
   <file src="$wp-plugins$tinymce/editor.css">
-    <hash md5="{hashlib.md5(STATIC_FILE.encode()).hexdigest()}">
+    <hash md5="{hashlib.md5(STATIC_FILE.encode(), usedforsecurity=False).hexdigest()}">
       <version>3.4.1</version>
     </hash>
   </file>
@@ -54,7 +55,7 @@ WP_VERSIONS_XML = f"""<?xml version="1.0" encoding="UTF-8"?>
 """
 
 RELEASE_DB = f"""this line is not a release
-{hashlib.md5(TARBALL).hexdigest()},3.4.1.tar.gz
+{hashlib.md5(TARBALL, usedforsecurity=False).hexdigest()},3.4.1.tar.gz
 """
 
 INDEX = (
@@ -153,7 +154,8 @@ class TestWordpressFingerprintNoWordpress(PluginTest):
 
 class TestWordpressVersionsDatabase:
     def test_xml_parsing_case01(self):
-        wp_fingerprints = wordpress_fingerprint()._get_wp_fingerprints()
+        plugin = self._plugin_with_output()
+        wp_fingerprints = plugin._get_wp_fingerprints()
         if len(wp_fingerprints) <= 20:
             raise AssertionError
 
@@ -165,9 +167,15 @@ class TestWordpressVersionsDatabase:
 
     def _plugin_with_versions_xml(self, path):
         plugin = wordpress_fingerprint()
+        plugin.set_output(recording_output())
         options = plugin.get_options()
         options["wp_versions_xml"].set_value(path)
         plugin.set_options(options)
+        return plugin
+
+    def _plugin_with_output(self):
+        plugin = wordpress_fingerprint()
+        plugin.set_output(recording_output())
         return plugin
 
     def test_missing_versions_xml(self, tmp_path):
