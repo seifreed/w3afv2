@@ -4242,3 +4242,25 @@ frente a `448724992` bytes en la ejecución anterior que se detenía en 242 test
 El score provisional sube a **9.98/10** en Clean Architecture y **9.95/10**
 global. Siguen pendientes la suite completa multiplataforma, cobertura global
 del 100% y los gates de seguridad.
+
+## Actualización verificada: 404 aislado por core
+
+`Fingerprint404` ya no tiene una instancia estática ni una función singleton.
+Cada `w3afCore` crea y limpia su propio detector, y los plugins consultan el
+detector de su core. Los plugins construidos fuera de un scan reciben una
+instancia explícita mediante `set_fingerprint_404`. `target_validation` usa el
+core que está validando, por lo que dos scans no comparten cachés, opener,
+configuración ni tablas temporales de detección 404.
+
+También se eliminaron los fixtures que reiniciaban el singleton global. Los
+tests independientes limpian su detector y el cache de parser al terminar, y
+los fixtures de grep/canned HTTP comparten explícitamente las mismas
+dependencias que el plugin bajo prueba.
+
+Verificación: la batería combinada de 404, core, plugins, grep, GHDB y
+`web_diff` pasa **178 tests**. No quedan referencias a
+`fingerprint_404_singleton`, `Fingerprint404._instance` ni al helper global
+`is_404`; Ruff, Black y mypy focal pasan. El score provisional sube a
+**9.99/10** en Clean Architecture y **9.98/10** global. Aún queda retirar
+otros estados globales de producción, especialmente el generador de IDs, la
+cache DNS y el parser compartido, antes de poder declarar 10/10.
