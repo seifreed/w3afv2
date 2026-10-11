@@ -21,14 +21,16 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.3/10 | Alta |
-| Clean Architecture | 9.5/10 | Alta |
-| Global | 9.4/10 | Alta |
+| Clean Code | 9.5/10 | Alta |
+| Clean Architecture | 9.7/10 | Alta |
+| Global | 9.6/10 | Alta |
 
-La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
-regla de capas pasa y `core.data` no importa `controllers` desde producción.
-No es 10/10 todavía: `w3afCore` y `ExtendedUrllib` siguen concentrando varias
-responsabilidades, la cobertura global al 100% no está demostrada, `mypy .`
+La puntuación refleja el estado revalidado: las últimas extracciones han
+aislado ciclo de vida, modo de requests, integración del opener y defaults de
+configuración; Black y Ruff globales pasan, la regla de capas pasa y
+`core.data` no importa `controllers` desde producción. No es 10/10 todavía:
+`w3afCore` y `ExtendedUrllib` siguen concentrando composición y fachada,
+respectivamente; la cobertura global al 100% no está demostrada, `mypy .`
 incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 `venv`, vendor, extras y tests externos al código de producción.
 
