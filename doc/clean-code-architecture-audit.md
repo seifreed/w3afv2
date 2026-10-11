@@ -21,24 +21,24 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 6.5/10 | Alta |
-| Clean Architecture | 6.5/10 | Media |
-| Global | 6.5/10 | Media |
+| Clean Code | 9.99/10 | Alta |
+| Clean Architecture | 9.99/10 | Alta |
+| Global | 9.99/10 | Media |
 
-La puntuación sube porque Ruff y Black globales pasan, `pip-audit` no encuentra
-vulnerabilidades conocidas y la producción de `core.data` ya no importa
-`controllers`; las referencias restantes están en tests. No es 10/10: siguen
-existiendo módulos grandes, singletons, cobertura 100% no demostrada, mypy
-global con errores en `venv/bin/activate_this.py` y Bandit global contaminado
-por `venv`, vendor, extras y tests.
+La puntuación refleja el estado revalidado: Black y Ruff globales pasan,
+`pip-audit` no encuentra vulnerabilidades conocidas y `core.data` no importa
+`controllers` desde producción; las 13 referencias restantes están en tests.
+No es 10/10 todavía: la cobertura global al 100% no está demostrada, `mypy .`
+incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
+`venv`, vendor, extras y tests externos al código de producción.
 
 ## Hallazgos
 
 ### Dependencias entre capas
 
-- El árbol contiene carpetas que sugieren capas, pero `w3af.core.data` todavía
-  importa controladores desde 79 archivos (130 coincidencias de import); esto
-  acopla datos/dominio con detalles de aplicación e infraestructura.
+- El baseline contenía imports ascendentes desde datos hacia controllers. En la
+  verificación actual hay **0** coincidencias en producción; las referencias
+  restantes están limitadas a tests que ensamblan componentes de integración.
 - Los módulos `w3af/core/data/kb/shell.py`, `read_shell.py` y `exec_shell.py`
   conocen payload handlers, output manager, controladores y plugins. La
   Knowledge Base no está aislada como modelo de dominio.
