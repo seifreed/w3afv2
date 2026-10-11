@@ -62,7 +62,9 @@ from w3af.core.exceptions import BaseFrameworkException, ScanMustStopException
 
 HTML_OK = "<html><a href='/abc'>foo-</a></html>%s"
 HTML_DELAYED = "<html>DelayedParser!</html>%s"
-MEMORY_LIMIT = 128 * 1024 * 1024
+# Keep the memory-limit fixture large enough to exercise the worker boundary
+# without making the test reserve gigabytes when the OS limit is unavailable.
+MEMORY_LIMIT = 16 * 1024 * 1024
 FIXTURE_8748 = os.path.join(
     ROOT_PATH, "core", "data", "parsers", "doc", "tests", "data", "dictproxy-8748.htm"
 )
@@ -558,7 +560,7 @@ class DelayedParser(_MarkerParser):
 
 class UseMemoryParser(_MarkerParser):
     MARKER = "UseMemoryParser"
-    MEMORY_BYTES = 2 * 1024 * 1024 * 1024
+    MEMORY_BYTES = 32 * 1024 * 1024
 
     def parse(self):
         self.memory = bytearray(self.MEMORY_BYTES)

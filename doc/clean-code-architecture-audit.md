@@ -5737,3 +5737,16 @@ Verificación: mypy global baja a **681 errores en 268 archivos** desde 1248;
 las comprobaciones focales de los archivos modificados quedan limpias. El
 score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
+
+## Actualización verificada: fixture de memoria de parsers
+
+El parser de prueba que valida el límite de memoria ya no intenta reservar
+2 GiB. Usa una reserva de 32 MiB frente a un límite de 16 MiB, suficiente para
+ejercitar el mismo camino de error sin convertir la suite en una fuente de
+picos de RAM cuando el sistema no aplica `RLIMIT_AS`.
+
+Verificación: parser multiproceso y `ParserCache` pasan **66 tests**; el
+proceso de pytest alcanza aproximadamente **79 MiB RSS** en macOS. Black,
+Ruff y Bandit focales pasan; mypy aún reporta anotaciones heredadas en estos
+tests y tres avisos transitivos en `mp_document_parser`. El score global
+continúa en **9.99/10**.
