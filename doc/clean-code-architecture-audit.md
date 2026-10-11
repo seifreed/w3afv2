@@ -7365,6 +7365,17 @@ todos `B404`/`B603` sobre subprocesses explícitos de tests y scripts Docker;
 `pip-audit` no encuentra vulnerabilidades conocidas y sólo omite la
 dependencia de desarrollo `mitmproxy`, que no está publicada en PyPI.
 
+## Actualización verificada: reemplazo de conexiones por host
+
+La ruta `new_connection` podía expulsar una conexión libre de otro host y
+crear una segunda conexión para un host que ya había alcanzado su límite.
+Ahora la selección de la conexión a retirar es específica del host y el límite
+se vuelve a comprobar bajo lock antes de crear el reemplazo.
+
+Verificación: la suite completa de keep-alive pasa **58 tests**, incluida una
+regresión con varios hosts; Black, Ruff y mypy pasan en los dos módulos
+modificados.
+
 ## Actualización verificada: construcción única de plugins
 
 `PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica

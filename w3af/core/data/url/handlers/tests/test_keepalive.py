@@ -629,6 +629,21 @@ class TestConnectionManager(unittest.TestCase):
             ConnectionPoolException, self.get, request(self.URL, new_connection=True)
         )
 
+    def test_new_connection_does_not_evict_another_host(self):
+        self.cm.MAX_CONNECTIONS = 1
+        self.get()
+
+        for port in (8081, 8082):
+            connection = self.get(request(f"http://127.0.0.1:{port}/"))
+            self.cm.free_connection(connection)
+
+        with self.assertRaises(ConnectionPoolException):
+            self.get(request(self.URL, new_connection=True))
+
+        self.assertEqual(self.cm.get_connections_total("127.0.0.1:8080"), 1)
+        self.assertEqual(self.cm.get_connections_total("127.0.0.1:8081"), 1)
+        self.assertEqual(self.cm.get_connections_total("127.0.0.1:8082"), 1)
+
     def test_concurrent_creation_respects_connection_limit(self):
         self.cm.MAX_CONNECTIONS = 1
         self.cm.GET_AVAILABLE_CONNECTION_RETRY_MAX_TIME = 0.1

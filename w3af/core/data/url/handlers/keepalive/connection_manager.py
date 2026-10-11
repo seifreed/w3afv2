@@ -228,14 +228,26 @@ class ConnectionManager:
         debug(f"Reusing preferred {conn} to use in {req}")
         return conn
 
-    def _pop_free_connection_if_unused(self):
+    def _pop_free_connection_if_unused(self, host_port):
         """
         :return: A free connection taken out of the pool when there are more
                  free connections than used ones, None otherwise.
         """
         with self._lock:
-            if len(self._free_conns) > len(self._used_conns):
-                return self._free_conns.pop()
+            free_for_host = sum(
+                conn.host_port == host_port for conn in self._free_conns
+            )
+            used_for_host = sum(
+                conn.host_port == host_port for conn in self._used_conns
+            )
+            if free_for_host <= used_for_host:
+                return None
+
+            for conn in self._free_conns:
+                if conn.host_port == host_port:
+                    self._free_conns.remove(conn)
+                    return conn
+
         return None
 
     def _create_new_connection(self, req, conn_factory, host_port, conn_total):
@@ -326,7 +338,7 @@ class ConnectionManager:
                 # connection pool, but because new_connection is set, it is
                 # possible to force a free connection to be closed:
                 #
-                conn = self._pop_free_connection_if_unused()
+                conn = self._pop_free_connection_if_unused(host_port)
                 if conn is not None:
                     #
                     # Close an existing free connection because the framework
@@ -335,10 +347,18 @@ class ConnectionManager:
                     #
                     self.remove_connection(conn, reason="need fresh connection")
 
-                    self._log_waited_time_for_conn(waited_time_for_conn)
-                    return self._create_new_connection(
-                        req, conn_factory, host_port, conn_total
-                    )
+                    with self._lock:
+                        conn_total = self._get_connections_total_locked(host_port)
+                        if conn_total < self.MAX_CONNECTIONS:
+                            conn = self._create_new_connection(
+                                req, conn_factory, host_port, conn_total
+                            )
+                        else:
+                            conn = None
+
+                    if conn is not None:
+                        self._log_waited_time_for_conn(waited_time_for_conn)
+                        return conn
 
                 msg = (
                     "The HTTP request %s has new_connection set to True."
