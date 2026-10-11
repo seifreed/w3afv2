@@ -52,6 +52,8 @@ class Plugin(Configurable):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
+    uses_database = False
+
     def __init__(self):
         """
         Create some generic attributes that are going to be used by most plugins

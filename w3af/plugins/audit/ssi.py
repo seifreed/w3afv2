@@ -37,12 +37,14 @@ class ssi(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self):
+    uses_database = True
+
+    def __init__(self, db=None):
         AuditPlugin.__init__(self)
 
         # Internal variables
         self._persistent_multi_in = None
-        self._expected_mutant_dict = DiskDict(table_prefix="ssi")
+        self._expected_mutant_dict = DiskDict(table_prefix="ssi", db=db)
         self._extract_expected_re = re.compile("[1-9]{5}")
 
     def audit(self, freq, orig_response, debugging_id):

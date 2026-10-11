@@ -41,11 +41,13 @@ class generic(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self):
+    uses_database = True
+
+    def __init__(self, db=None):
         AuditPlugin.__init__(self)
 
         #   Internal variables
-        self._potential_vulns = DiskList(table_prefix="generic")
+        self._potential_vulns = DiskList(table_prefix="generic", db=db)
 
         #   User configured variables
         self._diff_ratio = 0.30

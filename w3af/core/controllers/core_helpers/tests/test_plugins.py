@@ -103,6 +103,24 @@ class TestW3afCorePlugins(unittest.TestCase):
         output_plugin = self.core._output_manager.get_output_plugin_inst()[0]
         self.assertIs(output_plugin._errors.db, self.core.database)
 
+    def test_database_backed_plugins_use_core_database(self):
+        database_plugins = (
+            ("audit", "generic", "_potential_vulns"),
+            ("audit", "ssi", "_expected_mutant_dict"),
+            ("audit", "xss", "_xss_mutants"),
+            ("grep", "cache_control", "_vulns"),
+            ("grep", "csp", "_vulns"),
+            ("grep", "error_pages", "_potential_vulns"),
+            ("grep", "path_disclosure", "_reported"),
+        )
+
+        for plugin_type, plugin_name, state_attribute in database_plugins:
+            plugin = self.core.plugins.get_plugin_inst(plugin_type, plugin_name)
+            self.assertIs(getattr(plugin, state_attribute).db, self.core.database)
+
+    def test_support_modules_are_not_plugins(self):
+        self.assertNotIn("xml_filters", self.core.plugins.get_plugin_list("output"))
+
     def test_get_plugin_inst_all(self):
         for plugin_type in itertools.chain(
             self.core.plugins.get_plugin_types(), ["attack"]

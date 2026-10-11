@@ -118,7 +118,7 @@ class xml_file(OutputPlugin):
     uses_database = True
     XML_OUTPUT_VERSION = "2.8"
 
-    def __init__(self):
+    def __init__(self, db=None):
         OutputPlugin.__init__(self)
 
         # User configured parameters
@@ -136,7 +136,7 @@ class xml_file(OutputPlugin):
         self._jinja2_env = self._get_jinja2_env()
 
         # List with additional xml elements
-        self._errors = DiskList()
+        self._errors = DiskList(db=db)
 
     def do_nothing(self, *args, **kwds):
         pass

@@ -580,14 +580,21 @@ class OutputManager(Process):
         module = import_module(f"w3af.plugins.output.{plugin_name}")
         plugin_class = getattr(module, plugin_name)
         if w3af_core is None:
-            if plugin_class.uses_database:
-                with database_context(self._get_standalone_database()):
-                    plugin = factory(f"w3af.plugins.output.{plugin_name}")
+            if getattr(plugin_class, "uses_database", False):
+                plugin = factory(
+                    f"w3af.plugins.output.{plugin_name}",
+                    self._get_standalone_database(),
+                )
             else:
                 plugin = factory(f"w3af.plugins.output.{plugin_name}")
         else:
-            with database_context(w3af_core.database):
-                plugin = factory(f"w3af.plugins.output.{plugin_name}")
+            if getattr(plugin_class, "uses_database", False):
+                plugin = factory(
+                    f"w3af.plugins.output.{plugin_name}", w3af_core.database
+                )
+            else:
+                with database_context(w3af_core.database):
+                    plugin = factory(f"w3af.plugins.output.{plugin_name}")
         plugin.set_w3af_core(proxy(w3af_core) if w3af_core is not None else None)
         plugin.set_output(self._output)
         if w3af_core is not None:

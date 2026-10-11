@@ -40,14 +40,15 @@ class cache_control(GrepPlugin):
     """
 
     SAFE_CONFIG: ClassVar = {"pragma": "no-cache", "cache-control": "no-store"}
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         GrepPlugin.__init__(self)
 
         self._total_count = 0
         self._vuln_count = 0
-        self._vulns = DiskList(table_prefix="cache_control")
-        self._ids = DiskList(table_prefix="cache_control")
+        self._vulns = DiskList(table_prefix="cache_control", db=db)
+        self._ids = DiskList(table_prefix="cache_control", db=db)
 
     def grep(self, request, response):
         if response.is_image() or response.is_swf():

@@ -49,12 +49,12 @@ class html_file(OutputPlugin):
 
     uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         OutputPlugin.__init__(self)
 
         # Internal variables
         self._initialized = False
-        self._additional_info = DiskList(table_prefix="html_file")
+        self._additional_info = DiskList(table_prefix="html_file", db=db)
         self._enabled_plugins = {}
         self.template_root = os.path.join(
             ROOT_PATH, "plugins", "output", "html_file", "templates"

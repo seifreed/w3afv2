@@ -35,11 +35,13 @@ class path_disclosure(GrepPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self):
+    uses_database = True
+
+    def __init__(self, db=None):
         GrepPlugin.__init__(self)
 
         # Internal variables
-        self._reported = DiskList(table_prefix="path_disclosure")
+        self._reported = DiskList(table_prefix="path_disclosure", db=db)
         self._signature_re = None
 
     def setup(self):

@@ -130,12 +130,13 @@ class error_pages(GrepPlugin):
     _multi_re = MultiRE(VERSION_REGEX)
 
     MAX_REPORTED_PER_MSG = 10
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         GrepPlugin.__init__(self)
 
         #   Internal variables
-        self._potential_vulns = DiskList(table_prefix="error_pages")
+        self._potential_vulns = DiskList(table_prefix="error_pages", db=db)
 
         self._already_reported_max_msg_exceeded = []
         self._already_reported_versions = []

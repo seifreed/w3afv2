@@ -4737,3 +4737,16 @@ estado ni altera el contrato de caché, base de datos o manejo de errores.
 Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
+
+## Actualización verificada: DB explícita en plugins persistentes
+
+Los plugins que usan `DiskList` o `DiskDict` reciben ahora la base de datos del
+core directamente desde las fábricas de plugins y de salida. Mantienen
+`db=None` para construcciones standalone, pero el camino principal ya no
+depende de un `ContextVar` implícito. El catálogo también excluye los módulos
+auxiliares de XML (`xml_filters`, `xml_models` y `xml_nodes`) para que no se
+intenten instanciar como plugins.
+
+Verificación: **106 tests** focales pasan; Black, Ruff, mypy y Bandit focales
+pasan. El score global continúa en **9.99/10**, con los gates heredados, el
+fallback standalone y otros módulos grandes todavía pendientes.

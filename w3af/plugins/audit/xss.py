@@ -75,10 +75,12 @@ class xss(AuditPlugin):
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS.update(FLASH)
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS.update(IMAGES)
 
-    def __init__(self):
+    uses_database = True
+
+    def __init__(self, db=None):
         AuditPlugin.__init__(self)
 
-        self._xss_mutants = DiskList(table_prefix="xss")
+        self._xss_mutants = DiskList(table_prefix="xss", db=db)
 
         # User configured parameters
         self._check_persistent_xss = True

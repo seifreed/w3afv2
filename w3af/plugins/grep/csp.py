@@ -34,15 +34,16 @@ class csp(GrepPlugin):
     """
 
     VULN_NAME = "CSP vulnerability"
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         """
         Class init
         """
         GrepPlugin.__init__(self)
 
         self._total_count = 0
-        self._vulns = DiskList(table_prefix="csp")
+        self._vulns = DiskList(table_prefix="csp", db=db)
         self._urls = ScalableBloomFilter()
 
     def get_long_desc(self):
