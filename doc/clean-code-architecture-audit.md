@@ -7031,3 +7031,14 @@ atar el test a una implementación interna del helper.
 
 Verificación: la suite completa de `w3af/core/controllers/tests` pasa **48
 tests**; Black, Ruff y Mypy pasan en el archivo modificado.
+
+## Actualización verificada: KB, serialización y parsers de datos
+
+La batería de Knowledge Base pasa **191 tests**. Las suites de request, data
+containers y fuzzer pasan **333 tests y 7 subtests**; las suites de parsers de
+documentos, utilidades, IPC y Pynarcissus pasan **394 tests, 1 omitido y 15
+subtests**. Estas rutas no dejan procesos o workers activos después de la
+ejecución.
+
+Con los bloques anteriores quedan validados **1981 tests y 1 omitido** en las
+áreas de datos y lifecycle revisadas; el score global continúa en **9.99/10**.
