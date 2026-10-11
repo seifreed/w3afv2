@@ -123,6 +123,11 @@ class TestStrategy(unittest.TestCase):
     def start_server(self, responder):
         self.server = LocalHTTPServer(responder).start()
 
+    def get_server(self) -> LocalHTTPServer:
+        if self.server is None:
+            raise RuntimeError("Test server has not been started")
+        return self.server
+
     def get_core(self, target_url):
         core = w3afCore(knowledge_base=kb)
         self.addCleanup(core.quit)
@@ -141,14 +146,17 @@ class TestStrategy(unittest.TestCase):
 
     def test_strategy_run(self):
         self.start_server(sql_injection_site)
-        core = self.get_core(self.server.url("/where_integer_qs.py?id=1"))
+        server = self.get_server()
+        core = self.get_core(server.url("/where_integer_qs.py?id=1"))
 
         strategy = TeardownAuditThreadsStrategy(core)
         strategy.start()
 
         # Now test that those threads are being terminated
-        self.assertIsNotNone(strategy.threads_at_teardown_audit)
-        self.assertIn("WorkerThread", strategy.threads_at_teardown_audit)
+        threads_at_teardown = strategy.threads_at_teardown_audit
+        if threads_at_teardown is None:
+            raise AssertionError("Audit teardown did not record thread names")
+        self.assertIn("WorkerThread", threads_at_teardown)
 
         vulns = kb.get("sqli", "sqli")
         self.assertEqual(len(vulns), 1, vulns)
@@ -182,7 +190,8 @@ class TestStrategy(unittest.TestCase):
 
     def test_strategy_exception(self):
         self.start_server(sql_injection_site)
-        core = self.get_core(self.server.url("/where_integer_qs.py?id=1"))
+        server = self.get_server()
+        core = self.get_core(server.url("/where_integer_qs.py?id=1"))
 
         strategy = FailingRouterStrategy(core)
 
@@ -215,8 +224,9 @@ class TestStrategy(unittest.TestCase):
                                which all the target resources redirect to
         """
         self.start_server(self.redirect_all)
-        self.redirect_location = build_location(self.server.port)
-        core = self.get_core(self.server.url("/"))
+        server = self.get_server()
+        self.redirect_location = build_location(server.port)
+        core = self.get_core(server.url("/"))
 
         strategy = CoreStrategy(core, kb, om.out, core.configuration)
         strategy.start()
@@ -283,7 +293,7 @@ class TestStrategy(unittest.TestCase):
 
     def test_user_stop_while_requesting_targets(self):
         self.start_server(static_page)
-        core = self.get_core(self.server.url("/"))
+        core = self.get_core(self.get_server().url("/"))
         strategy = CoreStrategy(core, kb, om.out, core.configuration)
 
         core.uri_opener.stop()
@@ -299,7 +309,7 @@ class TestStrategy(unittest.TestCase):
 
     def test_404_detection_without_url_opener_uses_basic_checks(self):
         self.start_server(static_page)
-        core = self.get_core(self.server.url("/"))
+        core = self.get_core(self.get_server().url("/"))
 
         setup_404_detection(core, om.out, core.configuration)
 

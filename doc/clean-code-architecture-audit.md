@@ -6490,3 +6490,14 @@ peticiones ni las aserciones funcionales.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
 el ciclo de vida API pasa **5 tests y 6 subtests**. El score global continúa
 en **9.99/10**.
+
+## Actualización verificada: fixture de estrategia y servidor local
+
+La fixture de estrategia exige que el servidor local exista antes de construir
+URLs y estrecha la lista opcional de threads después de comprobarla. Esto hace
+explícitos los ciclos de vida del servidor y del teardown sin alterar el flujo
+de los tests.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
+`test_strategy_low_level.py` pasa **7 tests**. El score global continúa en
+**9.99/10**.
