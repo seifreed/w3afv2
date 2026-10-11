@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: dispatch opcional de Payload
+
+El payload base conserva sus seis métodos opcionales y los invoca mediante un
+protocolo estático que solo documenta el contrato para el type checker. No se
+añaden métodos artificiales a la clase base ni se cambia el `AttributeError`
+cuando un payload no implementa una capacidad. El test de ejecución refleja
+también el salto de línea real que devuelve el shell subprocess.
+
+Verificación: las suites de payload base pasan **11 tests**; mypy focal, Ruff
+y Black están limpios. El score global continúa en **9.99/10**, con los gates
+globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: fronteras dinámicas del parser OpenAPI
 
 El handler OpenAPI explicita sus dos límites dinámicos: los parámetros de

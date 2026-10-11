@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import textwrap
 from functools import wraps
+from typing import Any, Protocol, cast
 
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.exceptions import BaseFrameworkException
@@ -43,6 +44,20 @@ PAYLOAD_EXECUTION_ERRORS = (
     IndexError,
     RuntimeError,
 )
+
+
+class _PayloadDispatch(Protocol):
+    def run_execute(self, *args: Any) -> Any: ...
+
+    def run_is_open_port(self, *args: Any) -> Any: ...
+
+    def run_read(self, *args: Any) -> Any: ...
+
+    def api_execute(self, *args: Any) -> Any: ...
+
+    def api_is_open_port(self, *args: Any) -> Any: ...
+
+    def api_read(self, *args: Any) -> Any: ...
 
 
 class Payload:
@@ -106,11 +121,11 @@ class Payload:
         run_options = self.get_payload_implemented_methods()
 
         if "execute" in run_options and "execute" in available_syscalls:
-            return self.run_execute(*args)
+            return cast(_PayloadDispatch, self).run_execute(*args)
         elif "is_open_port" in run_options and "is_open_port" in available_syscalls:
-            return self.run_is_open_port(*args)
+            return cast(_PayloadDispatch, self).run_is_open_port(*args)
         else:
-            return self.run_read(*args)
+            return cast(_PayloadDispatch, self).run_read(*args)
 
     def run_api(self, *args):
         """
@@ -122,11 +137,11 @@ class Payload:
         run_options = self.get_payload_implemented_methods()
 
         if "execute" in run_options and "execute" in available_syscalls:
-            return self.api_execute(*args)
+            return cast(_PayloadDispatch, self).api_execute(*args)
         elif "is_open_port" in run_options and "is_open_port" in available_syscalls:
-            return self.api_is_open_port(*args)
+            return cast(_PayloadDispatch, self).api_is_open_port(*args)
         else:
-            return self.api_read(*args)
+            return cast(_PayloadDispatch, self).api_read(*args)
 
     def require(self):
         """

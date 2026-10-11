@@ -56,7 +56,7 @@ class TestBasePayload(unittest.TestCase):
 
         self.assertEqual(self.bp.can_run(), set())
 
-        self.assertEqual(executable.run("echo w3af"), "w3af")
+        self.assertEqual(executable.run("echo w3af"), "w3af\n")
         self.assertTrue(executable.called_run_execute)
 
         executable.run_api("command")
