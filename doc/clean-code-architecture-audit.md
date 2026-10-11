@@ -7386,3 +7386,14 @@ valor, sin supresiones ni aserciones optimizables.
 Verificación: **69 tests** afectados pasan; `mypy --check-untyped-defs w3af`
 pasa en **1627 archivos fuente**, además de Black y Ruff en los cuatro
 módulos modificados.
+
+## Actualización verificada: snapshots seguros del pool HTTP
+
+Las estadísticas y el cleanup del `ConnectionManager` podían observar los
+sets compartidos mientras otro worker los modificaba. El contador de logging,
+los tamaños usados en los mensajes y las copias para cleanup se obtienen ahora
+bajo el mismo lock, evitando estados incoherentes y carreras durante el cierre
+de conexiones.
+
+Verificación: la suite completa de keep-alive pasa **57 tests**; Black, Ruff y
+mypy pasan en los dos módulos modificados.

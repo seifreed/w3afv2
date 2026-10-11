@@ -73,13 +73,15 @@ class ConnectionManager:
         with self._lock:
             self._free_conns.discard(conn)
             self._used_conns.discard(conn)
+            free_count = len(self._free_conns)
+            used_count = len(self._used_conns)
 
         msg = 'Removed %s from pool. Reason "%s"'
         args = (conn, reason)
         debug(msg % args)
 
         msg = "Free connection size %s / Used connection size %s"
-        args = (len(self._free_conns), len(self._used_conns))
+        args = (free_count, used_count)
         debug(msg % args)
 
     def free_connection(self, conn):
@@ -134,8 +136,10 @@ class ConnectionManager:
         :return: None, write output to log file.
         """
         # Log this information only once every N requests
-        self.request_counter += 1
-        if self.request_counter % self.LOG_STATS_EVERY != 0:
+        with self._lock:
+            self.request_counter += 1
+            should_log = self.request_counter % self.LOG_STATS_EVERY == 0
+        if not should_log:
             return
 
         stats = self.get_connection_pool_stats(host_port)
@@ -412,7 +416,11 @@ class ConnectionManager:
         """
         now = time.monotonic()
 
-        for conn in self._used_conns.copy():
+        with self._lock:
+            used_connections = self._used_conns.copy()
+            free_connections = self._free_conns.copy()
+
+        for conn in used_connections:
             current_request_start = conn.current_request_start
             if current_request_start is None:
                 continue
@@ -435,7 +443,7 @@ class ConnectionManager:
                 args = (conn, time_in_used_state)
                 debug(msg % args)
 
-        for conn in self._free_conns.copy():
+        for conn in free_connections:
             connection_manager_move_ts = conn.connection_manager_move_ts
             if connection_manager_move_ts is None:
                 continue
