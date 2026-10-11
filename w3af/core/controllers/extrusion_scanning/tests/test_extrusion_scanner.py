@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import socket
 import subprocess
 import sys
 import unittest
@@ -47,6 +48,22 @@ class TestExtrusionScanner(unittest.TestCase):
         self.assertTrue(es.estimate_scan_time() >= 8)
 
         self.assertTrue(es.is_available(54545, "tcp"))
+
+    def test_is_available_supports_tcp_and_udp(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp_socket:
+            tcp_socket.bind(("127.0.0.1", 0))
+            tcp_port = tcp_socket.getsockname()[1]
+            self.assertFalse(extrusionScanner.is_available(tcp_port, "TCP"))
+
+        self.assertTrue(extrusionScanner.is_available(tcp_port, "TCP"))
+
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
+            udp_socket.bind(("127.0.0.1", 0))
+            udp_port = udp_socket.getsockname()[1]
+            self.assertFalse(extrusionScanner.is_available(udp_port, "UDP"))
+
+        self.assertTrue(extrusionScanner.is_available(udp_port, "UDP"))
+        self.assertFalse(extrusionScanner.is_available(0, "SCTP"))
 
     @onlyroot
     @pytest.mark.ci_fails

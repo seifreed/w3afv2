@@ -99,19 +99,25 @@ class extrusionScanner:
         m.update(r)
         return m.hexdigest()
 
-    def is_available(self, port, proto):
+    @staticmethod
+    def is_available(port, proto):
+        protocol = proto.lower()
+        if protocol == "tcp":
+            socket_type = socket.SOCK_STREAM
+        elif protocol == "udp":
+            socket_type = socket.SOCK_DGRAM
+        else:
+            return False
+
         try:
-            if proto.lower() == "tcp":
-                serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            if proto.lower() == "udp":
-                serversocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            serversocket.bind(("", port))
-            serversocket.listen(5)
+            with socket.socket(socket.AF_INET, socket_type) as server_socket:
+                server_socket.bind(("", port))
+                if protocol == "tcp":
+                    server_socket.listen(5)
         except OSError:
             return False
-        else:
-            serversocket.close()
-            return True
+
+        return True
 
     def estimate_scan_time(self):
         saved_results = self._knowledge_base.raw_read("extrusionScanner", "extrusions")

@@ -7174,3 +7174,17 @@ Verificación: keep-alive y connection manager pasan **57 tests** y la detecció
 SQL temporal pasa el caso lento; Black y Ruff pasan en los cuatro archivos
 modificados. El test de extrusión que ejecuta `/etc/passwd` local queda
 Linux-only para no asumir el formato del sistema anfitrión en macOS.
+
+## Actualización verificada: disponibilidad de puertos UDP
+
+`extrusionScanner.is_available()` intentaba llamar a `listen()` tanto para TCP
+como para UDP. Eso hacía que cualquier puerto UDP disponible se reportara como
+ocupado y dejaba el cierre del socket dependiente de la rama de éxito. Ahora
+cada protocolo usa la operación apropiada dentro de un context manager; los
+protocolos desconocidos devuelven `False` sin abrir recursos.
+
+Verificación: la suite de extrusión pasa **2 tests y 2 omitidos**; el nuevo caso
+real cubre TCP ocupado/disponible, UDP ocupado/disponible y protocolo inválido.
+Black, Ruff y Mypy pasan en los dos archivos modificados. Bandit focal queda
+sin hallazgos en producción; el test conserva el aviso B404 preexistente por
+usar `subprocess.getoutput()` para ejecutar la comprobación Linux real.
