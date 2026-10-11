@@ -45,20 +45,21 @@ class extrusionClient:
         def conn(sock, host, port):
             try:
                 sock.connect((host, port))
-                sock.close()
             except OSError:
                 pass
+            finally:
+                sock.close()
 
         for port in self._tcpPorts:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn(s, self._host, int(port))
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                conn(sock, self._host, int(port))
 
         for port in self._udpPorts:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            try:
-                s.sendto("", (self._host, int(port)))
-            except OSError:
-                pass
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                try:
+                    sock.sendto(b"", (self._host, int(port)))
+                except OSError:
+                    pass
 
 
 if __name__ == "__main__":

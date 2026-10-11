@@ -5004,6 +5004,17 @@ Verificación: el resolvedor pasa **4 tests**, mypy estricto focal, Ruff y Black
 El score global continúa en **9.99/10**; quedan errores transitivos históricos
 en otras áreas y la cobertura global no está demostrada.
 
+## Actualización verificada: lifecycle del cliente de extrusión
+
+El cliente UDP envía bytes, como exige `socket.sendto`, y tanto los sockets UDP
+como TCP quedan bajo `with`, incluso cuando la conexión falla. Esto evita
+descriptores abiertos en ejecuciones repetidas del escáner y hace explícito el
+ownership del recurso de red.
+
+Verificación: tests locales TCP/UDP pasan **2 tests**, mypy estricto focal, Ruff
+y Black están limpios. El score global continúa en **9.99/10**, con la
+cobertura global y los errores transitivos históricos aún pendientes.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos
