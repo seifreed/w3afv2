@@ -4970,6 +4970,18 @@ queda con **0 hallazgos altos** y **0 issues** en el umbral alto; Black y mypy
 están limpios. El score global continúa en **9.99/10**, con los gates globales
 heredados y la cobertura global todavía pendientes.
 
+## Actualización verificada: parsing XML seguro en fixtures
+
+Los tests del output XML usan ahora `defusedxml.ElementTree`, igual que el
+código de parsing seguro del proyecto, para validar archivos generados y
+payloads que podrían contener XML malicioso. No cambia el contrato de las
+assertions y elimina los cuatro avisos medios de Bandit asociados a esos tests.
+
+Verificación: la suite XML pasa **32 tests** y Bandit focalizado sobre el
+archivo queda limpio. El score global continúa en **9.99/10**, con los gates
+globales heredados, los avisos de cierre del `LogSink` en esa suite y la
+cobertura global todavía pendientes.
+
 ## Actualización verificada: comandos Docker sin shell injection
 
 Los helpers Docker propios dejaron de interpolar comandos en `shell=True`.

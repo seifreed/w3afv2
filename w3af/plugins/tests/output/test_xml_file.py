@@ -31,9 +31,9 @@ import unittest
 import urllib.parse
 from pathlib import Path
 from typing import ClassVar
-from xml.etree import ElementTree
 
 import pytest
+from defusedxml import ElementTree
 from lxml import etree
 
 import w3af.core.controllers.output_manager as om
