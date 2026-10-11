@@ -198,6 +198,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         a list with all the items.
         """
         location_a = self._get_real_name(location_a)
+        params: tuple[object, ...]
 
         if location_b is None:
             query = "SELECT pickle FROM %s WHERE location_a = ?"
@@ -224,8 +225,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :yield: All uniq IDs from the KB
         """
         if include_ids:
-            bindings = ["?"] * len(include_ids)
-            bindings = ",".join(bindings)
+            bindings = ",".join(["?"] * len(include_ids))
             query = "SELECT uniq_id FROM %s WHERE uniq_id IN (%s)"
             query %= (self.table_name, bindings)
 
@@ -288,8 +288,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         """
         :yield: All objects where class in klass that are saved in the kb.
         """
-        bindings = ["?"] * len(exclude_ids)
-        bindings = ",".join(bindings)
+        bindings = ",".join(["?"] * len(exclude_ids))
         query = "SELECT uniq_id, pickle FROM %s WHERE uniq_id NOT IN (%s)"
         query %= (self.table_name, bindings)
 

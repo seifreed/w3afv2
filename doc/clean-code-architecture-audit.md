@@ -5642,3 +5642,15 @@ argumentos de logging de los tags cacheados para no reutilizar tipos distintos.
 Verificación: la suite de ParserCache pasa **28 tests**; Black, Ruff, mypy
 focal y Bandit focal están limpios. El score global continúa en **9.99/10**,
 con los gates globales heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: puerto abstracto de Knowledge Base
+
+`BasicKnowledgeBase` declara ahora las operaciones de persistencia que necesita
+su lógica común (`append`, iteración, actualización y consultas por clase) como
+un contrato abstracto. `DBKnowledgeBase` sigue siendo el adaptador concreto; no
+se mezclan responsabilidades de almacenamiento dentro de los filtros y
+operaciones de dominio.
+
+Verificación: Knowledge Base pasa **68 tests**; Black, Ruff, mypy focal y
+Bandit focal están limpios. El score global continúa en **9.99/10**, con los
+gates globales heredados y la cobertura global todavía pendientes.

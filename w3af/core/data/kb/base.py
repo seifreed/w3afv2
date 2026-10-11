@@ -3,6 +3,7 @@
 import copy
 import logging
 import threading
+from abc import ABC, abstractmethod
 
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -13,7 +14,7 @@ from w3af.core.data.misc.lru import SynchronizedLRUDict
 LOGGER = logging.getLogger(__name__)
 
 
-class BasicKnowledgeBase:
+class BasicKnowledgeBase(ABC):
     """
     This is a base class from which all implementations of KnowledgeBase will
     inherit. It has the basic utility methods that will be used.
@@ -27,6 +28,31 @@ class BasicKnowledgeBase:
         self.FILTERS = {"URL": self.filter_url, "VAR": self.filter_var}
 
         self._reached_max_info_instances_cache = SynchronizedLRUDict(512)
+
+    @abstractmethod
+    def append(self, location_a, location_b, value, ignore_type=False):
+        """Store a value in the knowledge-base persistence adapter."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_iter(self, location_a, location_b, check_types=True):
+        """Yield values from the knowledge-base persistence adapter."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def update(self, old_info, update_info):
+        """Replace a stored value in the knowledge-base persistence adapter."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_all_entries_of_class(self, klass, exclude_ids=()):
+        """Return stored values matching a class or tuple of classes."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_all_entries_of_class_iter(self, klass, exclude_ids=()):
+        """Yield stored values matching a class or tuple of classes."""
+        raise NotImplementedError
 
     def append_uniq(self, location_a, location_b, info_inst, filter_by="VAR"):
         """
