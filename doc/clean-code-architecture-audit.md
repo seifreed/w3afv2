@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contrato de `CachedResponse`
+
+`CachedResponse` expone ahora la firma de lectura compatible con
+`io.TextIOBase` y permite asignar `encoding`, como hacen las respuestas HTTP
+intercambiables. Se conserva el cuerpo cacheado completo y no se cambia el
+flujo de lectura usado por los handlers.
+
+Verificación: caché HTTP y handlers básicos pasan **18 tests**; mypy estricto,
+Ruff y Black están limpios. El score global continúa en **9.99/10**, con los
+gates globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: contratos numéricos y estado de observadores
 
 Los observadores de estrategia inicializan sus relojes como `float`, validan

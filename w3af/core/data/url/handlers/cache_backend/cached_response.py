@@ -81,6 +81,10 @@ class CachedResponse(io.StringIO):
             self._encoding = self._get_from_response(CachedResponse.PART_CHARSET)
         return self._encoding
 
+    @encoding.setter
+    def encoding(self, value):
+        self._encoding = value
+
     def get_wait_time(self):
         if not self._time:
             self._time = self._get_from_response(CachedResponse.PART_TIME)
@@ -98,7 +102,7 @@ class CachedResponse(io.StringIO):
     def geturl(self):
         return self.url
 
-    def read(self):
+    def read(self, size: int | None = -1):
         return self._body
 
     def get_full_url(self):
