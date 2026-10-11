@@ -7790,3 +7790,15 @@ pasan; el caso de reinicio global confirma manager y sink coherentes. La
 batería de múltiples cores conserva un RSS máximo de **101941248 bytes**.
 Black y Ruff pasan globalmente; `mypy .` sigue entrando en el
 `venv/bin/activate_this.py` externo al código del proyecto.
+
+## Actualización verificada: preparación de plugins separada de la fachada
+
+La coordinación de selección expandida, exclusiones, resolución de
+dependencias, creación de instancias y configuración de mangle salió de
+`CorePlugins` y pasó a `PluginSetup`. `CorePlugins` conserva la API de
+configuración y lifecycle, mientras el nuevo componente recibe sus recursos y
+callbacks explícitamente.
+
+Verificación: **66 tests** de plugins, estrategia y `w3afCore` pasan; el módulo
+nuevo pasa mypy dirigido, Black y Ruff. `CorePlugins` queda en 235 líneas y la
+preparación de instancias tiene una frontera propia.

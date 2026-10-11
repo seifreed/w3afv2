@@ -28,6 +28,7 @@ from w3af.core.controllers.core_helpers.plugin_instance_factory import (
 )
 from w3af.core.controllers.core_helpers.plugin_runtime import PluginRuntime
 from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
+from w3af.core.controllers.core_helpers.plugin_setup import PluginSetup
 from w3af.core.controllers.plugins.plugin import Plugin
 
 
@@ -43,6 +44,15 @@ class CorePlugins(PluginCatalog):
             self.get_plugin_inst,
             self.get_quick_instance,
             self._output.information,
+        )
+        self._plugin_setup = PluginSetup(
+            output_manager,
+            self._plugin_selection,
+            self._plugin_runtime,
+            lambda: self._plugins_options,
+            lambda: self._plugins,
+            self.get_plugin_instances,
+            self._set_mangle_plugins,
         )
 
         self.initialized = False
@@ -89,22 +99,7 @@ class CorePlugins(PluginCatalog):
         The user interfaces should run this method *before* calling start().
         If they don't do it, an exception is raised.
         """
-        # This is inited before all, to have a full logging support.
-        self._output_manager.set_output_plugins(self._plugin_selection.get("output"))
-
-        # Create an instance of each requested plugin and add it to the plugin
-        # list. Plugins are added taking care of plugin dependencies and
-        # configuration
-        #
-        # Create all the plugin instances
-        #
-        self.plugin_factory()
-
-        #
-        # Some extra init steps for mangle plugins
-        #
-        mangle = self.get_plugin_instances("mangle")
-        self._w3af_core.uri_opener.settings.set_mangle_plugins(mangle)
+        self._plugin_setup.initialize()
 
         # The plugin factory might raise an exception due to invalid plugin
         # configurations. Only set the initialized attribute if we get to the
@@ -214,32 +209,6 @@ class CorePlugins(PluginCatalog):
         database = self._w3af_core.database if db is None else db
         return super().get_quick_instance(plugin_type, plugin_name, database)
 
-    def expand_all(self):
-        self._plugin_selection.expand_all()
-
-    def remove_exclusions(self):
-        self._plugin_selection.remove_exclusions()
-
-    def plugin_factory(self):
-        """
-        This method creates the user requested plugins.
-
-        :return: A list with plugins to be executed, this list is ordered using
-                 the exec priority.
-        """
-        self.expand_all()
-        self.remove_exclusions()
-        self.create_instances()
-
-    def create_instances(self):
-        """Create the resolved plugin instances for the current selection."""
-        resolved_names = self._plugin_runtime.create_instances(
-            self._plugin_selection.get_all(),
-            self._plugins_options,
-            self._plugins,
-        )
-        self._plugin_selection.replace_all(resolved_names)
-
     def _set_plugin_generic(self, plugin_type, plugin_list):
         """
         :param plugin_type: The plugin type where to store the @plugin_list.
@@ -255,8 +224,12 @@ class CorePlugins(PluginCatalog):
         :return: No value is returned.
         """
         self._plugin_selection.set_selected("evasion", evasion_plugins)
-        self.plugin_factory()
+        self._plugin_setup.create_instances()
 
         self._w3af_core.uri_opener.set_evasion_plugins(
             self.get_plugin_instances("evasion")
         )
+
+    def _set_mangle_plugins(self, plugins):
+        if self._w3af_core is not None:
+            self._w3af_core.uri_opener.settings.set_mangle_plugins(plugins)
