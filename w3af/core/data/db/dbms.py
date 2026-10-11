@@ -29,6 +29,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
 from multiprocessing.dummy import Process, Queue
+from typing import Any
 from uuid import uuid4
 
 from w3af.core.data.db.exceptions import (
@@ -127,7 +128,7 @@ class SQLiteDBMS:
         #
         #   Any dead-lock you might be looking for doesn't seem to be here.
         #
-        in_queue = Queue(250)
+        in_queue: Queue[Any] = Queue(250)
         self.sql_executor = SQLiteExecutor(in_queue)
         self.sql_executor.start()
 
@@ -319,35 +320,38 @@ class SQLiteExecutor(Process):
             LOGGER.debug(msg % args)
 
     def query(self, query, parameters):
-        future = Future()
-        request = (QUERY, (query, parameters), {}, future)
+        future: Future[Any] = Future()
+        request: tuple[Any, ...] = (QUERY, (query, parameters), {}, future)
         self._in_queue.put(request)
         return future
 
     def _query_handler(self, query, parameters):
+        assert self.conn is not None
         cursor = self.conn.cursor()
         return cursor.execute(query, parameters)
 
     def select(self, query, parameters):
-        future = Future()
-        request = (SELECT, (query, parameters), {}, future)
+        future: Future[Any] = Future()
+        request: tuple[Any, ...] = (SELECT, (query, parameters), {}, future)
         self._in_queue.put(request)
         return future
 
     def _select_handler(self, query, parameters):
+        assert self.conn is not None
         return list(self.cursor.execute(query, parameters))
 
     def commit(self):
-        future = Future()
+        future: Future[Any] = Future()
         request = (COMMIT, None, None, future)
         self._in_queue.put(request)
         return future
 
     def _commit_handler(self):
+        assert self.conn is not None
         return self.conn.commit()
 
     def stop(self):
-        future = Future()
+        future: Future[Any] = Future()
         request = (POISON, None, None, future)
         self._in_queue.put(request)
         return future
@@ -356,8 +360,8 @@ class SQLiteExecutor(Process):
         """
         Request the process to perform a setup.
         """
-        future = Future()
-        request = (SETUP, (filename,), {}, future)
+        future: Future[Any] = Future()
+        request: tuple[Any, ...] = (SETUP, (filename,), {}, future)
         self._in_queue.put(request)
         return future
 
@@ -406,7 +410,7 @@ class SQLiteExecutor(Process):
 
         The Queue.get() will make sure we don't have 100% CPU usage in the loop
         """
-        OP_CODES = {
+        OP_CODES: dict[str, Any] = {
             SETUP: self._setup_handler,
             QUERY: self._query_handler,
             SELECT: self._select_handler,
@@ -443,7 +447,7 @@ class SQLiteExecutor(Process):
                 # I don't like this string match, but it seems that the
                 # exception doesn't have any error code to match
                 if "no such table" in str(e):
-                    dbe = NoSuchTableException(str(e))
+                    dbe: DBException = NoSuchTableException(str(e))
 
                 elif "malformed" in str(e):
                     print(DB_MALFORMED_ERROR)

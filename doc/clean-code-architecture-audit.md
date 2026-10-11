@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: lifecycle tipado de SQLite
+
+El executor de SQLite declara las operaciones encoladas como `Future`, valida
+que la conexión exista antes de ejecutar handlers dependientes de ella y trata
+el mapa de opcodes como una frontera dinámica por el sentinel `POISON`. Se
+mantienen la cola limitada y el ownership exclusivo de la conexión por el
+worker.
+
+Verificación: la suite DBMS pasa **23 tests**; mypy focal, Ruff y Black están
+limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: composición de la cola ordenada
 
 La cola ordenada ya no inicializa `memory`, `disk` y `queue_order` como
