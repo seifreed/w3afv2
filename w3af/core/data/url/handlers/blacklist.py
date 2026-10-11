@@ -25,6 +25,7 @@ import io
 import logging
 import urllib.request
 import urllib.response
+from typing import Any, cast
 
 from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.url.helpers import new_no_content_resp
@@ -100,7 +101,8 @@ class BlacklistHandler(urllib.request.BaseHandler):
         If the user configured w3af to ignore a URL, we are going to be applying
         that configuration here. This is the lowest layer inside w3af.
         """
-        if uri.uri2url() in self._blacklist_urls:
+        blacklist_urls = self._blacklist_urls
+        if blacklist_urls is not None and uri.uri2url() in blacklist_urls:
             return True
 
         return self._compiled_ignore_re is not None and bool(
@@ -112,8 +114,9 @@ def http_response_to_httplib(no_content):
     header_string = io.StringIO(str(no_content.get_headers()))
     headers = email.parser.Parser().parsestr(header_string.getvalue())
 
+    response_body = cast(Any, io.StringIO(no_content.get_body()))
     no_content = urllib.response.addinfourl(
-        io.StringIO(no_content.get_body()),
+        response_body,
         headers,
         no_content.get_url().url_string,
         code=no_content.get_code(),

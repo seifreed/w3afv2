@@ -88,7 +88,7 @@ class HTTPGzipProcessor(urllib.request.BaseHandler):
             else:
                 break
 
-        if decompressed_body is not None:
+        if decompressed_body is not None and decompression_method is not None:
             # The response was successfully decompressed
             response.set_body(decompressed_body)
 

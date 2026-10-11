@@ -5576,3 +5576,14 @@ Verificación: request, response, cache, keepalive y helpers pasan **82 tests**;
 Black, Ruff, mypy focal y Bandit focal están limpios. El score global continúa
 en **9.99/10**, con los gates globales heredados y la cobertura global todavía
 pendientes.
+
+## Actualización verificada: handlers HTTP tipados
+
+El handler de éxito separa los formatos de mensaje con variables descriptivas,
+el descompresor garantiza que el método seleccionado existe antes de
+reordenarlo y la blacklist conserva su respuesta textual histórica mientras
+declara explícitamente el borde dinámico de `urllib.addinfourl`.
+
+Verificación: handlers básicos y blacklist pasan **15 tests**; Black, Ruff,
+mypy focal y Bandit focal están limpios. El score global continúa en **9.99/10**,
+con los gates globales heredados y la cobertura global todavía pendientes.
