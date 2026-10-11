@@ -6854,3 +6854,15 @@ aserciones y evita mantener almacenes duplicados durante la suite.
 Verificación: la batería de infraestructura pasa **34 tests** y la batería de
 memoria, parser, diff y KB pasa **161 tests**; el score global continúa en
 **9.99/10**.
+
+## Actualización verificada: puertos explícitos para shells
+
+La capa `core.data.kb` expresa ahora como Protocols los colaboradores de
+payloads y transferencia, sin importar controllers ni plugins. La fábrica de
+transferencia vive en cada instancia de `ExecShell` y se inyecta al configurar
+la salida, evitando compartir estado mutable entre shells; el detector de SO
+se mantiene como política estática de las implementaciones concretas.
+
+Verificación: Mypy, Ruff y Black pasan en los cinco módulos del flujo; la
+batería de shells, payloads y consola pasa **75 tests**. El score global
+continúa en **9.99/10**.

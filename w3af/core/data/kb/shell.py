@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any
+from typing import ClassVar, Protocol
 
 from w3af.core.data.kb.exploit_result import ExploitResult
 from w3af.core.data.kb.vuln import Vuln
@@ -29,6 +31,26 @@ from w3af.core.data.kb.vuln import Vuln
 LOGGER = logging.getLogger(__name__)
 
 NO_PAYLOAD_HANDLER_MSG = "This shell can not run payloads."
+
+
+class PayloadDescription(Protocol):
+    def get_desc(self) -> str: ...
+
+
+class PayloadHandler(Protocol):
+    def get_payload_list(self) -> list[str]: ...
+
+    def get_payload_desc(self, payload_name: str) -> str: ...
+
+    def get_payload_instance(
+        self, payload_name: str, shell: Shell
+    ) -> PayloadDescription: ...
+
+    def runnable_payloads(self, shell: Shell) -> list[str]: ...
+
+    def exec_payload(
+        self, shell: Shell, payload_name: str, parameters: list[str]
+    ) -> object: ...
 
 
 class Shell(ExploitResult):
@@ -42,7 +64,7 @@ class Shell(ExploitResult):
     # Collaborator injected by the plugins layer that knows how to list and run
     # attack payloads. It stays None in the data layer so the KB objects do not
     # depend on the payloads subsystem.
-    _payload_handler: Any = None
+    _payload_handler: ClassVar[PayloadHandler | None] = None
 
     def __init__(self, vuln, uri_opener, worker_pool):
         ExploitResult.__init__(self)

@@ -21,14 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from functools import partial
-from typing import Any
+from typing import Any, ClassVar
 
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )
 from w3af.core.data.kb.exec_shell import ExecShell as _ExecShell
+from w3af.core.data.kb.exec_shell import OsDetector, PayloadTransferFactory
 from w3af.core.data.kb.read_shell import ReadShell as _ReadShell
+from w3af.core.data.kb.shell import PayloadHandler
 from w3af.core.data.kb.shell import Shell as _Shell
 from w3af.plugins.attack.payloads import payload_handler
 
@@ -36,9 +38,9 @@ from w3af.plugins.attack.payloads import payload_handler
 class Shell(_Shell):
     """Data-layer Shell wired with the plugins-layer payload handler."""
 
-    _payload_handler = payload_handler
+    _payload_handler: ClassVar[PayloadHandler] = payload_handler
     _output: Any = None
-    _payload_transfer_factory: Any = None
+    _payload_transfer_factory: PayloadTransferFactory | None = None
 
     def set_output(self, output):
         self._output = output
@@ -54,5 +56,4 @@ class ReadShell(_ReadShell, Shell):
 class ExecShell(_ExecShell, Shell):
     """ExecShell wired with payload, remote OS detection and transfer helpers."""
 
-    _os_detector = staticmethod(os_detection_exec)
-    _payload_transfer_factory = staticmethod(payload_transfer_factory)
+    _os_detector: ClassVar[OsDetector] = staticmethod(os_detection_exec)

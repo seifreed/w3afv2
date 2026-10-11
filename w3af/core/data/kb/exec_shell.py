@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import textwrap
-from typing import Any
+from collections.abc import Callable
+from typing import ClassVar, Protocol
 
 from w3af.core.data.kb.decorators import download_debug, read_debug
 from w3af.core.data.kb.shell import Shell
@@ -31,6 +32,22 @@ from w3af.core.exceptions import BaseFrameworkException
 LOGGER = logging.getLogger(__name__)
 
 NO_TRANSFER_HANDLER_MSG = "This shell can not transfer files to the remote host."
+
+
+class TransferHandler(Protocol):
+    def can_transfer(self) -> bool: ...
+
+    def estimate_transfer_time(self, size: int) -> float: ...
+
+    def transfer(self, content: str, remote_filename: str) -> None: ...
+
+
+class TransferFactory(Protocol):
+    def get_transfer_handler(self) -> TransferHandler: ...
+
+
+OsDetector = Callable[..., str]
+PayloadTransferFactory = Callable[..., TransferFactory]
 
 
 class ExecShell(Shell):
@@ -46,15 +63,14 @@ class ExecShell(Shell):
     # infrastructure.
     #
     # _os_detector(exec_method) -> "linux" / "windows" / raises
-    # _payload_transfer_factory(exec_method) -> transfer handler factory
-    _os_detector: Any = None
-    _payload_transfer_factory: Any = None
+    _os_detector: ClassVar[OsDetector | None] = None
 
     def __init__(self, vuln, uri_opener, worker_pool):
         Shell.__init__(self, vuln, uri_opener, worker_pool)
 
         # For writing files to the remote server
-        self._transfer_handler = None
+        self._transfer_handler: TransferHandler | None = None
+        self._payload_transfer_factory: PayloadTransferFactory | None = None
 
     def execute(self, cmd):
         raise NotImplementedError
@@ -152,7 +168,8 @@ class ExecShell(Shell):
         :return: The message to show to the user.
         """
         if not self._transfer_handler:
-            if self._payload_transfer_factory is None:
+            transfer_factory = self._payload_transfer_factory
+            if transfer_factory is None:
                 return NO_TRANSFER_HANDLER_MSG
 
             # Get the fastest transfer method
@@ -161,7 +178,7 @@ class ExecShell(Shell):
                 transfer_kwargs = {}
                 if self._configuration is not None:
                     transfer_kwargs["configuration"] = self._configuration
-                ptf = self._payload_transfer_factory(*transfer_args, **transfer_kwargs)
+                ptf = transfer_factory(*transfer_args, **transfer_kwargs)
                 self._transfer_handler = ptf.get_transfer_handler()
             except BaseFrameworkException as e:
                 return f"{e}"
@@ -288,7 +305,8 @@ class ExecShell(Shell):
         Identify the remote operating system and get some remote variables to
         show to the user.
         """
-        self._rOS = self._os_detector(self.execute) if self._os_detector else None
+        detector = type(self)._os_detector
+        self._rOS = detector(self.execute) if detector else None
 
         if self._rOS == "linux":
             self._rUser = self.execute("whoami").strip()
