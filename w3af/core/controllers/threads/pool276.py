@@ -348,9 +348,13 @@ class ApplyResult:
 
     def set(self, i, obj):
         self._success, self._value = obj
-        if self._callback and self._success:
-            self._callback(self._value)
-        self._finish()
+        try:
+            if self._callback and self._success:
+                self._callback(self._value)
+        except Exception:
+            LOGGER.exception("Pool result callback failed")
+        finally:
+            self._finish()
 
 
 class MapResult(ApplyResult):

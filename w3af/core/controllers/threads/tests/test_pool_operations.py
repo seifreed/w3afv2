@@ -111,6 +111,19 @@ class TestPoolOperations(unittest.TestCase):
 
         self.assertEqual(pool._cache, {})
 
+    def test_callback_error_does_not_retain_result_or_stop_pool(self):
+        pool = self.new_pool(processes=1)
+
+        def failing_callback(_result):
+            raise RuntimeError("callback failed")
+
+        with self.assertLogs("w3af.core.controllers.threads.pool276", level="ERROR"):
+            result = pool.apply_async(square, (5,), callback=failing_callback)
+            self.assertEqual(result.get(), 25)
+
+        self.assertNotIn(result.job, pool._cache)
+        self.assertEqual(pool.apply(square, (3,)), 9)
+
     def test_apply_with_return_error(self):
         pool = self.new_pool()
         self.assertEqual(pool.apply(apply_with_return_error, ((square, 3),)), 9)

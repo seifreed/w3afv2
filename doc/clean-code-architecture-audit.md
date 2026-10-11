@@ -7087,3 +7087,15 @@ Verificación: la prueba de liberación de 100 tareas termina con el caché vac�
 la suite del pool y `generic` pasa **35 tests**. Black, Ruff y Mypy pasan en
 los dos archivos modificados, Bandit productivo continúa en cero y no quedan
 procesos de pytest o multiproceso tras la batería.
+
+## Actualización verificada: callbacks que siempre liberan resultados
+
+`ApplyResult.set()` ejecutaba los callbacks antes de retirar el resultado del
+caché y dejaba morir el hilo de resultados si el callback lanzaba una excepción.
+Ahora registra el fallo y libera el resultado en un bloque `finally`, de modo
+que el pool puede seguir procesando trabajos y no acumula objetos retenidos.
+
+Verificación: la suite de pool y `generic` pasa **36 tests**, incluyendo un
+callback defectuoso seguido de otro trabajo correcto. Black, Ruff y Mypy pasan
+en los dos archivos modificados; Bandit productivo queda en cero y no quedan
+procesos auxiliares tras la ejecución.
