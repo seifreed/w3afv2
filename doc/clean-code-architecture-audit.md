@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: precondición de transferencia HTTP
+
+`ClientlessReverseHTTP.transfer()` ya no ignora un `False` de `can_transfer()`
+ni intenta indexar la tabla de comandos con `None`. Cuando el host no dispone
+de `wget`, `curl` o `lynx`, falla con un `BaseFrameworkException` descriptivo;
+cuando la capacidad existe, el flujo de subida permanece igual.
+
+Verificación: mypy, Ruff y Black están limpios. La prueba de integración carga
+correctamente, pero queda bloqueada en este entorno porque no hay cliente HTTP
+soportado disponible; la prueba root se omite. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global pendientes.
+
 ## Actualización verificada: dispatch opcional de Payload
 
 El payload base conserva sus seis métodos opcionales y los invoca mediante un

