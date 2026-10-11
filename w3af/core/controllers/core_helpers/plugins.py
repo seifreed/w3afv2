@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
+from w3af.core.controllers.core_helpers.plugin_configuration import (
+    PluginConfiguration,
+)
 from w3af.core.controllers.core_helpers.plugin_core_integration import (
     PluginCoreIntegration,
 )
@@ -44,6 +47,11 @@ class CorePlugins:
         self._plugin_instance_factory = PluginInstanceFactory(plugin_context, output)
         self._plugin_selection = PluginSelection(self._plugin_catalog.get_plugin_list)
         self._plugin_state = PluginState()
+        self._plugin_configuration = PluginConfiguration(
+            output_manager,
+            self._plugin_state,
+            self.get_plugin_inst,
+        )
         self._plugin_runtime = PluginRuntime(
             self.get_plugin_inst,
             self.get_quick_instance,
@@ -122,26 +130,7 @@ class CorePlugins:
 
         :return: No value is returned.
         """
-        if plugin_type.lower() == "output":
-            self._output_manager.set_plugin_options(plugin_name, plugin_options)
-
-        # Save the options, even if they are invalid. This is a good idea
-        # because:
-        #
-        #   * If the user sees an error raised by the set_options() below he'll
-        #     fix the configuration (calling this method again) and override
-        #     the invalid settings
-        #
-        #   * If the user ignores the error raised by set_options() and tries
-        #     to start the scan init_plugins will fail, this is:
-        #     https://github.com/andresriancho/w3af/issues/7477
-        #
-        self._plugin_state.set_plugin_options(plugin_type, plugin_name, plugin_options)
-
-        # The following lines make sure that the plugin will accept the options
-        # that the user is setting
-        plugin_inst = self.get_plugin_inst(plugin_type, plugin_name)
-        plugin_inst.set_options(plugin_options)
+        self._plugin_configuration.set(plugin_type, plugin_name, plugin_options)
 
     def get_plugin_options(self, plugin_type, plugin_name):
         """
@@ -154,10 +143,10 @@ class CorePlugins:
 
         :return: An OptionList with the plugin options.
         """
-        return self._plugin_state.get_plugin_options(plugin_type, plugin_name)
+        return self._plugin_configuration.get(plugin_type, plugin_name)
 
     def get_all_plugin_options(self):
-        return self._plugin_state.get_all_plugin_options()
+        return self._plugin_configuration.get_all()
 
     def get_all_enabled_plugins(self):
         return self._plugin_selection.get_all()

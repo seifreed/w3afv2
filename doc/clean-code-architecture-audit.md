@@ -8199,3 +8199,15 @@ ahora afirma el tipo real antes de inspeccionar su almacenamiento en disco.
 Verificación: `venv/bin/mypy --check-untyped-defs w3af` pasa en **1662 archivos**
 y la suite de plugins pasa **39 tests**. No se añadieron supresiones ni
 exclusiones.
+
+## Actualización verificada: configuración de plugins aislada
+
+`PluginConfiguration` separa la política de guardar opciones, sincronizarlas
+con el `OutputManager` cuando corresponde y aplicarlas a la instancia viva.
+`CorePlugins` conserva su fachada pública, pero ya no coordina directamente
+esa responsabilidad ni duplica el acceso al estado de opciones.
+
+Verificación: la suite de plugins pasa **39 tests**; Black, Ruff y mypy con
+`--check-untyped-defs` pasan en los módulos modificados. La extracción reduce
+la concentración restante de `CorePlugins` sin cambiar la API consumida por
+las interfaces de usuario, perfiles o tests.
