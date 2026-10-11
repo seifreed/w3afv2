@@ -4208,3 +4208,19 @@ suite de estrategia pasa **4 tests**. El RSS máximo de `test_strategy.py` fue
 esa misma suite. Black y Ruff globales pasan. Persisten fallos preexistentes en
 fixtures que dejan `_output` o `_uri_opener` sin configurar y pruebas
 dependientes de macOS, red o terminal.
+
+## Actualización verificada: recursos de salida con inicialización perezosa
+
+El paquete `output_manager` ya no crea un `OutputManager`, una cola
+multiproceso ni un `LogSink` durante la importación. Los recursos por defecto se
+crean únicamente cuando un caller legacy solicita `manager` u `out`; los cores
+de producción siguen usando el manager explícito que crean y poseen. También se
+evita conservar managers o sinks temporales duplicados en las funciones de
+compatibilidad.
+
+Verificación: el proceso aislado de importación informa `None None False False`,
+los tests de lifecycle del manager pasan **22 tests** y la batería combinada de
+lifecycle/parser/core/autocomplete pasa **25 tests**. Black y Ruff globales
+siguen limpios. El score provisional sube a **9.95/10** en Clean Architecture y
+**9.9/10** global; todavía faltan retirar gradualmente el acceso global de
+tests/utilidades y completar la verificación de cobertura y seguridad.
