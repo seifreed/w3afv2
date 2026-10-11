@@ -5795,3 +5795,15 @@ Verificación: mypy global baja a **646 errores en 261 archivos** desde 670;
 Black, Ruff y Bandit de los módulos modificados pasan. La prueba de integración
 XPath queda sin validar en este entorno porque `http://fallback` no resuelve;
 el score global continúa en **9.99/10**.
+
+## Actualización verificada: estado seguro de recursos de scans
+
+Los endpoints de la API ya no dereferencian directamente un `w3afCore` que
+puede estar ausente durante el arranque o después de `cleanup()`. El listado
+omite entradas aún incompletas, el estado devuelve `Starting`/`Stopped` y las
+acciones que necesitan core pasan por `_get_scan_core()`.
+
+Verificación: las pruebas de rutas de error y cleanup pasan **12 tests y 11
+subtests**; mypy global baja a **640 errores en 261 archivos** desde 646, y
+Black, Ruff y Bandit del recurso pasan sin hallazgos. El score global continúa
+en **9.99/10**.

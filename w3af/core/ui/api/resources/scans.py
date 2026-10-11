@@ -153,7 +153,10 @@ def list_scans():
             continue
 
         target_urls = scan_info.target_urls
-        status = scan_info.w3af_core.status.get_simplified_status()
+        core = scan_info.w3af_core
+        if core is None:
+            continue
+        status = core.status.get_simplified_status()
         errors = scan_info.exception is not None
 
         data.append(
@@ -218,7 +221,16 @@ def status_as_dict(scan_info):
     :return: The scan status. Before the core starts the scan only the state is
              known: it is starting, or stopped if it failed to start.
     """
-    core_status = scan_info.w3af_core.status
+    core = scan_info.w3af_core
+    if core is None:
+        return {
+            "status": STOPPED if scan_info.finished else STARTING,
+            "is_paused": False,
+            "is_running": False,
+            "progress": 0,
+        }
+
+    core_status = core.status
     if core_status.has_started():
         return core_status.get_status_as_dict()
 
@@ -244,10 +256,11 @@ def scan_pause(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    if scan_info.w3af_core.status.get_simplified_status() != RUNNING:
+    core = _get_scan_core(scan_info)
+    if core.status.get_simplified_status() != RUNNING:
         abort(403, "Scan can not be paused")
 
-    scan_info.w3af_core.pause(True)
+    core.pause(True)
 
     return jsonify({"message": "Success"})
 
@@ -265,10 +278,11 @@ def scan_resume(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    if not scan_info.w3af_core.status.is_paused():
+    core = _get_scan_core(scan_info)
+    if not core.status.is_paused():
         abort(403, "Scan is not paused")
 
-    scan_info.w3af_core.pause(False)
+    core.pause(False)
 
     return jsonify({"message": "Success"})
 
@@ -287,11 +301,19 @@ def scan_stop(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    if not scan_info.w3af_core.can_stop():
+    core = _get_scan_core(scan_info)
+    if not core.can_stop():
         abort(403, "Scan can not be stop")
 
-    t = Process(target=scan_info.w3af_core.stop, name="ScanStopThread", args=())
+    t = Process(target=core.stop, name="ScanStopThread", args=())
     t.daemon = True
     t.start()
 
     return jsonify({"message": "Stopping scan"})
+
+
+def _get_scan_core(scan_info: ScanInfo) -> w3afCore:
+    core = scan_info.w3af_core
+    if core is None:
+        abort(400, "Scan state is invalid")
+    return core
