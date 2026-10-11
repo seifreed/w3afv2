@@ -293,20 +293,19 @@ class ConnectionManager:
             #
             self.cleanup_broken_connections()
 
-            conn_total = self.get_connections_total(host_port)
+            # Reserve the connection slot and register the connection while
+            # holding the same lock, so concurrent workers cannot exceed the
+            # per-host limit.
+            with self._lock:
+                conn_total = self._get_connections_total_locked(host_port)
+                if conn_total < self.MAX_CONNECTIONS:
+                    conn = self._create_new_connection(
+                        req, conn_factory, host_port, conn_total
+                    )
+                else:
+                    conn = None
 
-            #
-            # If the connection pool is not full let's try to create a new connection
-            # this is the default case, we want to quickly populate the connection
-            # pool and, only if the pool is full, re-use the existing connections
-            #
-            # FIXME: Doing this here without a lock leads to a situation where
-            #        the total connections exceed the MAX_CONNECTIONS
-            #
-            if conn_total < self.MAX_CONNECTIONS:
-                conn = self._create_new_connection(
-                    req, conn_factory, host_port, conn_total
-                )
+            if conn is not None:
 
                 self._log_waited_time_for_conn(waited_time_for_conn)
                 return conn
@@ -460,8 +459,9 @@ class ConnectionManager:
                 debug(msg % args)
 
     def iter_all_connections(self):
-        for conns in (self._free_conns, self._used_conns):
-            yield from conns.copy()
+        with self._lock:
+            connections = self._free_conns | self._used_conns
+        yield from connections
 
     def get_all_free_for_host_port(self, host_port):
         """
@@ -470,9 +470,10 @@ class ConnectionManager:
         """
         free_conns = set()
 
-        for conn in self._free_conns.copy():
-            if conn.host_port == host_port:
-                free_conns.add(conn)
+        with self._lock:
+            for conn in self._free_conns:
+                if conn.host_port == host_port:
+                    free_conns.add(conn)
 
         return free_conns
 
@@ -483,9 +484,10 @@ class ConnectionManager:
         """
         used_conns = set()
 
-        for conn in self._used_conns.copy():
-            if conn.host_port == host_port:
-                used_conns.add(conn)
+        with self._lock:
+            for conn in self._used_conns:
+                if conn.host_port == host_port:
+                    used_conns.add(conn)
 
         return used_conns
 
@@ -510,4 +512,11 @@ class ConnectionManager:
         If <host> is None return the grand total of open connections;
         otherwise return the total of created conns for <host>.
         """
-        return len(self.get_all(host_port=host_port))
+        with self._lock:
+            return self._get_connections_total_locked(host_port)
+
+    def _get_connections_total_locked(self, host_port=None):
+        connections = self._free_conns | self._used_conns
+        if host_port is None:
+            return len(connections)
+        return sum(conn.host_port == host_port for conn in connections)

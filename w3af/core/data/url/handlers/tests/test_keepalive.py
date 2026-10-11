@@ -629,6 +629,43 @@ class TestConnectionManager(unittest.TestCase):
             ConnectionPoolException, self.get, request(self.URL, new_connection=True)
         )
 
+    def test_concurrent_creation_respects_connection_limit(self):
+        self.cm.MAX_CONNECTIONS = 1
+        self.cm.GET_AVAILABLE_CONNECTION_RETRY_MAX_TIME = 0.1
+        factory_started = threading.Event()
+        release_factory = threading.Event()
+        factory_calls = []
+        results = []
+        errors = []
+
+        def slow_factory(req):
+            factory_calls.append(req)
+            factory_started.set()
+            release_factory.wait(1)
+            return HTTPConnection(req.host)
+
+        def get_connection(conn_factory):
+            try:
+                results.append(
+                    self.cm.get_available_connection(self.request, conn_factory)
+                )
+            except ConnectionPoolException as exception:
+                errors.append(exception)
+
+        first = threading.Thread(target=get_connection, args=(slow_factory,))
+        second = threading.Thread(target=get_connection, args=(self.factory,))
+
+        first.start()
+        self.assertTrue(factory_started.wait(1))
+        second.start()
+        release_factory.set()
+        first.join()
+        second.join()
+
+        self.assertEqual(len(factory_calls), 1)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(len(errors), 1)
+
     def test_full_pool_without_free_connections(self):
         self.cm.MAX_CONNECTIONS = 1
         other_host = self.get(request("http://127.0.0.1:9090/"))

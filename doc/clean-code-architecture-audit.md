@@ -7348,6 +7348,18 @@ Ruff y mypy pasan en los módulos modificados.
 La prueba focalizada del nuevo lifecycle exige además **100% de cobertura**
 del módulo (`18/18` líneas), incluida la rama de teardown repetido.
 
+## Actualización verificada: límite atómico del pool HTTP
+
+`ConnectionManager` comprobaba el límite por host y registraba la nueva
+conexión en pasos separados. Bajo concurrencia podía superar `MAX_CONNECTIONS`
+y retener sockets adicionales. La reserva y el registro ahora ocurren bajo el
+mismo lock, y las lecturas de los sets son consistentes para estadísticas y
+cleanup.
+
+Verificación: la suite completa de keep-alive pasa **57 tests**, incluida una
+regresión con dos workers y límite uno; Black, Ruff y mypy pasan en los dos
+módulos modificados.
+
 La medición de seguridad del estado actual mantiene **25 avisos Bandit**,
 todos `B404`/`B603` sobre subprocesses explícitos de tests y scripts Docker;
 `pip-audit` no encuentra vulnerabilidades conocidas y sólo omite la
