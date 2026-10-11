@@ -38,6 +38,7 @@ def delay():
 class TestWorkerPool(unittest.TestCase):
     def test_exceptions(self):
         worker_pool = Pool(3, worker_names="WorkerThread")
+        self.addCleanup(worker_pool.terminate_join)
 
         def raise_on_1(foo):
             if foo == 1:
@@ -51,9 +52,10 @@ class TestWorkerPool(unittest.TestCase):
             [i for i in answers]
         except TypeError as te:
             self.assertEqual(str(te), "1 Boom!")
-            self.assertIn(
-                'raise TypeError(f"{foo} Boom!")', te.original_traceback_string
-            )
+            traceback_string = getattr(te, "original_traceback_string", None)
+            if not isinstance(traceback_string, str):
+                raise TypeError("Pool exception has no traceback string")
+            self.assertIn('raise TypeError(f"{foo} Boom!")', traceback_string)
 
     def test_terminate_join_after_tasks(self):
         worker_pool = Pool(processes=4, worker_names="WorkerThread", maxtasksperchild=3)

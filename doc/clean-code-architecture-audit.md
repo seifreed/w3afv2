@@ -6533,3 +6533,12 @@ flujo real de workers, callbacks y teardown.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en ambas
 fixtures; sus **33 tests** pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: teardown del pool en su fixture de errores
+
+El test de excepciones del thread pool agotaba los resultados, pero no cerraba
+explícitamente el pool. Ahora registra `terminate_join` como cleanup y valida
+el traceback transportado por el pool con un tipo estrechado.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; la fixture pasa
+**14 tests**. El score global continúa en **9.99/10**.
