@@ -6920,3 +6920,13 @@ la clase, y deja el dominio sin estado de infraestructura compartido.
 
 Verificación: Black, Ruff y Mypy pasan globalmente (`1620` archivos); la
 batería focalizada pasa **15 tests**.
+
+## Actualización verificada: liberación del pool del core
+
+`WorkerPoolManager.terminate()` elimina la referencia al pool después de
+`terminate_join()`. El core puede recrear el pool bajo demanda para un nuevo
+scan, pero no mantiene workers, colas ni caché del scan anterior en memoria.
+
+Verificación: Black, Ruff y Mypy pasan en los archivos modificados; los tests
+del lifecycle del pool pasan **2 tests** y la integración de `w3afCore` pasa
+**21 tests**.

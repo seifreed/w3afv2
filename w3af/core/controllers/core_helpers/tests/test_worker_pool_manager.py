@@ -32,4 +32,5 @@ class TestWorkerPoolManager(unittest.TestCase):
         pool = manager.get_pool()
         manager.terminate()
 
+        self.assertIsNone(manager._pool)
         self.assertIsNot(manager.get_pool(), pool)

@@ -49,6 +49,7 @@ class WorkerPoolManager:
         try:
             self.get_pool().terminate_join()
         finally:
+            self._pool = None
             remove_monkey_patch_debug()
 
     def _create_pool(self):
