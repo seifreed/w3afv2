@@ -144,11 +144,16 @@ class TestDeterministicResults(unittest.TestCase):
         with redirect_stdout(output):
             console.sh()
 
-        return {
-            URL_VULN_RE.search(line).group(1)
-            for line in output.getvalue().splitlines()
-            if VULN_STRING in line
-        }
+        vulnerable_urls: set[str] = set()
+        for line in output.getvalue().splitlines():
+            if VULN_STRING not in line:
+                continue
+            match = URL_VULN_RE.search(line)
+            if match is None:
+                raise AssertionError(f"Vulnerable URL missing from output: {line}")
+            vulnerable_urls.add(match.group(1))
+
+        return vulnerable_urls
 
     def test_1557_same_results_in_every_scan(self):
         first_scan = self.found_vulnerable_urls()

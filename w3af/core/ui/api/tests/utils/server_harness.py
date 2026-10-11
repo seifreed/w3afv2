@@ -57,6 +57,11 @@ class InterruptingClient(threading.Thread):
         self.context = context
         self.body: str | None = None
 
+    def get_body(self) -> str:
+        if self.body is None:
+            raise RuntimeError("HTTP client did not receive a response body")
+        return self.body
+
     def run(self):
         deadline = time.monotonic() + STARTUP_SECONDS
         try:

@@ -67,9 +67,7 @@ class APIMainTest(ServerMainTestCase):
         self.assertEqual(exit_code, 0)
         self.assertIn(f"w3af REST API available at http://127.0.0.1:{port}/", output)
         self.assertIn("The w3af REST API was stopped.", output)
-        if client.body is None:
-            raise AssertionError("API client did not receive a response body")
-        self.assertIn("docs", json.loads(client.body))
+        self.assertIn("docs", json.loads(client.get_body()))
 
     def test_serves_the_api_over_https(self):
         port = free_port()
@@ -84,6 +82,4 @@ class APIMainTest(ServerMainTestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertIn(f"w3af REST API available at https://127.0.0.1:{port}/", output)
-        if client.body is None:
-            raise AssertionError("API client did not receive a response body")
-        self.assertIn("docs", json.loads(client.body))
+        self.assertIn("docs", json.loads(client.get_body()))

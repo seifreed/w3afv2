@@ -78,7 +78,7 @@ class WebMainTest(ServerMainTestCase):
         self.assertEqual(exit_code, 0)
         self.assertIn(f"available at {url}", output)
         self.assertIn("The w3af web user interface was stopped.", output)
-        self.assertIn('id="scan-form"', client.body)
+        self.assertIn('id="scan-form"', client.get_body())
 
     def test_serves_the_ui_over_https_and_opens_the_browser(self):
         no_op = webbrowser.GenericBrowser([sys.executable, "-c", "pass"])
@@ -96,4 +96,4 @@ class WebMainTest(ServerMainTestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertIn(f"available at {url}", output)
-        self.assertIn('id="scan-form"', client.body)
+        self.assertIn('id="scan-form"', client.get_body())

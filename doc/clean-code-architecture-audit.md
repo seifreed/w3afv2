@@ -6662,3 +6662,13 @@ los callbacks reales usados en las pruebas, eliminando inferencia de `None`.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en producción y
 su fixture; los **11 tests** de VersionMgr pasan. El score global continúa en
 **9.99/10**.
+
+## Actualización verificada: cuerpo HTTP del cliente de lifecycle
+
+`InterruptingClient.get_body()` centraliza la comprobación de que la respuesta
+local llegó antes de que API y Web la decodifiquen. La fixture de estrategia
+también valida el resultado de su expresión regular antes de extraer la URL.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en cuatro
+fixtures; API/Web/estrategia pasan **15 tests**. Pytest muestra nueve warnings
+de dependencias deprecadas. El score global continúa en **9.99/10**.
