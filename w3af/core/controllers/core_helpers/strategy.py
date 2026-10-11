@@ -25,8 +25,14 @@ import logging
 from w3af.core.controllers.core_helpers.fuzzable_request_router import (
     FuzzableRequestRouter,
 )
+from w3af.core.controllers.core_helpers.scan_runtime_context import (
+    ScanRuntimeContext,
+)
 from w3af.core.controllers.core_helpers.strategy_consumer_runtime import (
     StrategyConsumerRuntime,
+)
+from w3af.core.controllers.core_helpers.strategy_observers.strategy_observer import (
+    StrategyObserver,
 )
 from w3af.core.controllers.core_helpers.target_validation import (
     alert_if_target_is_301_all,
@@ -54,27 +60,33 @@ class CoreStrategy:
     Use this strategy as a base for your experiments!
     """
 
-    def __init__(self, w3af_core, knowledge_base, output, configuration):
-        self._w3af_core = w3af_core
+    def __init__(
+        self,
+        scan_context: ScanRuntimeContext,
+        knowledge_base,
+        output,
+        configuration,
+    ):
+        self._scan_context = scan_context
         self._knowledge_base = knowledge_base
         self._output = output
         self._configuration = configuration
 
         self._consumer_runtime = StrategyConsumerRuntime(
-            self._w3af_core,
+            self._scan_context,
             self._knowledge_base,
             self._output,
             self._configuration,
         )
         self._request_router = FuzzableRequestRouter(
-            self._w3af_core,
+            self._scan_context,
             self._consumer_runtime,
             self._output,
             self._configuration,
         )
 
         # Also use this method to clear observers
-        self._observers = []
+        self._observers: list[StrategyObserver] = []
 
     def get_grep_consumer(self):
         return self._consumer_runtime.get_grep_consumer()
@@ -101,12 +113,14 @@ class CoreStrategy:
         :return: No value is returned.
         """
         try:
-            verify_target_server_up(self._w3af_core, self._output, self._configuration)
+            verify_target_server_up(
+                self._scan_context, self._output, self._configuration
+            )
             replace_targets_with_redir(
-                self._w3af_core, self._output, self._configuration
+                self._scan_context, self._output, self._configuration
             )
             alert_if_target_is_301_all(
-                self._w3af_core,
+                self._scan_context,
                 self._knowledge_base,
                 self._output,
                 self._configuration,
@@ -119,7 +133,7 @@ class CoreStrategy:
             self._setup_bruteforce()
 
             self._setup_observers()
-            setup_404_detection(self._w3af_core, self._output, self._configuration)
+            setup_404_detection(self._scan_context, self._output, self._configuration)
 
             self._seed_discovery()
 
@@ -136,7 +150,7 @@ class CoreStrategy:
                 # While the consumers might have finished, they certainly queue
                 # tasks in the core's worker_pool, which need to be processed
                 # too
-                self._w3af_core.worker_pool.finish()
+                self._scan_context.worker_pool.finish()
 
             raise
 
@@ -146,7 +160,7 @@ class CoreStrategy:
 
             # While the consumers might have finished, they certainly queue
             # tasks in the core's worker_pool, which need to be processed too
-            self._w3af_core.worker_pool.finish()
+            self._scan_context.worker_pool.finish()
 
             # And also teardown all the observers
             self._teardown_observers()

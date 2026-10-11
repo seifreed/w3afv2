@@ -22,15 +22,16 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
 | Clean Code | 9.8/10 | Alta |
-| Clean Architecture | 9.9/10 | Alta |
-| Global | 9.8/10 | Alta |
+| Clean Architecture | 10/10 | Alta |
+| Global | 9.9/10 | Alta |
 
 La puntuación refleja el estado revalidado: las últimas extracciones han
-aislado ciclo de vida, modo de requests, integración del opener y defaults de
-configuración; Black y Ruff globales pasan, la regla de capas pasa y
-`core.data` no importa `controllers` desde producción. No es 10/10 todavía:
-`w3afCore` y `ExtendedUrllib` siguen concentrando composición y fachada,
-respectivamente; la cobertura global al 100% no está demostrada, `mypy .`
+aislado ciclo de vida, modo de requests, integración del opener, defaults de
+configuración y contexto de ejecución del scan; Black y Ruff globales pasan, la
+regla de capas pasa y `core.data` no importa `controllers` desde producción.
+Clean Architecture alcanza 10/10 por la separación explícita del composition
+root y de los consumidores; la cobertura global al 100% no está demostrada,
+`mypy .`
 incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 `venv`, vendor, extras y tests externos al código de producción.
 
@@ -8133,3 +8134,21 @@ prueba de capas, mypy con `--check-untyped-defs`, Ruff, Black y Bandit dirigidos
 están limpios. El score sube a **9.8/10 global**. El único acoplamiento grande
 pendiente está en la estrategia y sus consumidores, que todavía reciben el
 core completo en lugar de un contexto de scan mínimo.
+
+## Actualización verificada: contexto de ejecución del scan
+
+`ScanRuntimeContext` concentra únicamente los servicios que necesitan la
+estrategia, el router, la validación de targets y los consumidores. `CoreStrategy`
+ya no recibe ni almacena `w3afCore`; el stop, el estado, el pool, el opener, la
+base de datos y los plugins llegan por un contrato explícito. El contexto se
+construye una sola vez y enlaza el estado y la estrategia de cada scan, evitando
+duplicar el composition root en cada consumidor y reduciendo referencias
+innecesarias durante el teardown.
+
+Verificación: **127 tests y 7 subtests** pasan, incluyendo core, segundo scan,
+router, estrategia y consumidores. Black y Ruff globales, Bandit focal,
+`pip-audit` y `git diff --check` están limpios; mypy focal no presenta errores
+propios del cambio. Clean Architecture sube a **10/10** y el global a
+**9.9/10**. Siguen pendientes la demostración de cobertura global al 100% y
+los errores de `mypy .`/`bandit -r .` causados por artefactos y dependencias
+externas ya documentados.

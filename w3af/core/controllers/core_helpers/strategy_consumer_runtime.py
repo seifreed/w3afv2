@@ -15,8 +15,8 @@ from w3af.core.controllers.core_helpers.consumers.seed import seed
 class StrategyConsumerRuntime:
     """Create, operate, and release strategy consumers."""
 
-    def __init__(self, w3af_core, knowledge_base, output, configuration):
-        self._w3af_core = w3af_core
+    def __init__(self, scan_context, knowledge_base, output, configuration):
+        self._scan_context = scan_context
         self._knowledge_base = knowledge_base
         self._output = output
         self._configuration = configuration
@@ -28,7 +28,9 @@ class StrategyConsumerRuntime:
         self._auth_consumer = None
         self._discovery_consumer = None
         self._bruteforce_consumer = None
-        self._seed_producer = seed(self._w3af_core, self._knowledge_base, self._output)
+        self._seed_producer = seed(
+            self._scan_context, self._knowledge_base, self._output
+        )
 
     def get_grep_consumer(self):
         return self._grep_consumer
@@ -49,8 +51,8 @@ class StrategyConsumerRuntime:
         return self._seed_producer
 
     def setup_crawl_infrastructure(self):
-        crawl_plugins = self._w3af_core.plugins.get_plugin_instances("crawl")
-        infrastructure_plugins = self._w3af_core.plugins.get_plugin_instances(
+        crawl_plugins = self._scan_context.plugins.get_plugin_instances("crawl")
+        infrastructure_plugins = self._scan_context.plugins.get_plugin_instances(
             "infrastructure"
         )
 
@@ -58,7 +60,7 @@ class StrategyConsumerRuntime:
             discovery_plugins = infrastructure_plugins + crawl_plugins
             self._discovery_consumer = CrawlInfrastructure(
                 discovery_plugins,
-                self._w3af_core,
+                self._scan_context,
                 self._configuration.get("max_discovery_time"),
                 knowledge_base=self._knowledge_base,
                 output=self._output,
@@ -67,46 +69,48 @@ class StrategyConsumerRuntime:
             self._discovery_consumer.start()
 
     def setup_grep(self):
-        grep_plugins = self._w3af_core.plugins.get_plugin_instances("grep")
+        grep_plugins = self._scan_context.plugins.get_plugin_instances("grep")
 
         if grep_plugins:
             self._grep_consumer = grep(
                 grep_plugins,
-                self._w3af_core,
+                self._scan_context,
                 output=self._output,
                 configuration=self._configuration,
             )
-            self._w3af_core.uri_opener.set_grep_queue_put(self._grep_consumer.grep)
+            self._scan_context.uri_opener.set_grep_queue_put(self._grep_consumer.grep)
             self._grep_consumer.start()
 
     def setup_audit(self):
         self._output.debug("Called _setup_audit()")
-        audit_plugins = self._w3af_core.plugins.get_plugin_instances("audit")
+        audit_plugins = self._scan_context.plugins.get_plugin_instances("audit")
 
         if audit_plugins:
             self._audit_consumer = audit(
                 audit_plugins,
-                self._w3af_core,
+                self._scan_context,
                 output=self._output,
                 configuration=self._configuration,
             )
             self._audit_consumer.start()
 
     def setup_bruteforce(self):
-        bruteforce_plugins = self._w3af_core.plugins.get_plugin_instances("bruteforce")
+        bruteforce_plugins = self._scan_context.plugins.get_plugin_instances(
+            "bruteforce"
+        )
 
         if bruteforce_plugins:
             self._bruteforce_consumer = bruteforce(
-                bruteforce_plugins, self._w3af_core, output=self._output
+                bruteforce_plugins, self._scan_context, output=self._output
             )
             self._bruteforce_consumer.start()
 
     def setup_auth(self, timeout=5):
-        auth_plugins = self._w3af_core.plugins.get_plugin_instances("auth")
+        auth_plugins = self._scan_context.plugins.get_plugin_instances("auth")
 
         if auth_plugins:
             self._auth_consumer = auth(
-                auth_plugins, self._w3af_core, timeout, output=self._output
+                auth_plugins, self._scan_context, timeout, output=self._output
             )
             self._auth_consumer.start()
             self._auth_consumer.force_login()
@@ -160,8 +164,8 @@ class StrategyConsumerRuntime:
         self._output.debug("Called strategy._teardown_crawl_infrastructure()")
         if self._discovery_consumer is not None:
             self._discovery_consumer.join()
-            self._w3af_core.plugins.set_plugin_instances("crawl", [])
-            self._w3af_core.plugins.set_plugin_instances("infrastructure", [])
+            self._scan_context.plugins.set_plugin_instances("crawl", [])
+            self._scan_context.plugins.set_plugin_instances("infrastructure", [])
             self._discovery_consumer = None
 
     def clear_queue_speed_data(self):

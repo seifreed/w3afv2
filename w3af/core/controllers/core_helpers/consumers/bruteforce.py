@@ -38,14 +38,14 @@ class bruteforce(BaseConsumer):
     by the crawl plugins and bruteforces logins by performing various requests.
     """
 
-    def __init__(self, bruteforce_plugins, w3af_core, output):
+    def __init__(self, bruteforce_plugins, scan_context, output):
         """
         :param bruteforce_plugins: Instances of bruteforce plugins in a list
-        :param w3af_core: The w3af core that we'll use for status reporting
+        :param scan_context: Runtime services used by this consumer
         """
         super().__init__(
             bruteforce_plugins,
-            w3af_core,
+            scan_context,
             thread_name=self.get_name(),
             output=output,
         )
@@ -120,7 +120,7 @@ class bruteforce(BaseConsumer):
         args = (plugin.get_name(), fuzzable_request.get_uri())
         self._output.debug("{}.bruteforce({})".format(*args))
         took_line = TookLine(
-            self._w3af_core,
+            self._scan_context,
             plugin.get_name(),
             "bruteforce",
             log_sink=self._output,
@@ -128,8 +128,8 @@ class bruteforce(BaseConsumer):
         )
 
         # Status
-        self._w3af_core.status.set_running_plugin("bruteforce", plugin.get_name())
-        self._w3af_core.status.set_current_fuzzable_request(
+        self._scan_context.status.set_running_plugin("bruteforce", plugin.get_name())
+        self._scan_context.status.set_current_fuzzable_request(
             "bruteforce", fuzzable_request
         )
 

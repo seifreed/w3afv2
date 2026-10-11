@@ -77,7 +77,7 @@ class BaseConsumer(Process):
     def __init__(
         self,
         consumer_plugins,
-        w3af_core,
+        scan_context,
         thread_name,
         output,
         create_pool=True,
@@ -87,7 +87,7 @@ class BaseConsumer(Process):
     ):
         """
         :param consumer_plugins: Instances of base_consumer plugins in a list
-        :param w3af_core: The w3af core that we'll use for status reporting
+        :param scan_context: Runtime services used by this consumer
         :param thread_name: How to name the current thread, eg. Auditor
         :param create_pool: True to create a worker pool for this consumer
         :param output: Sink used for consumer diagnostics
@@ -97,7 +97,7 @@ class BaseConsumer(Process):
         self.in_queue: CachedQueue | OrderedCachedQueue = CachedQueue(
             maxsize=max_in_queue_size,
             name=thread_name + "In",
-            db=w3af_core.database,
+            db=scan_context.database,
         )
 
         #
@@ -144,12 +144,12 @@ class BaseConsumer(Process):
         self._out_queue: CachedQueue = CachedQueue(
             maxsize=75,
             name=thread_name + "Out",
-            db=w3af_core.database,
+            db=scan_context.database,
         )
 
         self._thread_name = thread_name
         self._consumer_plugins = consumer_plugins
-        self._w3af_core = w3af_core
+        self._scan_context = scan_context
         self._output = output
         self._observers = []
 
@@ -174,7 +174,7 @@ class BaseConsumer(Process):
 
     def set_has_finished(self):
         self._has_finished = True
-        self._w3af_core.strategy.clear_queue_speed_data()
+        self._scan_context.strategy.clear_queue_speed_data()
 
     def run(self):
         """
@@ -328,7 +328,7 @@ class BaseConsumer(Process):
             else:
                 msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, plugin)
-                self._w3af_core.plugins.mark_plugin_ended(plugin)
+                self._scan_context.plugins.mark_plugin_ended(plugin)
 
         self._output.debug(f"Finished {consumer_label} consumer _teardown()")
 
@@ -567,7 +567,7 @@ class BaseConsumer(Process):
         :param _exception: The exception object
         """
         _except_type, _except_class, tb = sys.exc_info()
-        enabled_plugins = pprint_plugins(self._w3af_core)
+        enabled_plugins = pprint_plugins(self._scan_context)
 
         status = CoreStatus(self._output)
         status.set_running_plugin(phase, plugin_name, log=False)
@@ -578,7 +578,7 @@ class BaseConsumer(Process):
             _exception,
             tb,
             enabled_plugins,
-            self._w3af_core.configuration,
+            self._scan_context.configuration,
             store_tb=False,
         )
         self._out_queue.put(exception_data)

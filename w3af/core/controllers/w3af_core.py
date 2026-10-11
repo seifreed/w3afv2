@@ -61,6 +61,9 @@ from w3af.core.controllers.core_helpers.scan_start_lifecycle import (
 from w3af.core.controllers.core_helpers.scan_stop_controller import (
     ScanStopController,
 )
+from w3af.core.controllers.core_helpers.scan_runtime_context import (
+    ScanRuntimeContext,
+)
 from w3af.core.controllers.core_helpers.status import (
     PAUSED,
     RUNNING,
@@ -188,7 +191,6 @@ class w3afCore:
         self._environment_validator = ScanEnvironmentValidator(
             self.plugins, self.target
         )
-        self._create_scan_runtime()
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(
@@ -211,6 +213,7 @@ class w3afCore:
             self.uri_opener,
         )
         self._exploit_phase_lifecycle = ExploitPhaseLifecycle(output, self.uri_opener)
+        self._create_scan_runtime()
         self._stop_controller = ScanStopController(
             output,
             self.uri_opener,
@@ -220,6 +223,7 @@ class w3afCore:
             lambda: self.STOP_TIMEOUT,
             lambda: self.STOP_LOOP_DELAY,
         )
+        self._scan_context.bind_stop(self._stop_controller.stop)
         self._pause_controller = ScanPauseController(self.status, self.uri_opener)
         self._strategy_runner = ScanStrategyRunner(output, get_home_dir)
         self._scan_start_lifecycle = ScanStartLifecycle(
@@ -296,14 +300,34 @@ class w3afCore:
         self._scan_start_lifecycle.start()
 
     def _create_scan_runtime(self, scans_completed=0):
-        self.strategy = CoreStrategy(
-            self, self.knowledge_base, self._output, self._configuration
-        )
+        if not hasattr(self, "_scan_context"):
+            self._scan_context = ScanRuntimeContext(
+                self.plugins,
+                self.uri_opener,
+                self._configuration,
+                self._database,
+                self.exception_handler,
+                self._worker_pool_manager.get_pool,
+                self._fingerprint_404_lifecycle.is_404,
+            )
+
+        consumer_metrics = ConsumerMetrics()
         self.status = CoreStatus(
             self._output,
-            ConsumerMetrics(self.strategy, lambda: self.worker_pool),
+            consumer_metrics,
             scans_completed=scans_completed,
             id_generator=self._id_generator,
+        )
+        self.strategy = CoreStrategy(
+            self._scan_context,
+            self.knowledge_base,
+            self._output,
+            self._configuration,
+        )
+        self._scan_context.bind_runtime(self.status, self.strategy)
+        consumer_metrics.set_dependencies(
+            self.strategy,
+            self._worker_pool_manager.get_pool,
         )
 
     def is_404(self, http_response):

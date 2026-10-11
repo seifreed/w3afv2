@@ -40,14 +40,14 @@ class seed(Process):
     requests.
     """
 
-    def __init__(self, w3af_core, knowledge_base, output):
+    def __init__(self, scan_context, knowledge_base, output):
         """
-        :param w3af_core: The w3af core that we'll use for status reporting
+        :param scan_context: Runtime services used by this consumer
         :param knowledge_base: Store used for discovered fuzzable requests
         """
         super().__init__(name=f"{self.get_name()}Controller")
 
-        self._w3af_core = w3af_core
+        self._scan_context = scan_context
         self._knowledge_base = knowledge_base
         self._output = output
 
@@ -105,7 +105,7 @@ class seed(Process):
                 #    GET the initial target URLs in order to save them
                 #    in a list and use them as our bootstrap URLs
                 #
-                response = self._w3af_core.uri_opener.GET(url, cache=True)
+                response = self._scan_context.uri_opener.GET(url, cache=True)
             except ScanMustStopException:
                 self._output.error("The target server is unreachable. Stopping.")
                 raise
@@ -126,7 +126,7 @@ class seed(Process):
             else:
                 _seed = FuzzableRequest(
                     response.get_uri(),
-                    configuration=self._w3af_core.configuration,
+                    configuration=self._scan_context.configuration,
                 )
 
                 if in_scope(_seed):

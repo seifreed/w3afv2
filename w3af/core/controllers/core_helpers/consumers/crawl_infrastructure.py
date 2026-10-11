@@ -57,7 +57,7 @@ class CrawlInfrastructure(BaseConsumer):
     def __init__(
         self,
         crawl_infrastructure_plugins,
-        w3af_core,
+        scan_context,
         max_discovery_time,
         knowledge_base,
         output,
@@ -66,14 +66,14 @@ class CrawlInfrastructure(BaseConsumer):
         """
         :param crawl_infrastructure_plugins: Instances of CrawlInfrastructure
                                              plugins in a list
-        :param w3af_core: The w3af core that we'll use for status reporting
+        :param scan_context: Runtime services used by this consumer
         :param max_discovery_time: The max time (in minutes) to use for the
                                    discovery phase
         :param knowledge_base: Store used for discovered URLs and requests
         """
         super().__init__(
             crawl_infrastructure_plugins,
-            w3af_core,
+            scan_context,
             thread_name=self.get_name(),
             max_pool_queued_tasks=100,
             output=output,
@@ -83,7 +83,7 @@ class CrawlInfrastructure(BaseConsumer):
         self._configuration = configuration
 
         # For filtering fuzzable requests found by plugins:
-        self._variant_db = VariantDB(self._configuration, db=w3af_core.database)
+        self._variant_db = VariantDB(self._configuration, db=scan_context.database)
 
         self._disabled_plugins = set()
         self._running = True
@@ -100,7 +100,7 @@ class CrawlInfrastructure(BaseConsumer):
             maxsize=10,
             name=self.get_name() + "In",
             debug_log=self._output.debug,
-            db=w3af_core.database,
+            db=scan_context.database,
         )
 
     def get_name(self):
@@ -192,7 +192,7 @@ class CrawlInfrastructure(BaseConsumer):
             else:
                 msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, teardown_plugin)
-                self._w3af_core.plugins.mark_plugin_ended(teardown_plugin)
+                self._scan_context.plugins.mark_plugin_ended(teardown_plugin)
 
             finally:
                 self._disabled_plugins.add(teardown_plugin)
@@ -400,7 +400,7 @@ class CrawlInfrastructure(BaseConsumer):
         if not self._running:
             return True
 
-        if self._w3af_core.status.get_run_time() < self._max_discovery_time:
+        if self._scan_context.status.get_run_time() < self._max_discovery_time:
             return False
 
         if self._report_max_time:
@@ -419,7 +419,9 @@ class CrawlInfrastructure(BaseConsumer):
         exception during the crawl phase.
         """
         plugin_type = plugin_to_remove.get_type()
-        registered_plugins = self._w3af_core.plugins.get_plugin_instances(plugin_type)
+        registered_plugins = self._scan_context.plugins.get_plugin_instances(
+            plugin_type
+        )
         if plugin_to_remove in registered_plugins:
             msg = 'The %s plugin: "%s" wont be run anymore.'
             self._output.debug(msg % (plugin_type, plugin_to_remove.get_name()))
@@ -551,7 +553,7 @@ class CrawlInfrastructure(BaseConsumer):
         self._output.debug("{}.discover({}, did={})".format(*args))
 
         took_line = TookLine(
-            self._w3af_core,
+            self._scan_context,
             plugin.get_name(),
             "discover",
             log_sink=self._output,
@@ -560,7 +562,7 @@ class CrawlInfrastructure(BaseConsumer):
         )
 
         # Status reporting
-        status = self._w3af_core.status
+        status = self._scan_context.status
         status.set_running_plugin("crawl", plugin.get_name())
         status.set_current_fuzzable_request("crawl", fuzzable_request)
 

@@ -267,7 +267,7 @@ class TestStrategy(unittest.TestCase):
         )
 
     def target_request_steps(self, strategy):
-        core = strategy._w3af_core
+        core = strategy._scan_context
         return {
             "replace_targets_with_redir()": lambda: replace_targets_with_redir(
                 core, om.out, core.configuration

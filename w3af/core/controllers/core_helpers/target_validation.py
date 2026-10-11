@@ -10,7 +10,7 @@ from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopExceptio
 logger = logging.getLogger(__name__)
 
 
-def verify_target_server_up(w3af_core, output, configuration):
+def verify_target_server_up(scan_context, output, configuration):
     """Verify that the configured targets answer HTTP requests."""
     sent_requests = 0
 
@@ -35,7 +35,7 @@ def verify_target_server_up(w3af_core, output, configuration):
     while sent_requests < MAX_ERROR_COUNT * 1.5:
         for url in targets:
             try:
-                w3af_core.uri_opener.GET(url, cache=False)
+                scan_context.uri_opener.GET(url, cache=False)
             except ScanMustStopByUserRequest:
                 raise
             except Exception as e:
@@ -67,20 +67,20 @@ def _scan_must_stop_on_error(description, output):
         raise ScanMustStopException(msg) from e
 
 
-def _get_target(w3af_core, url, step, output, **kwargs):
+def _get_target(scan_context, url, step, output, **kwargs):
     """Send a GET request and normalize unexpected target failures."""
     with _scan_must_stop_on_error(f"Exception found during {step}", output):
-        return w3af_core.uri_opener.GET(url, **kwargs)
+        return scan_context.uri_opener.GET(url, **kwargs)
 
 
-def replace_targets_with_redir(w3af_core, output, configuration):
+def replace_targets_with_redir(scan_context, output, configuration):
     """Replace targets with same-domain redirect destinations."""
     targets = configuration.get("targets")
     new_targets = []
 
     for url in targets:
         http_response = _get_target(
-            w3af_core,
+            scan_context,
             url,
             "replace_targets_with_redir()",
             output,
@@ -97,7 +97,7 @@ def replace_targets_with_redir(w3af_core, output, configuration):
     configuration.save("targets", new_targets)
 
 
-def alert_if_target_is_301_all(w3af_core, knowledge_base, output, configuration):
+def alert_if_target_is_301_all(scan_context, knowledge_base, output, configuration):
     """Report a target that redirects all traffic outside its scope."""
     site_does_redirect = False
     msg = (
@@ -121,7 +121,7 @@ def alert_if_target_is_301_all(w3af_core, knowledge_base, output, configuration)
 
     for url in targets:
         http_response = _get_target(
-            w3af_core, url, "alert_if_target_is_301_all()", output, cache=False
+            scan_context, url, "alert_if_target_is_301_all()", output, cache=False
         )
         if http_response.does_redirect_outside_target():
             site_does_redirect = True
@@ -139,13 +139,13 @@ def alert_if_target_is_301_all(w3af_core, knowledge_base, output, configuration)
     return site_does_redirect
 
 
-def setup_404_detection(w3af_core, output, configuration):
+def setup_404_detection(scan_context, output, configuration):
     """Initialize 404 detection for each configured target."""
     targets_with_404 = []
 
     for url in configuration.get("targets"):
         response = _get_target(
-            w3af_core, url, "_setup_404_detection()", output, cache=True
+            scan_context, url, "_setup_404_detection()", output, cache=True
         )
 
         failure = (
@@ -153,7 +153,7 @@ def setup_404_detection(w3af_core, output, configuration):
             f' response from "{url}"'
         )
         with _scan_must_stop_on_error(failure, output):
-            current_target_is_404 = w3af_core.is_404(response)
+            current_target_is_404 = scan_context.is_404(response)
 
         if current_target_is_404:
             targets_with_404.append(url)

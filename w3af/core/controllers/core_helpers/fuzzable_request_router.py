@@ -52,9 +52,13 @@ class ScanExceptionHandler(Protocol):
     def handle_exception_data(self, exception_data: ExceptionData) -> None: ...
 
 
-class ScanCore(Protocol):
-    worker_pool: WorkerPool
-    status: ScanStatus
+class ScanRuntime(Protocol):
+    @property
+    def worker_pool(self) -> WorkerPool: ...
+
+    @property
+    def status(self) -> ScanStatus: ...
+
     exception_handler: ScanExceptionHandler
 
     def stop(self) -> None: ...
@@ -69,12 +73,12 @@ class FuzzableRequestRouter:
 
     def __init__(
         self,
-        core: ScanCore,
+        scan_context: ScanRuntime,
         consumer_runtime: ConsumerRuntime,
         output,
         configuration: ScanConfiguration,
     ) -> None:
-        self._core = core
+        self._scan_context = scan_context
         self._consumer_runtime = consumer_runtime
         self._output = output
         self._configuration = configuration
@@ -126,7 +130,7 @@ class FuzzableRequestRouter:
                     " identified."
                 )
                 self._output.information(msg % self._configuration.get("max_scan_time"))
-                self._core.stop()
+                self._scan_context.stop()
                 break
 
     @staticmethod
@@ -138,7 +142,7 @@ class FuzzableRequestRouter:
         if max_scan_time == 0:
             return False
 
-        return self._core.status.get_run_time() > max_scan_time
+        return self._scan_context.status.get_run_time() > max_scan_time
 
     def _route_one_batch(
         self,
@@ -191,4 +195,4 @@ class FuzzableRequestRouter:
                         self._handle_consumer_exception(result_item)
 
     def _handle_consumer_exception(self, exception_data: ExceptionData) -> None:
-        self._core.exception_handler.handle_exception_data(exception_data)
+        self._scan_context.exception_handler.handle_exception_data(exception_data)

@@ -38,15 +38,15 @@ class auth(BaseConsumer):
     Thread that logins into the application every N seconds.
     """
 
-    def __init__(self, auth_plugins, w3af_core, timeout, output):
+    def __init__(self, auth_plugins, scan_context, timeout, output):
         """
         :param auth_plugins: Instances of auth plugins in a list
-        :param w3af_core: The w3af core that we'll use for status reporting
+        :param scan_context: Runtime services used by this consumer
         :param timeout: The time to wait between each login check
         """
         super().__init__(
             auth_plugins,
-            w3af_core,
+            scan_context,
             thread_name=self.get_name(),
             create_pool=False,
             output=output,
@@ -94,7 +94,7 @@ class auth(BaseConsumer):
                     "auth", plugin.get_name(), "plugin.logout()", exception
                 )
             plugin.end()
-            self._w3af_core.plugins.mark_plugin_ended(plugin)
+            self._scan_context.plugins.mark_plugin_ended(plugin)
 
     # Adding task here because we want to let the rest of the world know
     # that we're still doing something. The _task_done below will "undo"
@@ -114,7 +114,7 @@ class auth(BaseConsumer):
             self._output.debug(msg % args)
 
             took_line = TookLine(
-                self._w3af_core,
+                self._scan_context,
                 "auth",
                 "_login",
                 log_sink=self._output,

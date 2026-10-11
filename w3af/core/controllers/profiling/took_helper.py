@@ -33,7 +33,7 @@ class TimeStamp:
 class TookLine:
     def __init__(
         self,
-        w3af_core,
+        scan_context,
         plugin_name,
         method_name,
         log_sink,
@@ -43,7 +43,7 @@ class TookLine:
         """
         Write the "took X seconds" line to the debug log
 
-        :param w3af_core: The w3af core instance
+        :param scan_context: Runtime services used by the scan
         :param plugin_name: The plugin name
         :param method_name: The method name of plugin which was invoked
         :param debugging_id: The unique ID used for tracking requests
@@ -52,7 +52,7 @@ class TookLine:
                               and strings as values.
         :param log_sink: Where the debug line is written
         """
-        self._w3af_core = w3af_core
+        self._scan_context = scan_context
         self._plugin_name = plugin_name
         self._method_name = method_name
         self._method_params = method_params
@@ -107,7 +107,7 @@ class TookLine:
         #
         #   Query the extended urllib to check if it has RTT data regarding this debugging_id
         #
-        rtt = self._w3af_core.uri_opener.get_rtt_for_debugging_id(self._debugging_id)
+        rtt = self._scan_context.uri_opener.get_rtt_for_debugging_id(self._debugging_id)
 
         if rtt is not None and rtt >= 0.01:
             #

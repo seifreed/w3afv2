@@ -66,10 +66,10 @@ class grep(BaseConsumer):
         "set-cookie",
     )
 
-    def __init__(self, grep_plugins, w3af_core, output, configuration):
+    def __init__(self, grep_plugins, scan_context, output, configuration):
         """
         :param grep_plugins: Instances of grep plugins in a list
-        :param w3af_core: The w3af core that we'll use for status reporting
+        :param scan_context: Runtime services used by this consumer
         """
         # max_in_queue_size, is the number of items that will be stored in-memory
         # in the consumer queue
@@ -88,7 +88,7 @@ class grep(BaseConsumer):
 
         super().__init__(
             grep_plugins,
-            w3af_core,
+            scan_context,
             create_pool=True,
             max_pool_queued_tasks=max_pool_queued_tasks,
             thread_pool_size=thread_pool_size,
@@ -148,12 +148,12 @@ class grep(BaseConsumer):
 
                 exec_info = sys.exc_info()
                 enabled_plugins = "n/a"
-                self._w3af_core.exception_handler.handle(
+                self._scan_context.exception_handler.handle(
                     status, exception, exec_info, enabled_plugins
                 )
                 continue
 
-            self._w3af_core.plugins.mark_plugin_ended(plugin)
+            self._scan_context.plugins.mark_plugin_ended(plugin)
 
             spent_time = time.time() - start_time
             msg = "Spent %.2f seconds running %s.end()"
@@ -174,7 +174,7 @@ class grep(BaseConsumer):
         :param http_response_id: The HTTP response ID
         :return: An HTTP request and response tuple
         """
-        history = HistoryItem(db=self._w3af_core.database)
+        history = HistoryItem(db=self._scan_context.database)
         request, response = history.load_from_file(http_response_id)
 
         # Create a fuzzable request based on the urllib2 request object
@@ -184,7 +184,7 @@ class grep(BaseConsumer):
             request.get_method(),
             request.get_data() or "",
             headers_inst,
-            configuration=self._w3af_core.configuration,
+            configuration=self._scan_context.configuration,
         )
 
         return request, response
@@ -337,7 +337,7 @@ class grep(BaseConsumer):
         self._run_observers(plugin_name, request, response)
 
         took_line = TookLine(
-            self._w3af_core,
+            self._scan_context,
             plugin_name,
             "grep",
             log_sink=self._output,

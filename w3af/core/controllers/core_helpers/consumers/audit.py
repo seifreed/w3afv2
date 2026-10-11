@@ -39,16 +39,16 @@ class audit(BaseConsumer):
     requests.
     """
 
-    def __init__(self, audit_plugins, w3af_core, output, configuration):
+    def __init__(self, audit_plugins, scan_context, output, configuration):
         """
         :param audit_plugins: Instances of audit plugins in a list
-        :param w3af_core: The w3af core that we'll use for status reporting
+        :param scan_context: Runtime services used by this consumer
         """
         max_qsize = self.THREAD_POOL_SIZE * 2
 
         super().__init__(
             audit_plugins,
-            w3af_core,
+            scan_context,
             thread_name=self.get_name(),
             max_pool_queued_tasks=max_qsize,
             max_in_queue_size=max_qsize,
@@ -106,8 +106,8 @@ class audit(BaseConsumer):
             # plugin result was JUST taken from the Queue. The good thing is
             # that the "client" reads the status once every 500ms so the user
             # will see things "moving" and will be happy
-            self._w3af_core.status.set_running_plugin("audit", plugin.get_name())
-            self._w3af_core.status.set_current_fuzzable_request(
+            self._scan_context.status.set_running_plugin("audit", plugin.get_name())
+            self._scan_context.status.set_current_fuzzable_request(
                 "audit", fuzzable_request
             )
 
@@ -184,7 +184,7 @@ class audit(BaseConsumer):
         self._output.debug('{}.audit(did="{}", uri="{}")'.format(*args))
 
         took_line = TookLine(
-            self._w3af_core,
+            self._scan_context,
             plugin.get_name(),
             "audit",
             log_sink=self._output,

@@ -76,7 +76,9 @@ class ThreadStateObserver(StrategyObserver):
             "CrawlInfraPoolStateObserver", consumer.get_pool, "CrawlInfraWorker"
         )
         self._observe_pool_once(
-            "WorkerPoolStateObserver", lambda: consumer._w3af_core.worker_pool, "Worker"
+            "WorkerPoolStateObserver",
+            lambda: consumer._scan_context.worker_pool,
+            "Worker",
         )
 
     def audit(self, consumer, *args):
