@@ -7460,3 +7460,14 @@ plugin ni añadir fallback global.
 
 Verificación: la suite de SSL pasa **21 tests**; Black, Ruff y mypy pasan en el
 test modificado.
+
+## Actualización verificada: fixture SVN de bajo consumo
+
+El test de `find_dvcs` cargaba una base SVN real de 688 KB con 670 entradas para
+validar una sola fila, generando más de mil peticiones y presión innecesaria de
+memoria durante la suite. Ahora crea una SQLite real mínima con una entrada
+`NODES`, conserva el recorrido completo del plugin y elimina el fixture binario
+sin consumidores.
+
+Verificación: la suite de `find_dvcs` pasa **21 tests**; Black, Ruff y mypy
+pasan en el test modificado.

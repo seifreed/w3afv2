@@ -19,16 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
 import re
+import sqlite3
 import struct
+import tempfile
 import unittest
 from pathlib import Path
 from typing import ClassVar
 
-from w3af import ROOT_PATH
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants import severity
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.crawl.find_dvcs import find_dvcs
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -92,6 +92,24 @@ def build_svn_entries(filename, dirname):
         + [b"", b"junk-name", b"junk"]
     )
     return b"\n".join(lines)
+
+
+def build_svn_wc_db():
+    with tempfile.TemporaryDirectory() as directory:
+        database_path = Path(directory) / "wc.db"
+        with sqlite3.connect(database_path) as connection:
+            connection.execute(
+                "CREATE TABLE NODES " "(local_relpath TEXT, checksum TEXT, kind TEXT)"
+            )
+            connection.execute(
+                "INSERT INTO NODES VALUES (?, ?, ?)",
+                (
+                    "seris/changelog.rst",
+                    "$sha1$96acedb8cc77c893b90d1ce37c7119fd0c0fba00",
+                    "file",
+                ),
+            )
+        return database_path.read_bytes()
 
 
 CVS_ENTRIES = (
@@ -192,6 +210,7 @@ class TestFindDVCS(PluginTest):
 class TestFindDVCSParsers(unittest.TestCase):
     def setUp(self):
         self.fdvcs = find_dvcs()
+        self.fdvcs.set_output(om.out)
 
     def test_ignore_file_blank(self):
         self.assertEqual(self.fdvcs.ignore_file(""), set())
@@ -281,11 +300,7 @@ class TestFindDVCSParsers(unittest.TestCase):
 
 class TestSVN(PluginTest):
 
-    WC_DB = Path(
-        os.path.join(
-            ROOT_PATH, "plugins", "tests", "crawl", "find_dvcs", "sample-wc.db"
-        )
-    ).read_bytes()
+    WC_DB = build_svn_wc_db()
 
     CONTENT = "Fixture contents here!"
 
@@ -304,7 +319,7 @@ class TestSVN(PluginTest):
     def test_wc_db(self):
         self._scan(self.target_url, RUN_PLUGINS)
 
-        url_list = kb.get_all_known_urls()
+        url_list = self.kb.get_all_known_urls()
 
         self.assertEqual(
             {u.url_string for u in url_list}, {m.url for m in self.MOCK_RESPONSES}
@@ -312,6 +327,3 @@ class TestSVN(PluginTest):
 
         vulns = self.kb.get("find_dvcs", "svn repository db")
         self.assertEqual(len(vulns), 1, vulns)
-
-
-kb = DBKnowledgeBase()
