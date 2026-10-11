@@ -6570,3 +6570,12 @@ el callback de reporting que recibe `PluginDependencyResolver`.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **4 tests**
 del resolver pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: tipos en la fixture fuzzy 404
+
+La fixture separa las partes de texto de sus pares indexados durante el
+ordenamiento determinista. Esto elimina la reutilización de una variable con
+dos tipos distintos y hace explícito el paso de preparación de datos.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **6 tests**
+de comparación fuzzy pasan. El score global continúa en **9.99/10**.

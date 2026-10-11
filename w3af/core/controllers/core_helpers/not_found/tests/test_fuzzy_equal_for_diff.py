@@ -47,11 +47,11 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
 
         parts.extend(unique_parts)
 
-        parts = sorted(
+        indexed_parts = sorted(
             enumerate(parts),
             key=lambda item: hashlib.sha256(f"1:{item[0]}:{item[1]}".encode()).digest(),
         )
-        parts = [part for _, part in parts]
+        parts = [part for _, part in indexed_parts]
 
         body = "\n".join(parts)
 
