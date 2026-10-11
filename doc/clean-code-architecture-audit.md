@@ -4295,3 +4295,18 @@ sigue asignando IDs, pero ya no controla las métricas ni se reinicia desde el
 ciclo de vida de otro core. Sustituirlo por un generador inyectado y retirar
 el parser compartido son trabajos posteriores para cerrar los últimos puntos
 de aislamiento.
+
+## Actualización verificada: cierre de openers al reconstruir configuración
+
+Cuando `ExtendedUrllib.setup()` detectaba cambios de configuración, el ciclo de
+vida reemplazaba `BuiltOpeners` sin cerrar los `ConnectionManager` anteriores.
+Eso dejaba pools keep-alive y sockets asociados a cada reconstrucción, un
+crecimiento especialmente visible en tests que crean sesiones repetidamente.
+`OpenerLifecycle` ahora instala el nuevo opener y cierra inmediatamente los
+handlers anteriores, conservando sus referencias externas sólo como objetos ya
+sin conexiones.
+
+Verificación: **23 tests** de `ExtendedUrllib` pasan, incluyendo una petición
+real seguida de un rebuild que deja el pool anterior en cero conexiones;
+Black, Ruff y mypy focal pasan. La suite completa sigue pendiente por fallos
+ambientales y fixtures preexistentes descritos arriba.
