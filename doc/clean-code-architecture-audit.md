@@ -7483,3 +7483,14 @@ tests.
 
 Verificación: la suite de OpenAPI pasa **10 tests**; Black, Ruff y mypy pasan
 en el test modificado.
+
+## Actualización verificada: recursos HTTP aislados en fixtures Canned
+
+`CannedServerPluginTest` compartía la SQLite temporal global para el caché HTTP
+y `Fingerprint404`, aunque cada test ya tenía su propio servidor y ciclo de
+vida. Ahora esos recursos usan una base temporal por test y se cierran en el
+cleanup; la `DBKnowledgeBase` pública se mantiene porque varios tests la
+consumen directamente.
+
+Verificación: **58 tests** de crawling e infraestructura pasan; Black, Ruff y
+mypy pasan en el fixture modificado.

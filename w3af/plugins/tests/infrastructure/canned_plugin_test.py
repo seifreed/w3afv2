@@ -26,7 +26,7 @@ from typing import ClassVar
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.plugins.plugin import Plugin
-from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -57,6 +57,9 @@ class CannedServerPluginTest(unittest.TestCase):
     plugin_class: ClassVar[type[Plugin]]
 
     def setUp(self):
+        self.database = create_temp_db_instance()
+        self.addCleanup(self.database.close)
+
         kb.cleanup()
         self.addCleanup(kb.cleanup)
 
@@ -64,7 +67,7 @@ class CannedServerPluginTest(unittest.TestCase):
         self.server.start()
         self.addCleanup(self.server.stop)
 
-        self.uri_opener = ExtendedUrllib(configuration=cf)
+        self.uri_opener = ExtendedUrllib(configuration=cf, db=self.database)
         self.uri_opener.settings.set_proxy(self.server.host, self.server.port)
         self.addCleanup(self.uri_opener.end)
 
@@ -73,9 +76,7 @@ class CannedServerPluginTest(unittest.TestCase):
         self.plugin.set_knowledge_base(kb)
         self.plugin.set_output(om.out)
         self.plugin.set_configuration(cf)
-        self.fingerprint_404 = Fingerprint404(
-            om.out, cf, db=get_default_temp_db_instance()
-        )
+        self.fingerprint_404 = Fingerprint404(om.out, cf, db=self.database)
         self.plugin.set_fingerprint_404(self.fingerprint_404)
         self.addCleanup(self.fingerprint_404.cleanup)
 
