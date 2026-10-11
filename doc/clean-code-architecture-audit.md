@@ -4981,6 +4981,18 @@ y el módulo deja de producir ese error directo de tipo. El modo estricto aún
 reporta errores transitivos históricos en otros módulos, por lo que el score
 global continúa en **9.99/10**.
 
+## Actualización verificada: contrato de tipo para opciones
+
+`BaseOption` declara `_type` como atributo de clase requerido por todas sus
+implementaciones concretas. Esto elimina el atributo implícito que mypy estricto
+detectaba en `get_type`, `__repr__` y `__eq__`, manteniendo la selección de tipo
+existente de cada opción.
+
+Verificación: opciones pasan **60 tests y 6 subtests**, mypy estricto focal,
+Ruff y Black están limpios. El score global continúa en **9.99/10** porque aún
+quedan errores transitivos históricos fuera de este módulo y cobertura global no
+demostrada.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos

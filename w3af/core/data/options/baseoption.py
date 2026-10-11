@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 
 class BaseOption(ABC):
@@ -29,6 +30,8 @@ class BaseOption(ABC):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
+    _type: ClassVar[str]
 
     def __init__(self, name, default_value, desc, _help="", tabid=""):
         """
