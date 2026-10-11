@@ -229,6 +229,7 @@ class w3afCore:
 
         # Keep track of first scan to call cleanup or not
         self._first_scan = True
+        self._core_profiling_timers: list[threading.Timer] = []
 
     def scan_start_hook(self):
         """
@@ -241,7 +242,9 @@ class w3afCore:
         # Create this again just to clear the internal states
         scans_completed = self.status.scans_completed
 
-        start_profiling(self, self._output, self._output_manager)
+        self._core_profiling_timers = start_profiling(
+            self, self._output, self._output_manager
+        )
 
         if not self._first_scan:
             self.cleanup()
@@ -537,7 +540,12 @@ class w3afCore:
         """
         This method is called when the process ends normally or by an error.
         """
-        stop_profiling(self, self._output, self._output_manager)
+        stop_profiling(
+            self,
+            self._output,
+            self._output_manager,
+            self._core_profiling_timers,
+        )
         self._parser_cache.clear()
 
         try:

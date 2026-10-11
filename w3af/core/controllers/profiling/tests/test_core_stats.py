@@ -48,10 +48,11 @@ class TestCoreStats(unittest.TestCase):
     def setUp(self):
         remove_output_files(core_stats.PROFILING_OUTPUT_FMT)
         self.parser_cache = ParserCache()
+        self.core_save_thread_ptr = []
         self.addCleanup(self.parser_cache.clear)
 
     def tearDown(self):
-        core_stats.cancel_thread(core_stats.SAVE_THREAD_PTR)
+        core_stats.cancel_thread(self.core_save_thread_ptr)
         remove_output_files(core_stats.PROFILING_OUTPUT_FMT)
 
     def started_core(self):
@@ -110,23 +111,40 @@ class TestCoreStats(unittest.TestCase):
     def test_profiling_disabled_does_nothing(self):
         with environment_variables(W3AF_CORE_PROFILING="0"):
             start_core_profiling(self.started_core(), om.manager)
-            stop_core_profiling(self.started_core(), om.manager)
+            stop_core_profiling(self.started_core(), om.manager, [])
 
-        self.assertEqual(core_stats.SAVE_THREAD_PTR, [])
         self.assertEqual(output_files(core_stats.PROFILING_OUTPUT_FMT), [])
 
     def test_profiling_enabled_dumps_on_start_and_stop(self):
         w3af_core = self.started_core()
 
         with environment_variables(W3AF_CORE_PROFILING="1"):
-            start_core_profiling(w3af_core, om.manager)
+            self.core_save_thread_ptr = start_core_profiling(w3af_core, om.manager)
 
-            self.assertEqual(len(core_stats.SAVE_THREAD_PTR), 1)
+            self.assertEqual(len(self.core_save_thread_ptr), 1)
             self.assertEqual(len(output_files(core_stats.PROFILING_OUTPUT_FMT)), 1)
 
             remove_output_files(core_stats.PROFILING_OUTPUT_FMT)
-            stop_core_profiling(w3af_core, om.manager)
+            stop_core_profiling(w3af_core, om.manager, self.core_save_thread_ptr)
 
-        self.assertEqual(core_stats.SAVE_THREAD_PTR, [])
+        self.assertEqual(self.core_save_thread_ptr, [])
         data = read_json_output(core_stats.PROFILING_OUTPUT_FMT)
         self.assertIn("Requests sent", data)
+
+    def test_profiling_timers_are_owned_by_their_core(self):
+        first_core = self.started_core()
+        second_core = self.started_core()
+
+        with environment_variables(W3AF_CORE_PROFILING="1"):
+            first_timers = start_core_profiling(first_core, om.manager)
+            second_timers = start_core_profiling(second_core, om.manager)
+
+            self.assertIsNot(first_timers, second_timers)
+            self.assertEqual(len(first_timers), 1)
+            self.assertEqual(len(second_timers), 1)
+
+            stop_core_profiling(first_core, om.manager, first_timers)
+            stop_core_profiling(second_core, om.manager, second_timers)
+
+        self.assertEqual(first_timers, [])
+        self.assertEqual(second_timers, [])

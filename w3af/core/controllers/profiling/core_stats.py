@@ -25,9 +25,8 @@ import logging
 import os
 import sys
 import tempfile
-import threading
 import traceback
-from functools import partial
+from functools import partial, wraps
 
 from w3af.core.profiling import is_core_profiling_enabled
 
@@ -35,13 +34,15 @@ from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
 PROFILING_OUTPUT_FMT = os.path.join(tempfile.gettempdir(), "w3af-%s-%s.core")
 DELAY_MINUTES = 2
-SAVE_THREAD_PTR: list[threading.Timer] = []
 
 
 def should_profile_core(wrapped):
-    def inner(w3af_core, output_manager):
+    @wraps(wrapped)
+    def inner(w3af_core, output_manager, *args, **kwargs):
         if is_core_profiling_enabled():
-            return wrapped(w3af_core, output_manager)
+            return wrapped(w3af_core, output_manager, *args, **kwargs)
+
+        return None
 
     return inner
 
@@ -52,10 +53,12 @@ def start_core_profiling(w3af_core, output_manager):
     If the environment variable W3AF_PROFILING is set to 1, then we start
     the CPU and memory profiling.
 
-    :return: None
+    :return: The timer list owned by this profiling session.
     """
+    save_thread_ptr = []
     dd_partial = partial(dump_data, w3af_core, output_manager)
-    dump_data_every_thread(dd_partial, DELAY_MINUTES, SAVE_THREAD_PTR)
+    dump_data_every_thread(dd_partial, DELAY_MINUTES, save_thread_ptr)
+    return save_thread_ptr
 
 
 def dump_data(w3af_core, output_manager):
@@ -92,11 +95,11 @@ def dump_data(w3af_core, output_manager):
 
 
 @should_profile_core
-def stop_core_profiling(w3af_core, output_manager):
+def stop_core_profiling(w3af_core, output_manager, save_thread_ptr):
     """
     Save profiling information (if available)
     """
-    cancel_thread(SAVE_THREAD_PTR)
+    cancel_thread(save_thread_ptr)
     dump_data(w3af_core, output_manager)
 
 

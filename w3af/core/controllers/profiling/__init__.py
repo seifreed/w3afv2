@@ -31,8 +31,9 @@ from .thread_activity import start_thread_stack_dump, stop_thread_stack_dump
 
 
 def start_profiling(w3af_core, output, output_manager):
-    start_core_profiling(w3af_core, output_manager)
+    core_save_thread_ptr = start_core_profiling(w3af_core, output_manager) or []
     start_profiling_no_core()
+    return core_save_thread_ptr
 
 
 def start_profiling_no_core():
@@ -43,11 +44,12 @@ def start_profiling_no_core():
     start_tracemalloc_dump()
 
 
-def stop_profiling(w3af_core, output, output_manager):
+def stop_profiling(w3af_core, output, output_manager, core_save_thread_ptr=None):
     output.debug("Called stop_profiling()")
 
     try:
-        stop_core_profiling(w3af_core, output_manager)
+        if w3af_core is not None:
+            stop_core_profiling(w3af_core, output_manager, core_save_thread_ptr or [])
         stop_profiling_no_core()
     except Exception as e:
         output.debug(f'Call to stop_profiling() failed with: "{e}"')

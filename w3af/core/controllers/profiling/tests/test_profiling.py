@@ -45,7 +45,6 @@ from .profiling_output import (
 )
 
 ALL_PROFILERS = (
-    (core_stats, core_stats.SAVE_THREAD_PTR),
     (cpu_usage, cpu_usage.SAVE_THREAD_PTR),
     (processes, processes.SAVE_PROCESS_PTR),
     (psutil_stats, psutil_stats.SAVE_PSUTIL_PTR),
@@ -77,6 +76,7 @@ class TestProfiling(unittest.TestCase):
         self.remove_all_outputs()
 
     def remove_all_outputs(self):
+        remove_output_files(core_stats.PROFILING_OUTPUT_FMT)
         for module, _ in ALL_PROFILERS:
             remove_output_files(module.PROFILING_OUTPUT_FMT)
 
@@ -85,9 +85,10 @@ class TestProfiling(unittest.TestCase):
         w3af_core = w3afCore()
 
         with environment_variables(**flags):
-            start_profiling(w3af_core, om.out, om.manager)
+            core_timers = start_profiling(w3af_core, om.out, om.manager)
             stop_profiling(w3af_core, om.out, om.manager)
 
+        self.assertEqual(core_timers, [])
         for module, save_ptr in ALL_PROFILERS:
             self.assertEqual(save_ptr, [])
             self.assertEqual(output_files(module.PROFILING_OUTPUT_FMT), [])
@@ -97,19 +98,22 @@ class TestProfiling(unittest.TestCase):
         w3af_core.status.start()
 
         with environment_variables(**ALL_FLAGS):
-            start_profiling(w3af_core, om.out, om.manager)
+            core_timers = start_profiling(w3af_core, om.out, om.manager)
 
             for module, save_ptr in ALL_PROFILERS:
                 self.assertEqual(len(save_ptr), 1, module.__name__)
 
+            self.assertEqual(len(core_timers), 1)
+
             self.remove_all_outputs()
-            stop_profiling(w3af_core, om.out, om.manager)
+            stop_profiling(w3af_core, om.out, om.manager, core_timers)
 
         for module, save_ptr in ALL_PROFILERS:
             self.assertEqual(save_ptr, [], module.__name__)
             self.assertEqual(
                 len(output_files(module.PROFILING_OUTPUT_FMT)), 1, module.__name__
             )
+        self.assertEqual(core_timers, [])
 
     def test_stop_profiling_swallows_errors(self):
         with environment_variables(W3AF_CORE_PROFILING="1"):

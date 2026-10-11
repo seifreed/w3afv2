@@ -4368,3 +4368,17 @@ modificados pasan; no quedan referencias Python al generador global. El score
 provisional sube a **10/10 en aislamiento de dependencias**, pero la puntuación
 global de Clean Code/Architecture se mantiene en **9.99/10** hasta cerrar los
 gates globales y los módulos heredados de gran tamaño.
+
+## Actualización verificada: timers de profiling aislados por core
+
+`core_stats` ya no conserva en el módulo una lista mutable con el `Timer` y el
+`partial` que capturan un `w3afCore`. `start_core_profiling()` devuelve el
+estado de su sesión; `w3afCore` lo posee y `scan_end_hook()` cancela exactamente
+ese estado. La API de profiling tolera también un core ausente sin intentar
+generar un snapshot inválido.
+
+La prueba de regresión crea dos cores y comprueba que sus listas de timers son
+distintas y se cancelan de forma independiente. Verificación: **12 tests** de
+profiling y **9 tests** de estrategia pasan; Black, Ruff y mypy focales pasan.
+El score global sigue en **9.99/10**: quedan otros estados globales de proceso,
+la suite y los gates globales, y los módulos heredados de gran tamaño.
