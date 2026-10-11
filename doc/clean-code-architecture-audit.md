@@ -8264,3 +8264,22 @@ La suite completa de la API, sin cobertura, pasa **71 tests** y **40 subtests**
 con un RSS máximo de **129 MiB**. La diferencia frente al pico de la suite
 global instrumentada queda registrada como coste de cobertura/carga acumulada,
 no como una fuga reproducida del ciclo de vida de scans.
+
+## Verificación actual del score
+
+La extracción de `StatusActivity` separa el estado de actividad de plugins y
+requests del ciclo de vida, métricas y presentación de `CoreStatus`, manteniendo
+la API pública existente. El módulo nuevo tiene **100% de cobertura** y la
+batería de status y manejo de excepciones pasa **33 tests**.
+
+La verificación actual pasa `black --check .`, `ruff check .`,
+`mypy --check-untyped-defs w3af` (**1663 archivos**), la prueba de capas y
+Bandit dirigido al código de producción. La suite de plugins, API, proxy,
+recursos y cliente del agente pasa **59 tests** y **8 subtests**.
+
+El score de diseño se mantiene en **10/10** para Clean Code y Clean
+Architecture: las fronteras de producción no tienen imports hacia capas
+externas y los coordinadores grandes tienen colaboradores explícitos. El score
+global de calidad todavía no se puede certificar como 10/10 porque `mypy .`
+incluye el `venv` generado, `bandit -r .` incluye dependencias y tests con
+subprocess legítimo, y no existe evidencia de cobertura global del 100%.
