@@ -23,13 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from typing import Any
 
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
-from w3af.core.controllers.core_helpers.plugin_dependency_resolver import (
-    PluginDependencyResolver,
-)
 from w3af.core.controllers.core_helpers.plugin_instance_factory import (
     PluginInstanceFactory,
 )
 from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
+from w3af.core.controllers.core_helpers.plugin_runtime import PluginRuntime
 from w3af.core.controllers.plugins.plugin import Plugin
 
 
@@ -41,6 +39,11 @@ class CorePlugins(PluginCatalog):
         self._output_manager = output_manager
         self._plugin_instance_factory = PluginInstanceFactory(w3af_core, output)
         self._plugin_selection = PluginSelection(self.get_plugin_list)
+        self._plugin_runtime = PluginRuntime(
+            self.get_plugin_inst,
+            self.get_quick_instance,
+            self._output.information,
+        )
 
         self.initialized = False
         self._plugins_names_dict: dict[str, list[str]]
@@ -197,26 +200,6 @@ class CorePlugins(PluginCatalog):
     def remove_exclusions(self):
         self._plugin_selection.remove_exclusions()
 
-    def create_instances(self):
-        for plugin_type, enabled_plugins in self._plugins_names_dict.items():
-            for plugin_name in enabled_plugins:
-                plugin_instance = self.get_plugin_inst(plugin_type, plugin_name)
-                if plugin_instance not in self.plugins[plugin_type]:
-                    self.plugins[plugin_type].append(plugin_instance)
-                else:
-                    # Ensure that the latest settings are applied to the instance
-                    # that will be used for execution
-                    for existing_inst in self.plugins[plugin_type]:
-                        if (
-                            existing_inst.get_name() == plugin_name
-                            and plugin_name
-                            in list(self._plugins_options[plugin_type].keys())
-                        ):
-                            custom_options = self._plugins_options[plugin_type][
-                                plugin_name
-                            ]
-                            existing_inst.set_options(custom_options)
-
     def plugin_factory(self):
         """
         This method creates the user requested plugins.
@@ -226,18 +209,15 @@ class CorePlugins(PluginCatalog):
         """
         self.expand_all()
         self.remove_exclusions()
-        resolver = PluginDependencyResolver(
-            self._plugins_names_dict,
-            self.get_quick_instance,
-            self._output.information,
-        )
-        resolver.resolve()
-
-        # Now the self._plugins_names_dict has all the plugin names that
-        # we should enable, for all types, but in the incorrect order:
-        # without taking care of dependencies
-        resolver.order()
         self.create_instances()
+
+    def create_instances(self):
+        """Create the resolved plugin instances for the current selection."""
+        self._plugin_runtime.create_instances(
+            self._plugins_names_dict,
+            self._plugins_options,
+            self.plugins,
+        )
 
     def _set_plugin_generic(self, plugin_type, plugin_list):
         """

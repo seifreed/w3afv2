@@ -1,0 +1,70 @@
+"""Assemble the plugin instances used by a scan."""
+
+from collections.abc import Callable
+from typing import Any
+
+from w3af.core.controllers.core_helpers.plugin_dependency_resolver import (
+    PluginDependencyResolver,
+    PluginWithDependencies,
+)
+from w3af.core.controllers.plugins.plugin import Plugin
+
+
+class PluginRuntime:
+    """Resolve plugin dependencies and keep the active instances in sync."""
+
+    def __init__(
+        self,
+        plugin_instance_provider: Callable[[str, str], Plugin],
+        quick_instance_provider: Callable[[str, str], PluginWithDependencies],
+        report: Callable[[str], None],
+    ) -> None:
+        self._plugin_instance_provider = plugin_instance_provider
+        self._quick_instance_provider = quick_instance_provider
+        self._report = report
+
+    def create_instances(
+        self,
+        plugin_names: dict[str, list[str]],
+        plugin_options: dict[str, dict[str, Any]],
+        active_plugins: dict[str, list[Plugin]],
+    ) -> None:
+        """Resolve dependencies and create the instances for each plugin type."""
+        resolver = PluginDependencyResolver(
+            plugin_names,
+            self._quick_instance_provider,
+            self._report,
+        )
+        resolver.resolve()
+        resolver.order()
+
+        for plugin_type, enabled_plugins in plugin_names.items():
+            for plugin_name in enabled_plugins:
+                plugin_instance = self._plugin_instance_provider(
+                    plugin_type, plugin_name
+                )
+                self._add_or_update_instance(
+                    active_plugins[plugin_type],
+                    plugin_name,
+                    plugin_instance,
+                    plugin_options[plugin_type],
+                )
+
+    @staticmethod
+    def _add_or_update_instance(
+        active_plugins: list[Plugin],
+        plugin_name: str,
+        plugin_instance: Plugin,
+        plugin_options: dict[str, Any],
+    ) -> None:
+        if plugin_instance not in active_plugins:
+            active_plugins.append(plugin_instance)
+            return
+
+        if plugin_name not in plugin_options:
+            return
+
+        for existing_instance in active_plugins:
+            if existing_instance.get_name() == plugin_name:
+                existing_instance.set_options(plugin_options[plugin_name])
+                return
