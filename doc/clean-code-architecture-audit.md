@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: estadísticas del pool keepalive
+
+El logging del gestor de conexiones separa la lista de fragmentos de
+información de su representación final y evita reutilizar argumentos con
+formas distintas. El lifecycle de conexiones libres/en uso permanece intacto
+y no se introducen referencias adicionales persistentes.
+
+Verificación: las suites keepalive pasan **57 tests**; mypy focal, Ruff y
+Black están limpios. El score global continúa en **9.99/10**, con los gates
+globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: contratos de UI y detección HTTP
 
 La inicialización de `UIUpdater` ya no usa comprensiones por efectos

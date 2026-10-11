@@ -146,7 +146,7 @@ class ConnectionManager:
         )
         top_offenders = in_use[:5]
 
-        connection_info = []
+        connection_infos = []
 
         for conn in top_offenders:
             start = conn.current_request_start
@@ -156,10 +156,10 @@ class ConnectionManager:
 
             spent = time.time() - start
             args = (conn.id, spent)
-            connection_info.append("({}, {:.2f} sec)".format(*args))
+            connection_infos.append("({}, {:.2f} sec)".format(*args))
 
-        if connection_info:
-            connection_info = " ".join(connection_info)
+        if connection_infos:
+            connection_info = " ".join(connection_infos)
             LOGGER.debug("Connections with more in use time: %s", connection_info)
             return
 
@@ -383,9 +383,9 @@ class ConnectionManager:
             )
 
             stats = self.get_connection_pool_stats(host_port)
-            args = (self.MAX_CONNECTIONS, host_port, req, stats)
+            log_args = (self.MAX_CONNECTIONS, host_port, req, stats)
 
-            debug(msg % args)
+            debug(msg % log_args)
 
             waited_time_for_conn += self.GET_AVAILABLE_CONNECTION_RETRY_SECS
             time.sleep(self.GET_AVAILABLE_CONNECTION_RETRY_SECS)
