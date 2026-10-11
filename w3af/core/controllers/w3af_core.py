@@ -203,14 +203,7 @@ class w3afCore:
         self._environment_validator = ScanEnvironmentValidator(
             self.plugins, self.target
         )
-        self.strategy = CoreStrategy(
-            self, self.knowledge_base, output, self._configuration
-        )
-        self.status = CoreStatus(
-            output,
-            ConsumerMetrics(self.strategy, lambda: self.worker_pool),
-            id_generator=self._id_generator,
-        )
+        self._create_scan_runtime()
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(
@@ -275,6 +268,16 @@ class w3afCore:
         # Now that we know we're going to run a new scan, overwrite the old
         # strategy which might still have data stored in it and create a new
         # one
+        self._create_scan_runtime(scans_completed)
+        self.status.start()
+        self.strategy.add_observer(DiskSpaceObserver())
+        self.strategy.add_observer(ThreadCountObserver(self._output))
+        self.strategy.add_observer(ThreadStateObserver(self._output))
+
+        # Init the 404 detection for this core and scan.
+        self._fingerprint_404_lifecycle.start()
+
+    def _create_scan_runtime(self, scans_completed=0):
         self.strategy = CoreStrategy(
             self, self.knowledge_base, self._output, self._configuration
         )
@@ -284,13 +287,6 @@ class w3afCore:
             scans_completed=scans_completed,
             id_generator=self._id_generator,
         )
-        self.status.start()
-        self.strategy.add_observer(DiskSpaceObserver())
-        self.strategy.add_observer(ThreadCountObserver(self._output))
-        self.strategy.add_observer(ThreadStateObserver(self._output))
-
-        # Init the 404 detection for this core and scan.
-        self._fingerprint_404_lifecycle.start()
 
     def is_404(self, http_response):
         """Return whether a response matches this core's 404 fingerprint."""

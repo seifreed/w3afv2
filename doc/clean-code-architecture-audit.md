@@ -7585,3 +7585,13 @@ Verificación: `test_xurllib_api.py` pasa **23 tests**; el RSS máximo baja de
 **115703808** a **113573888 bytes** frente al commit anterior. Black y Ruff
 pasan; mypy sigue mostrando únicamente errores de dependencias y tipos
 preexistentes del árbol transitivo.
+
+## Actualización verificada: creación única del runtime de scan
+
+`w3afCore.__init__` y `scan_start_hook()` repetían la construcción de
+`CoreStrategy`, `ConsumerMetrics` y `CoreStatus`. `_create_scan_runtime()`
+centraliza esa composición y conserva el reinicio del contador de scans sin
+duplicar el cableado ni alterar los atributos públicos del core.
+
+Verificación: **23 tests** del core y **9 tests con 7 subtests** de estrategia
+pasan; Black y Ruff pasan en el módulo modificado.
