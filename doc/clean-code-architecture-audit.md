@@ -7010,3 +7010,14 @@ por paquete: DB **177 tests**, utilidades **159 tests y 1 omitido**, parsers
 tests correctos y 1 omitido**; no quedan procesos pytest, workers o parsers
 activos tras las ejecuciones. Los únicos avisos son deprecaciones emitidas por
 dependencias externas (`ldap3`, `jsonschema` y `bravado-core`).
+
+## Actualización verificada: contratos de fixtures de plugins
+
+La fixture de `AttackPlugin` configura un `LogSink` y una `Config` reales, y su
+shell de prueba implementa el setter de salida que el flujo de explotación
+utiliza antes de devolver un shell. Esto elimina el falso positivo de una
+fixture parcialmente construida y mantiene el test alineado con el contrato de
+los shells cableados por la capa de plugins.
+
+Verificación: consumers y plugins de controllers pasan **188 tests y 9
+subtests**; el score global continúa en **9.99/10**.

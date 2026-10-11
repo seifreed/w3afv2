@@ -1,8 +1,10 @@
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.constants import severity
+from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.kb.vuln import Vuln
@@ -29,6 +31,8 @@ class unit_attack(AttackPlugin):
 
     def __init__(self, outcomes=None, generate_only_one=False):
         AttackPlugin.__init__(self)
+        self.set_output(om.out)
+        self.set_configuration(Config())
         self.set_knowledge_base(kb)
         self.outcomes = outcomes or []
         self._generate_only_one = generate_only_one
@@ -121,6 +125,9 @@ class TestCanExploit(AttackPluginTestCase):
 
 
 class unit_shell(Shell):
+    def set_output(self, output):
+        self._output = output
+
     def identify_os(self):
         self._rOS = "unit test operating system"
 
