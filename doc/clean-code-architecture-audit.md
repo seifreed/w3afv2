@@ -5919,6 +5919,16 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: cola tipada de content negotiation
+
+`content_negotiation` declara que su cola interna contiene URLs, haciendo
+explícito el límite pequeño de trabajo pendiente y evitando una colección
+dinámica sin contrato. El test directo configura el output real del plugin.
+
+Verificación: content negotiation pasa **5 tests**; Mypy con cuerpos no
+tipados, Ruff y Black pasan en producción y fixture. El score global continúa
+en **9.99/10**.
+
 ## Actualización verificada: estados opcionales en crawl
 
 `find_backdoors` y `DsStore` estrechan sus colaboradores opcionales antes de

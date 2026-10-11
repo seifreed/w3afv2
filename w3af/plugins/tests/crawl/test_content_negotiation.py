@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.crawl.content_negotiation import content_negotiation
@@ -97,6 +98,7 @@ class TestContentNegotiationDisabled(PluginTest):
     def test_stops_negotiating_after_three_failed_tries(self):
         plugin = content_negotiation()
         plugin.set_url_opener(self.w3afcore.uri_opener)
+        plugin.set_output(om.out)
 
         for path in ("", *DISABLED_LINKS):
             plugin.crawl(FuzzableRequest(URL(TARGET_URL + path)), None)

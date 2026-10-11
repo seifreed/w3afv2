@@ -32,6 +32,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
@@ -57,7 +58,7 @@ class content_negotiation(CrawlPlugin):
         #
         # Note that this queue can have ~20 items in the worse case scenario
         # it is not a risk to store it all in memory
-        self._to_bruteforce = queue.Queue()
+        self._to_bruteforce: queue.Queue[URL] = queue.Queue()
 
         # Run N checks to verify if content negotiation is enabled
         self._tries_left = 3
