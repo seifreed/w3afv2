@@ -6990,7 +6990,7 @@ cobertura y gates globales documentadas arriba.
 
 ## Actualización verificada: alcance de la suite y gates globales
 
-La colección completa de pytest termina correctamente con **4851 tests
+La colección completa de pytest termina correctamente con **4856 tests
 colectados**, sin errores de importación o procesos pendientes. La validación
 global posterior mantiene Black en **1659 archivos**, Ruff sin hallazgos y
 Mypy sin errores en **1620 archivos de `w3af`**. `pip-audit` no encuentra
