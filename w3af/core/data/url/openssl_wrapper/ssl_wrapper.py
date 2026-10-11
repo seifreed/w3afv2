@@ -15,31 +15,34 @@ License, Version 2.0 for this file.
 """
 
 import errno
+import importlib
 import io
 import select
 import socket
 import ssl
 import time
+from typing import Any, cast
 
-import OpenSSL
 from cryptography import x509
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509.oid import NameOID
-from OpenSSL.SSL import SysCallError
+
+openssl: Any = importlib.import_module("OpenSSL")
+SysCallError: Any = openssl.SSL.SysCallError
 
 CERT_NONE = ssl.CERT_NONE
 
 # The scanner must be able to connect to targets that only speak older TLS, so
 # this wrapper deliberately defaults to a legacy method. Looked up by name to
 # keep that intent explicit instead of hardcoding the obsolete constant.
-_DEFAULT_SSL_METHOD = OpenSSL.SSL.TLSv1_1_METHOD
+_DEFAULT_SSL_METHOD = openssl.SSL.TLSv1_1_METHOD
 CERT_OPTIONAL = ssl.CERT_OPTIONAL
 CERT_REQUIRED = ssl.CERT_REQUIRED
 
 _openssl_cert_reqs = {
-    CERT_NONE: OpenSSL.SSL.VERIFY_NONE,
-    CERT_OPTIONAL: OpenSSL.SSL.VERIFY_PEER,
-    CERT_REQUIRED: OpenSSL.SSL.VERIFY_PEER | OpenSSL.SSL.VERIFY_FAIL_IF_NO_PEER_CERT,
+    CERT_NONE: openssl.SSL.VERIFY_NONE,
+    CERT_OPTIONAL: openssl.SSL.VERIFY_PEER,
+    CERT_REQUIRED: openssl.SSL.VERIFY_PEER | openssl.SSL.VERIFY_FAIL_IF_NO_PEER_CERT,
 }
 
 NOT_AFTER_FORMAT = "%Y%m%d%H%M%SZ"
@@ -147,7 +150,7 @@ class SSLSocket:
 
             try:
                 self.shutdown()
-            except OpenSSL.SSL.Error as ssl_error:
+            except openssl.SSL.Error as ssl_error:
                 # The connection is already gone, which is what we wanted
                 if not _peer_already_closed(ssl_error):
                     raise
@@ -160,12 +163,12 @@ class SSLSocket:
     def recv(self, *args, **kwargs):
         try:
             return self.ssl_conn.recv(*args, **kwargs)
-        except (OpenSSL.SSL.ZeroReturnError, SysCallError):
+        except (openssl.SSL.ZeroReturnError, SysCallError):
             # empty bytes signal that the other side has closed the connection
             # or that some kind of error happen and no more reads should be
             # done on this socket
             return b""
-        except OpenSSL.SSL.WantReadError:
+        except openssl.SSL.WantReadError:
             rd, _wd, _ed = select.select([self.sock], [], [], self.sock.gettimeout())
             if not rd:
                 # The read timed out: report it as a closed connection
@@ -179,7 +182,7 @@ class SSLSocket:
         while True:
             try:
                 return self.ssl_conn.send(data)
-            except OpenSSL.SSL.WantWriteError:
+            except openssl.SSL.WantWriteError:
                 _, wlist, _ = select.select([], [self.sock], [], self.sock.gettimeout())
                 if not wlist:
                     raise TimeoutError()
@@ -249,23 +252,23 @@ def wrap_socket(
                     socket default, None means no timeout.
     :return: An SSLSocket instance
     """
-    if timeout is socket._GLOBAL_DEFAULT_TIMEOUT:
+    if timeout is cast(Any, socket)._GLOBAL_DEFAULT_TIMEOUT:
         timeout = socket.getdefaulttimeout()
 
     cert_reqs = _openssl_cert_reqs[cert_reqs]
 
-    ctx = OpenSSL.SSL.Context(ssl_version)
+    ctx = openssl.SSL.Context(ssl_version)
 
-    if cert_reqs != OpenSSL.SSL.VERIFY_NONE:
+    if cert_reqs != openssl.SSL.VERIFY_NONE:
         ctx.set_verify(cert_reqs, lambda a, b, err_no, c, d: err_no == 0)
 
     if ca_certs:
         try:
             ctx.load_verify_locations(ca_certs, None)
-        except OpenSSL.SSL.Error as e:
+        except openssl.SSL.Error as e:
             raise ssl.SSLError(f"Bad ca_certs: {ca_certs!r}", e)
 
-    cnx = OpenSSL.SSL.Connection(ctx, sock)
+    cnx = openssl.SSL.Connection(ctx, sock)
 
     # SNI support
     if server_hostname is not None:
@@ -292,7 +295,7 @@ def wrap_socket(
         try:
             cnx.do_handshake()
             break
-        except OpenSSL.SSL.WantReadError:
+        except openssl.SSL.WantReadError:
             in_fds, _out_fds, _err_fds = select.select([sock], [], [], timeout)
             handshake_time = time.time() - time_begin
             if not in_fds or (timeout is not None and handshake_time > timeout):

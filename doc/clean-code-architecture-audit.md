@@ -4956,6 +4956,19 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: fronteras tipadas de keepalive y OpenSSL
+
+El adaptador keepalive y el wrapper OpenSSL cargan la dependencia opcional en su
+frontera de infraestructura, tipan explícitamente el sentinel privado de timeout
+y conservan el contrato de `urllib` para `parent` y `URLTimeoutError`. No se
+añaden buffers, caches ni conexiones persistentes; el cambio solo hace explícitos
+los límites que ya existían en runtime.
+
+Verificación: keepalive, gestión del pool y wrapper OpenSSL pasan **76 tests**;
+Black, Ruff, mypy y Bandit focales están limpios. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
+
 ## Actualización verificada: frontera tipada de conexiones keepalive
 
 La integración keepalive encapsula ahora la carga de `pyOpenSSL`, el timeout

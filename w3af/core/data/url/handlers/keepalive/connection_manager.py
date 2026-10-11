@@ -1,13 +1,14 @@
+import importlib
 import logging
 import threading
 import time
-
-import OpenSSL
+from typing import Any
 
 from w3af.core.data.url.exceptions import ConnectionPoolException
 from w3af.core.data.url.handlers.keepalive.utils import debug
 
 LOGGER = logging.getLogger(__name__)
+openssl: Any = importlib.import_module("OpenSSL")
 
 
 def _oldest_request_first(conn):
@@ -62,7 +63,7 @@ class ConnectionManager:
         # Just make sure we don't leak open connections
         try:
             conn.close()
-        except (OSError, OpenSSL.SSL.Error):
+        except (OSError, openssl.SSL.Error):
             # The remote end might have closed (or broken) the connection
             # before we do. We continue as if nothing happen, because our goal
             # is to have a closed connection, and we already got that.

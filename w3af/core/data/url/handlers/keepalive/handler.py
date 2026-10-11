@@ -28,6 +28,7 @@ modifications are:
 """
 
 import http.client
+import importlib
 import re
 import socket
 import threading
@@ -36,8 +37,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from email.base64mime import header_encode
-
-import OpenSSL
+from typing import Any, cast
 
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -53,6 +53,8 @@ from .utils import debug, error, request_body_bytes, to_utf8_raw
 # Same header validation rules http.client.putheader() enforces (RFC 7230)
 LEGAL_HEADER_NAME_RE = re.compile(rb"[^:\s][^:\r\n]*")
 ILLEGAL_HEADER_VALUE_RE = re.compile(rb"\n(?![ \t])|\r(?![ \t\n])")
+openssl: Any = importlib.import_module("OpenSSL")
+_DEFAULT_TIMEOUT = cast(Any, socket)._GLOBAL_DEFAULT_TIMEOUT
 
 
 class URLTimeoutError(urllib.error.URLError):
@@ -61,7 +63,7 @@ class URLTimeoutError(urllib.error.URLError):
     """
 
     def __init__(self):
-        urllib.error.URLError.__init__(self, (408, "timeout"))
+        urllib.error.URLError.__init__(self, cast(Any, (408, "timeout")))
 
     def __str__(self):
         default_timeout = socket.getdefaulttimeout()
@@ -93,7 +95,7 @@ class KeepAliveHandler:
 
         # Typically a urllib2.OpenerDirector instance. Set by the
         # urllib2 mechanism.
-        self.parent = None
+        self.parent: Any = None
         self._pool_lock = threading.RLock()
         # Map hosts to a `collections.deque` of response status.
         self._hostresp = {}
@@ -228,8 +230,8 @@ class KeepAliveHandler:
         except (
             OSError,
             http.client.HTTPException,
-            OpenSSL.SSL.ZeroReturnError,
-            OpenSSL.SSL.SysCallError,
+            openssl.SSL.ZeroReturnError,
+            openssl.SSL.SysCallError,
         ) as e:
             # The server most likely closed the connection since we last used
             # it: socket errors, a clean TLS close (ZeroReturnError) or the
@@ -280,7 +282,7 @@ class KeepAliveHandler:
             return
 
         timeout = request.get_timeout()
-        if timeout is socket._GLOBAL_DEFAULT_TIMEOUT:
+        if timeout is _DEFAULT_TIMEOUT:
             timeout = socket.getdefaulttimeout()
 
         conn.sock.settimeout(timeout)
@@ -309,7 +311,8 @@ class KeepAliveHandler:
             data = request_body_bytes(data)
 
         # Add headers
-        header_dict = dict(self.parent.addheaders)
+        parent = cast(urllib.request.OpenerDirector, self.parent)
+        header_dict = dict(parent.addheaders)
         header_dict.update(req.headers)
         header_dict.update(req.unredirected_hdrs)
 
