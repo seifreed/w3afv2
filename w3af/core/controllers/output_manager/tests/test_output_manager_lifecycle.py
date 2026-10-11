@@ -254,15 +254,14 @@ class TestOutputManagerPlugins(unittest.TestCase):
 
     def test_stop_releases_standalone_plugin_database(self):
         manager = OutputManager()
-        plugin = manager._get_plugin_instance("xml_file")
-        manager.set_output_plugin_inst(plugin)
-        database = manager._standalone_database
+        manager.set_output_plugins(["xml_file"])
+        (plugin,) = manager.get_output_plugin_inst()
+        database = plugin._errors.db
 
         if database is None:
             raise AssertionError("The output manager did not create a database")
         manager.stop()
 
-        self.assertIsNone(manager._standalone_database)
         self.assertTrue(database.sql_executor.get_received_poison_pill())
 
     def test_end_raises_first_plugin_exception_after_ending_all(self):
@@ -317,7 +316,7 @@ class TestOutputManagerPlugins(unittest.TestCase):
 
         manager.set_output_plugins(["console"])
 
-        self.assertIsNone(manager._standalone_database)
+        self.assertFalse(manager.has_standalone_database())
 
     def test_all_enables_every_output_plugin(self):
         manager = OutputManager()

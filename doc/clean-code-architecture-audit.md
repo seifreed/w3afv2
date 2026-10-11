@@ -7813,3 +7813,17 @@ solo delega el cierre y mantiene la API pública existente.
 Verificación: **66 tests** de core, plugins y parada pasan; los tests existentes
 de quit idempotente siguen verdes. El nuevo lifecycle pasa mypy dirigido, Black
 y Ruff.
+
+## Actualización verificada: runtime de plugins de output aislado
+
+`OutputPluginRegistry` pasó a ser dueño de las instancias, nombres, opciones,
+descubrimiento dinámico y bases temporales de los plugins de output.
+`OutputManager` conserva la cola, el proceso consumidor, el flush y el
+dispatch, y delega el lifecycle de plugins mediante una frontera explícita.
+Esto reduce su tamaño de 614 a 501 líneas y hace visible la liberación de la
+base standalone.
+
+Verificación: **108 tests** de output, recording, plugins, core y múltiples
+instancias pasan; el mypy dirigido del manager y registry no tiene errores,
+Black/Ruff pasan y la prueba de capas se mantiene verde. Persisten únicamente
+warnings deprecados de dependencias externas.

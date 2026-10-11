@@ -22,28 +22,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import multiprocessing
-import os
 import queue
 import sys
 import threading
 import time
 from functools import wraps
-from importlib import import_module
 from multiprocessing.dummy import Process
-from weakref import ReferenceType, proxy, ref
+from weakref import ReferenceType, ref
 
-from w3af import ROOT_PATH
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.status import CoreStatus
-from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.output_manager.log_sink import LogSink
-from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+from w3af.core.controllers.output_manager.output_plugin_registry import (
+    OutputPluginRegistry,
+)
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool
-from w3af.core.data.db.dbms import (
-    SQLiteDBMS,
-    create_temp_db_instance,
-)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -119,17 +113,11 @@ class OutputManager(Process):
         self.daemon = True
         self.name = "OutputManager"
 
-        # User configured options
-        self._output_plugin_instances = []
-        self._output_plugin_names = []
-        self._plugin_options = {}
-
         # Internal variables
         self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
         self._w3af_core = None
-        self._standalone_database: SQLiteDBMS | None = None
         self._output: LogSink | None = None
-        self._knowledge_base = None
+        self._plugin_registry = OutputPluginRegistry(self._get_w3af_core)
         self._flush_timeout = flush_timeout
         self._last_output_flush = None
         self._is_shutting_down = False
@@ -144,6 +132,7 @@ class OutputManager(Process):
     def set_output(self, output: LogSink) -> None:
         """Register the sink whose queue is owned by this manager."""
         self._output = output
+        self._plugin_registry.set_output(output)
 
     def _get_w3af_core(self):
         if isinstance(self._w3af_core, ReferenceType):
@@ -151,7 +140,10 @@ class OutputManager(Process):
         return self._w3af_core
 
     def set_knowledge_base(self, knowledge_base):
-        self._knowledge_base = knowledge_base
+        self._plugin_registry.set_knowledge_base(knowledge_base)
+
+    def has_standalone_database(self) -> bool:
+        return self._plugin_registry.has_standalone_database()
 
     def get_worker_pool(self):
         if self._worker_pool is None and not self._worker_pool_closed:
@@ -190,7 +182,7 @@ class OutputManager(Process):
         self.close_worker_pool()
         self.in_queue.cancel_join_thread()
         self.in_queue.close()
-        self._close_standalone_database()
+        self._plugin_registry.close_standalone_database()
 
     def run(self):
         """
@@ -278,7 +270,7 @@ class OutputManager(Process):
 
         self.update_last_output_flush()
 
-        for o_plugin in self._output_plugin_instances:
+        for o_plugin in self._plugin_registry.get_instances():
             pool.apply_async(func=self.__inner_flush_plugin_output, args=(o_plugin,))
 
     def __inner_flush_plugin_output(self, o_plugin):
@@ -404,9 +396,8 @@ class OutputManager(Process):
         #
         # We want all plugin instances to get the chance to run their .end()
         # and we also don't want to ignore exceptions
-        output_plugins = self._output_plugin_instances
-        self._output_plugin_instances = []
-        self._end_output_plugin_instances(output_plugins)
+        output_plugins = self._plugin_registry.take_instances()
+        self._plugin_registry.end_instances(output_plugins)
 
         # This is a neat trick which basically removes all plugin references
         # from memory. Those plugins might have pointers to memory parts that
@@ -423,38 +414,10 @@ class OutputManager(Process):
             pname for pname in currently_enabled_plugins if pname in ("console",)
         ]
         self.set_output_plugins(keep_enabled)
-        self._close_standalone_database()
+        self._plugin_registry.close_standalone_database()
 
         # Process messages again, we removed the plugins which were ended
         self._is_shutting_down = False
-
-    def _end_output_plugin_instances(self, output_plugins):
-        """Release output plugin resources and preserve the first failure."""
-        first_exception = None
-        for output_plugin in output_plugins:
-            try:
-                output_plugin.end()
-            except Exception as exception:
-                LOGGER.debug("Output plugin end() failed", exc_info=True)
-                if first_exception is None:
-                    first_exception = exception
-
-        if first_exception is not None:
-            raise first_exception
-
-    def _get_standalone_database(self):
-        if self._standalone_database is None:
-            self._standalone_database = create_temp_db_instance()
-        return self._standalone_database
-
-    def _close_standalone_database(self):
-        database = self._standalone_database
-        if database is None:
-            return
-
-        if not database.sql_executor.get_received_poison_pill():
-            database.close()
-        self._standalone_database = None
 
     @start_thread_on_demand
     def log_enabled_plugins(self, enabled_plugins, plugins_options):
@@ -469,7 +432,7 @@ class OutputManager(Process):
         :param plugins_options: As defined in the w3afCore, looks similar to:
                    {'audit':{},'grep':{},'bruteforce':{},'crawl':{},...}
         """
-        for o_plugin in self._output_plugin_instances:
+        for o_plugin in self._plugin_registry.get_instances():
             o_plugin.log_enabled_plugins(enabled_plugins, plugins_options)
 
     def _call_output_plugins_action(self, action_name, *args, **kwds):
@@ -498,7 +461,7 @@ class OutputManager(Process):
         #
         ignored_plugins = kwds.pop("ignore_plugins", set())
 
-        for o_plugin in self._output_plugin_instances:
+        for o_plugin in self._plugin_registry.get_instances():
 
             if o_plugin.get_name() in ignored_plugins:
                 continue
@@ -511,13 +474,13 @@ class OutputManager(Process):
                 self._handle_output_plugin_exception(o_plugin, exception)
 
     def set_output_plugin_inst(self, output_plugin_inst):
-        self._output_plugin_instances.append(output_plugin_inst)
+        self._plugin_registry.add_instance(output_plugin_inst)
 
     def remove_output_plugin_inst(self, output_plugin_inst):
-        self._output_plugin_instances.remove(output_plugin_inst)
+        self._plugin_registry.remove_instance(output_plugin_inst)
 
     def get_output_plugin_inst(self):
-        return list(self._output_plugin_instances)
+        return self._plugin_registry.get_instances()
 
     def set_output_plugins(self, output_plugins):
         """
@@ -525,19 +488,10 @@ class OutputManager(Process):
                                will be used.
         :return: No value is returned.
         """
-        previous_plugins = self._output_plugin_instances
-        self._output_plugin_instances = []
-        try:
-            self._end_output_plugin_instances(previous_plugins)
-        finally:
-            self._close_standalone_database()
-        self._output_plugin_names = list(output_plugins)
-
-        for plugin_name in self._output_plugin_names:
-            self._add_output_plugin(plugin_name)
+        self._plugin_registry.set_plugins(output_plugins)
 
     def get_output_plugins(self):
-        return list(self._output_plugin_names)
+        return self._plugin_registry.get_plugins()
 
     def set_plugin_options(self, plugin_name, plugin_options):
         """
@@ -547,68 +501,4 @@ class OutputManager(Process):
 
         :return: No value is returned.
         """
-        self._plugin_options[plugin_name] = plugin_options
-
-    def _add_output_plugin(self, output_plugin_name):
-        """
-        Takes a string with the OutputPluginName, creates the object and
-        adds it to the OutputPluginName
-
-        :param output_plugin_name: The name of the plugin to add to the list.
-        :return: No value is returned.
-        """
-        if output_plugin_name == "all":
-            file_list = os.listdir(os.path.join(ROOT_PATH, "plugins", "output"))
-
-            sext = os.path.splitext
-            str_req_plugins = []
-            for filename in file_list:
-                plugin_name, extension = sext(filename)
-                if extension != ".py" or plugin_name == "__init__":
-                    continue
-
-                module = import_module(f"w3af.plugins.output.{plugin_name}")
-                plugin_class = getattr(module, plugin_name, None)
-                if isinstance(plugin_class, type) and issubclass(
-                    plugin_class, OutputPlugin
-                ):
-                    str_req_plugins.append(plugin_name)
-
-            for plugin_name in str_req_plugins:
-                plugin = self._get_plugin_instance(plugin_name)
-                self._output_plugin_instances.append(plugin)
-
-        else:
-            plugin = self._get_plugin_instance(output_plugin_name)
-            self._output_plugin_instances.append(plugin)
-
-    def _get_plugin_instance(self, plugin_name):
-        w3af_core = self._get_w3af_core()
-        module = import_module(f"w3af.plugins.output.{plugin_name}")
-        plugin_class = getattr(module, plugin_name)
-        if w3af_core is None:
-            if getattr(plugin_class, "uses_database", False):
-                plugin = factory(
-                    f"w3af.plugins.output.{plugin_name}",
-                    self._get_standalone_database(),
-                )
-            else:
-                plugin = factory(f"w3af.plugins.output.{plugin_name}")
-        else:
-            if getattr(plugin_class, "uses_database", False):
-                plugin = factory(
-                    f"w3af.plugins.output.{plugin_name}", w3af_core.database
-                )
-            else:
-                plugin = factory(f"w3af.plugins.output.{plugin_name}")
-        plugin.set_w3af_core(proxy(w3af_core) if w3af_core is not None else None)
-        plugin.set_output(self._output)
-        if w3af_core is not None:
-            plugin.set_configuration(w3af_core.configuration)
-        if self._knowledge_base is not None:
-            plugin.set_knowledge_base(self._knowledge_base)
-
-        if plugin_name in list(self._plugin_options.keys()):
-            plugin.set_options(self._plugin_options[plugin_name])
-
-        return plugin
+        self._plugin_registry.set_plugin_options(plugin_name, plugin_options)

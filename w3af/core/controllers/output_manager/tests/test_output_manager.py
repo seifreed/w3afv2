@@ -33,7 +33,6 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.w3af_core import w3afCore
-from w3af.plugins.output.console import console
 from w3af.plugins.output.text_file import text_file
 
 
@@ -63,10 +62,10 @@ class TestOutputManager(unittest.TestCase):
             manager = om.fresh_output_manager_inst()
             output = log_sink_factory(manager.get_in_queue())
 
-        self.plugin = console()
+        manager.set_output_plugins(["console"])
+        (self.plugin,) = manager.get_output_plugin_inst()
         self.plugin.verbose = True
         self.plugin.use_colors = False
-        manager._output_plugin_instances = [self.plugin]
 
     def _run_output_action(self, action, message, new_line=True, **kwargs):
         output = StringIO()
@@ -152,8 +151,6 @@ class TestOutputManager(unittest.TestCase):
 
     def test_output_manager_multiprocessing(self):
         msg = "Sent from a different process"
-
-        om.manager._output_plugin_instances = [self.plugin]
 
         log_queue = om.manager.get_in_queue()
         output = StringIO()
