@@ -102,7 +102,8 @@ class TestLogin(GithubApiTestCase):
 
         self.assertIsNotNone(issues.gh)
         request = self.api.last_request
-        self.assertIsNotNone(request)
+        if request is None:
+            raise AssertionError("The login request was not recorded")
         self.assertEqual(request.route, "/user/repos")
         self.assertIn(CREDENTIAL, request.headers["Authorization"])
 
@@ -214,6 +215,7 @@ class TestReportBug(GithubApiTestCase):
 
         body = self.created_issue()["body"]
         match = re.search(r"```\n(.*?)\n```", body, re.DOTALL)
-        self.assertIsNotNone(match)
+        if match is None:
+            raise AssertionError("The issue body has no version information")
         self.assertIn("Python version:", match.group(1))
         self.assertIn("w3af version:", match.group(1))

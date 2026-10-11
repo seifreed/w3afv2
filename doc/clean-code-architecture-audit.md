@@ -7322,3 +7322,14 @@ responsabilidad: catálogo rápido o configuración completa de runtime.
 Verificación: **36 tests** de catálogo, fábrica y resolución pasan; Black,
 Ruff y mypy focalizado pasan en los dos módulos modificados. Se eliminan 18
 líneas duplicadas sin cambiar la API pública.
+
+## Actualización verificada: estrechamiento de tipos en tests
+
+Cuatro tests dependían de `assertIsNotNone` o `assertIsInstance` para estrechar
+tipos, pero mypy no puede inferir esas garantías desde métodos de
+`unittest`. Ahora las precondiciones fallan explícitamente antes de acceder al
+valor, sin supresiones ni aserciones optimizables.
+
+Verificación: **69 tests** afectados pasan; `mypy --check-untyped-defs w3af`
+pasa en **1625 archivos fuente**, además de Black y Ruff en los cuatro
+módulos modificados.

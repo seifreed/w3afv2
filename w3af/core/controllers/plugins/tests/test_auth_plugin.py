@@ -156,7 +156,8 @@ class TestLogMessages(AuthPluginTestCase):
         plugin._set_debugging_id(None)
 
         debugging_id = plugin._debugging_id
-        self.assertIsNotNone(debugging_id)
+        if debugging_id is None:
+            raise AssertionError("The plugin did not generate a debugging ID")
         self.assertRegex(debugging_id, r"^[a-zA-Z0-9]{8}$")
 
 
