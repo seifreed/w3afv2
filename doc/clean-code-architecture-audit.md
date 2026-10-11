@@ -6137,3 +6137,14 @@ modelos XML sin añadir conversiones ni duplicar campos.
 Verificación: `dotdict` pasa **2 tests** y XML output **32 tests**; Mypy con
 cuerpos no tipados, Ruff y Black pasan en los módulos relacionados. El score
 global continúa en **9.99/10**.
+
+## Actualización verificada: contrato de ejecución Windows
+
+`winVd._exec_payload` coincide ahora con la firma de `vdaemon` y `lnxVd`, y
+usa el fichero remoto recibido por parámetro para ejecutar o programar el
+payload. Se elimina la dependencia implícita del atributo interno sin cambiar
+el flujo de ejecución.
+
+Verificación: Mypy con cuerpos no tipados, Ruff, Black y compilación pasan en
+los tres módulos `vdaemon`; no existe una suite específica de `vdaemon` en el
+árbol actual. El score global continúa en **9.99/10**.
