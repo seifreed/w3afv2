@@ -6866,3 +6866,15 @@ se mantiene como política estática de las implementaciones concretas.
 Verificación: Mypy, Ruff y Black pasan en los cinco módulos del flujo; la
 batería de shells, payloads y consola pasa **75 tests**. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: cleanup de pools en tests de threads
+
+Los casos de `test_threadpool` crean ahora todos sus pools mediante un helper
+que registra `terminate_join()` como cleanup de `unittest`. Esto libera workers,
+colas y resultados pendientes aunque una aserción falle y evita que la memoria
+retenida por una prueba se acumule en las siguientes.
+
+Verificación: Black y Ruff pasan en el archivo modificado, la batería focalizada
+pasa **14 tests** y la batería completa de threads pasa **60 tests** sin dejar
+procesos `pytest` o workers de pool activos. El score global continúa en
+**9.99/10**.

@@ -36,9 +36,13 @@ def delay():
 
 
 class TestWorkerPool(unittest.TestCase):
+    def new_pool(self, *args, **kwargs):
+        pool = Pool(*args, **kwargs)
+        self.addCleanup(pool.terminate_join)
+        return pool
+
     def test_exceptions(self):
-        worker_pool = Pool(3, worker_names="WorkerThread")
-        self.addCleanup(worker_pool.terminate_join)
+        worker_pool = self.new_pool(3, worker_names="WorkerThread")
 
         def raise_on_1(foo):
             if foo == 1:
@@ -58,7 +62,9 @@ class TestWorkerPool(unittest.TestCase):
             self.assertIn('raise TypeError(f"{foo} Boom!")', traceback_string)
 
     def test_terminate_join_after_tasks(self):
-        worker_pool = Pool(processes=4, worker_names="WorkerThread", maxtasksperchild=3)
+        worker_pool = self.new_pool(
+            processes=4, worker_names="WorkerThread", maxtasksperchild=3
+        )
 
         for _ in range(12):
             result = worker_pool.apply_async(func=noop)
@@ -67,7 +73,9 @@ class TestWorkerPool(unittest.TestCase):
         worker_pool.terminate_join()
 
     def test_get_pool_queue_sizes(self):
-        worker_pool = Pool(processes=4, worker_names="WorkerThread", maxtasksperchild=3)
+        worker_pool = self.new_pool(
+            processes=4, worker_names="WorkerThread", maxtasksperchild=3
+        )
 
         for _ in range(12):
             worker_pool.apply_async(func=delay)
@@ -79,7 +87,9 @@ class TestWorkerPool(unittest.TestCase):
         worker_pool.terminate_join()
 
     def test_output_pool_size(self):
-        worker_pool = Pool(processes=4, worker_names="WorkerThread", maxtasksperchild=3)
+        worker_pool = self.new_pool(
+            processes=4, worker_names="WorkerThread", maxtasksperchild=3
+        )
 
         results = []
 
@@ -97,22 +107,24 @@ class TestWorkerPool(unittest.TestCase):
         worker_pool.terminate_join()
 
     def test_terminate_terminate(self):
-        worker_pool = Pool(1, worker_names="WorkerThread")
+        worker_pool = self.new_pool(1, worker_names="WorkerThread")
         worker_pool.terminate()
         worker_pool.terminate()
 
     def test_close_terminate(self):
-        worker_pool = Pool(1, worker_names="WorkerThread")
+        worker_pool = self.new_pool(1, worker_names="WorkerThread")
         worker_pool.close()
         worker_pool.terminate()
 
     def test_terminate_join(self):
-        worker_pool = Pool(1, worker_names="WorkerThread")
+        worker_pool = self.new_pool(1, worker_names="WorkerThread")
         worker_pool.terminate()
         worker_pool.join()
 
     def test_decrease_number_of_workers(self):
-        worker_pool = Pool(processes=4, worker_names="WorkerThread", maxtasksperchild=3)
+        worker_pool = self.new_pool(
+            processes=4, worker_names="WorkerThread", maxtasksperchild=3
+        )
 
         self.assertEqual(worker_pool.get_worker_count(), 4)
 
@@ -137,7 +149,9 @@ class TestWorkerPool(unittest.TestCase):
         worker_pool.join()
 
     def test_increase_number_of_workers(self):
-        worker_pool = Pool(processes=2, worker_names="WorkerThread", maxtasksperchild=3)
+        worker_pool = self.new_pool(
+            processes=2, worker_names="WorkerThread", maxtasksperchild=3
+        )
 
         self.assertEqual(worker_pool.get_worker_count(), 2)
 
@@ -156,18 +170,18 @@ class TestWorkerPool(unittest.TestCase):
         worker_pool.join()
 
     def test_change_number_of_workers_requirement(self):
-        worker_pool = Pool(processes=2, worker_names="WorkerThread")
+        worker_pool = self.new_pool(2, worker_names="WorkerThread")
         self.assertRaises(RuntimeError, worker_pool.set_worker_count, 3)
 
     def test_worker_stats_idle(self):
-        worker_pool = Pool(processes=1, worker_names="WorkerThread")
+        worker_pool = self.new_pool(1, worker_names="WorkerThread")
         func_name, func_args = worker_pool._pool[0].worker.get_real_func_name_args()
         self.assertIsNone(func_name)
         self.assertIsNone(func_args)
         self.assertTrue(worker_pool._pool[0].worker.is_idle())
 
     def test_worker_stats_not_idle(self):
-        worker_pool = Pool(processes=1, worker_names="WorkerThread")
+        worker_pool = self.new_pool(1, worker_names="WorkerThread")
 
         def sleep(sleep_time, **kwargs):
             time.sleep(sleep_time)
@@ -188,7 +202,7 @@ class TestWorkerPool(unittest.TestCase):
         self.assertGreater(worker_pool._pool[0].worker.job, 1)
 
     def test_inspect_threads(self):
-        worker_pool = Pool(processes=1, worker_names="WorkerThread")
+        worker_pool = self.new_pool(1, worker_names="WorkerThread")
 
         def sleep(sleep_time, **kwargs):
             time.sleep(sleep_time)
@@ -211,7 +225,7 @@ class TestWorkerPool(unittest.TestCase):
         self.assertEqual(worker_state["idle"], False)
 
     def test_max_queued_tasks(self):
-        worker_pool = Pool(processes=1, max_queued_tasks=2)
+        worker_pool = self.new_pool(1, max_queued_tasks=2)
 
         # These tasks should be queued very fast
         worker_pool.apply_async(func=time.sleep, args=(2,))
