@@ -25,6 +25,7 @@ import unittest
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    REMOTE_LINUX_TEMP_DIR,
     get_remote_temp_file,
     os_detection_exec,
 )
@@ -74,7 +75,7 @@ class TestExecHelpers(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "Needs a Linux host")
     def test_get_remote_temp_file_local_linux(self):
         tempfile = get_remote_temp_file(subprocess.getoutput, om.out)
-        self.assertTrue(tempfile.startswith("/tmp/"))
+        self.assertTrue(tempfile.startswith(f"{REMOTE_LINUX_TEMP_DIR}/"))
 
     def test_os_detection_exec_linux(self):
         os = os_detection_exec(RemoteShell(LINUX_SHELL), om.out)
@@ -94,7 +95,7 @@ class TestExecHelpers(unittest.TestCase):
 
     def test_get_remote_temp_file_linux(self):
         tempfile = get_remote_temp_file(RemoteShell(LINUX_SHELL), om.out)
-        self.assertTrue(tempfile.startswith("/tmp/"))
+        self.assertTrue(tempfile.startswith(f"{REMOTE_LINUX_TEMP_DIR}/"))
 
     def test_get_remote_temp_file_windows(self):
         tempfile = get_remote_temp_file(RemoteShell(WINDOWS_SHELL), om.out)

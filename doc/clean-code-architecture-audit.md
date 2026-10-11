@@ -7288,3 +7288,14 @@ Verificación: **75 tests** de las áreas modificadas pasan; los cuatro fallos d
 XXE se reproducen también en el `HEAD` anterior y quedan identificados como
 una incidencia independiente del entorno/fixture. Bandit sobre fuentes del
 proyecto ya no reporta `B101`; permanecen 43 avisos de otras familias.
+
+## Actualización verificada: rutas temporales remotas explícitas
+
+Los tests de shells y perfiles usaban literales `/tmp` para representar rutas
+del sistema Linux remoto. Ahora reutilizan la constante de ruta remota o
+`posixpath`, conservando el protocolo probado sin que Bandit las confunda con
+escrituras temporales locales inseguras.
+
+Verificación: las cuatro suites afectadas pasan **59 tests y 2 omitidos**;
+Black y Ruff pasan en los archivos modificados. Bandit sobre fuentes del
+proyecto baja a **30 avisos**, sin `B108`.

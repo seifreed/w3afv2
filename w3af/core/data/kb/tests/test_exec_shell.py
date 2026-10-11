@@ -26,6 +26,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    REMOTE_LINUX_TEMP_DIR,
+)
 from w3af.core.data.kb.exec_shell import NO_TRANSFER_HANDLER_MSG, ExecShell
 from w3af.core.data.kb.shell import NO_PAYLOAD_HANDLER_MSG
 from w3af.core.data.kb.tests.local_shells import (
@@ -62,7 +65,10 @@ class TestExecShell(unittest.TestCase):
 
     def test_help_specific_commands(self):
         self.assertIn("read /etc/passwd", self.shell.help("read"))
-        self.assertIn("download /etc/passwd /tmp/passwd", self.shell.help("download"))
+        self.assertIn(
+            f"download /etc/passwd {REMOTE_LINUX_TEMP_DIR}/passwd",
+            self.shell.help("download"),
+        )
 
     def test_execute_is_abstract(self):
         shell = ExecShell(MockVuln(), None, None)
@@ -74,7 +80,10 @@ class TestExecShell(unittest.TestCase):
         # data layer, so the shell degrades gracefully instead of importing the
         # outer layers.
         self.assertEqual(self.shell._print_runnable_payloads(), NO_PAYLOAD_HANDLER_MSG)
-        self.assertEqual(self.shell.write("/tmp/x", "data"), NO_TRANSFER_HANDLER_MSG)
+        self.assertEqual(
+            self.shell.write(f"{REMOTE_LINUX_TEMP_DIR}/x", "data"),
+            NO_TRANSFER_HANDLER_MSG,
+        )
 
         self.shell.identify_os()
         self.assertEqual(self.shell.get_remote_user(), "unknown")
@@ -149,7 +158,10 @@ class TestExecShell(unittest.TestCase):
 
     def test_upload_missing_local_file(self):
         self.assertEqual(
-            self.shell.upload(str(Path(self.directory, "missing")), "/tmp/remote"),
+            self.shell.upload(
+                str(Path(self.directory, "missing")),
+                f"{REMOTE_LINUX_TEMP_DIR}/remote",
+            ),
             "Failed to open local file for reading.",
         )
 
@@ -158,14 +170,16 @@ class TestExecShell(unittest.TestCase):
         local.write_text("content")
 
         self.assertEqual(
-            self.shell.upload(str(local), "/tmp/remote"), NO_TRANSFER_HANDLER_MSG
+            self.shell.upload(str(local), f"{REMOTE_LINUX_TEMP_DIR}/remote"),
+            NO_TRANSFER_HANDLER_MSG,
         )
 
     def test_write_without_transfer_methods(self):
         self.shell._payload_transfer_factory = TransferFactory()
 
         self.assertEqual(
-            self.shell.write("/tmp/remote", "data"), "No transfer method is available."
+            self.shell.write(f"{REMOTE_LINUX_TEMP_DIR}/remote", "data"),
+            "No transfer method is available.",
         )
 
     def test_write_with_failing_transfer_handler(self):
@@ -173,7 +187,7 @@ class TestExecShell(unittest.TestCase):
         self.shell._payload_transfer_factory = TransferFactory(handler)
 
         self.assertEqual(
-            self.shell.write("/tmp/remote", "data"),
+            self.shell.write(f"{REMOTE_LINUX_TEMP_DIR}/remote", "data"),
             "Failed to transfer, the transfer handler failed.",
         )
 
@@ -185,11 +199,11 @@ class TestExecShell(unittest.TestCase):
         local.write_text("uploaded content")
 
         self.assertEqual(
-            self.shell.write("/tmp/written.txt", "written content"),
+            self.shell.write(f"{REMOTE_LINUX_TEMP_DIR}/written.txt", "written content"),
             "File upload was successful.",
         )
         self.assertEqual(
-            self.shell.upload(str(local), "/tmp/uploaded.txt"),
+            self.shell.upload(str(local), f"{REMOTE_LINUX_TEMP_DIR}/uploaded.txt"),
             "File upload was successful.",
         )
 
@@ -218,11 +232,15 @@ class TestExecShell(unittest.TestCase):
         local.write_text("content")
 
         self.assertEqual(
-            self.shell.generic_user_input("write", ["/tmp/x", "data"]),
+            self.shell.generic_user_input(
+                "write", [f"{REMOTE_LINUX_TEMP_DIR}/x", "data"]
+            ),
             NO_TRANSFER_HANDLER_MSG,
         )
         self.assertEqual(
-            self.shell.generic_user_input("upload", [str(local), "/tmp/x"]),
+            self.shell.generic_user_input(
+                "upload", [str(local), f"{REMOTE_LINUX_TEMP_DIR}/x"]
+            ),
             NO_TRANSFER_HANDLER_MSG,
         )
 

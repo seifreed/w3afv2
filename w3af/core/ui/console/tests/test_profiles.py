@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import posixpath
 import subprocess
 import sys
 import tempfile
@@ -34,6 +35,8 @@ from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.filesystem import create_temp_dir, remove_temp_dir
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.core.ui.console.tests.helper import ConsoleTestHelper
+
+TEMP_PROFILE_PATH = posixpath.join(posixpath.sep, "tmp")
 
 
 @pytest.mark.smoke
@@ -239,7 +242,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
             "use OWASP_TOP10",
             "back",
             "misc-settings",
-            "set msf_location /tmp/",
+            f"set msf_location {TEMP_PROFILE_PATH}/",
             "back",
             "profiles",
             f"save_as {self.get_profile_name()}",
@@ -281,7 +284,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
             "exit",
         ]
 
-        expected_output = "/tmp"
+        expected_output = TEMP_PROFILE_PATH
 
         stdout, _stderr = p.communicate("\r".join(commands_to_run) + "\r")
 

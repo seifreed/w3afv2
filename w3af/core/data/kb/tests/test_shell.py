@@ -24,6 +24,9 @@ import copy
 import socket
 import unittest
 
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    REMOTE_LINUX_TEMP_DIR,
+)
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.shell import NO_PAYLOAD_HANDLER_MSG, Shell
 from w3af.core.data.kb.tests.local_shells import LocalExecShell, payload_catalog
@@ -131,7 +134,8 @@ class TestShellPayloads(unittest.TestCase):
     def test_help_command(self):
         self.assertIn("Available commands", self.shell.generic_user_input("help", []))
         self.assertIn(
-            "/tmp/passwd", self.shell.generic_user_input("help", ["download"])
+            f"{REMOTE_LINUX_TEMP_DIR}/passwd",
+            self.shell.generic_user_input("help", ["download"]),
         )
 
     def test_list_runnable_payloads(self):
