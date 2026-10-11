@@ -99,6 +99,8 @@ class TestOutputManagerRun(unittest.TestCase):
 
         self.addCleanup(manager.stop)
         self.assertIs(output.om_queue, manager.get_in_queue())
+        manager.stop()
+        self.assertTrue(output._closed)
 
     def started_manager(self, *plugins, flush_timeout=OutputManager.FLUSH_TIMEOUT):
         manager = OutputManager(flush_timeout=flush_timeout)
@@ -416,6 +418,15 @@ class TestLogSink(unittest.TestCase):
         args, kwargs = messages.get(timeout=WAIT_SECONDS)
         self.assertEqual(args, ("vulnerability", finding.get_desc()))
         self.assertEqual(kwargs, {"severity": finding.get_severity()})
+
+    def test_closed_sink_discards_messages_without_touching_the_queue(self):
+        messages = queue.Queue()
+        sink = LogSink(messages)
+
+        sink.close()
+        sink.debug("ignored after orderly shutdown")
+
+        self.assertTrue(messages.empty())
 
     def test_closed_queue_loses_the_message(self):
         closed_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())

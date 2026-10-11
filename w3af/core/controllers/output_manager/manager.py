@@ -35,6 +35,7 @@ from weakref import ReferenceType, proxy, ref
 from w3af import ROOT_PATH
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool
@@ -126,7 +127,7 @@ class OutputManager(Process):
         self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
         self._w3af_core = None
         self._standalone_database: SQLiteDBMS | None = None
-        self._output = None
+        self._output: LogSink | None = None
         self._knowledge_base = None
         self._flush_timeout = flush_timeout
         self._last_output_flush = None
@@ -136,8 +137,12 @@ class OutputManager(Process):
 
     def set_w3af_core(self, w3af_core, output):
         self._w3af_core = ref(w3af_core)
-        self._output = output
+        self.set_output(output)
         self.set_knowledge_base(w3af_core.knowledge_base)
+
+    def set_output(self, output: LogSink) -> None:
+        """Register the sink whose queue is owned by this manager."""
+        self._output = output
 
     def _get_w3af_core(self):
         if isinstance(self._w3af_core, ReferenceType):
@@ -174,6 +179,9 @@ class OutputManager(Process):
 
     def stop(self):
         """Stop the manager and release all resources it owns."""
+        if self._output is not None:
+            self._output.close()
+
         if self.is_alive():
             self.in_queue.put(POISON_PILL)
             self.join()

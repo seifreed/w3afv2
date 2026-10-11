@@ -4956,6 +4956,19 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: cierre explícito del `LogSink`
+
+`OutputManager` registra el sink que posee, lo cierra de forma idempotente antes
+de cerrar su cola y la fábrica standalone conecta ambos recursos. Los sinks
+globales también se marcan como cerrados durante el teardown. Un cierre
+ordenado descarta mensajes tardíos sin tocar una cola cerrada; un cierre externo
+inesperado conserva el aviso existente para no ocultar pérdida de mensajes.
+
+Verificación: lifecycle y logging pasan **32 tests**, core/parser **24 tests** y
+la suite XML **32 tests**, sin avisos de `LogSink`; Black, Ruff, mypy y Bandit
+focal están limpios. El score global continúa en **9.99/10**, con los gates
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos

@@ -30,6 +30,7 @@ def create_output_manager() -> tuple[OutputManager, LogSink]:
     output_manager = OutputManager()
     output_manager.start()
     output = LogSink(output_manager.get_in_queue())
+    output_manager.set_output(output)
     return output_manager, output
 
 
@@ -88,6 +89,7 @@ def close_default_output_manager() -> None:
     output = _out
     _out = None
     if output is not None:
+        output.close()
         remove_data_logging(output)
 
     manager = globals().pop("manager", None) or _manager

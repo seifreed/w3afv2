@@ -47,10 +47,15 @@ class LogSink:
     def __init__(self, om_queue):
         super().__init__()
         self.om_queue = om_queue
+        self._closed = False
         self.METHODS = {
             method: functools.partial(self._add_to_queue, method)
             for method in self.ALLOWED_METHODS
         }
+
+    def close(self):
+        """Stop accepting messages before the owner closes the queue."""
+        self._closed = True
 
     def report_finding(self, info_inst):
         """
@@ -64,6 +69,9 @@ class LogSink:
         self.vulnerability(info_inst.get_desc(), severity=info_inst.get_severity())
 
     def _add_to_queue(self, *args, **kwargs):
+        if self._closed:
+            return
+
         try:
             self.om_queue.put((args, kwargs))
         except (OSError, ValueError):
