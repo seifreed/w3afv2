@@ -204,13 +204,17 @@ class BaseConsumer(Process):
             " tasks from input queue and %s tasks from output queue before"
             " breaking out of the loop"
         )
-        args = (self._thread_name, self.in_queue.qsize(), self.out_queue.qsize())
-        self._output.debug(msg % args)
+        queue_sizes = (
+            self._thread_name,
+            self.in_queue.qsize(),
+            self.out_queue.qsize(),
+        )
+        self._output.debug(msg % queue_sizes)
 
         if len(self._tasks_in_progress):
             msg = "The %s consumer has %s tasks in progress"
-            args = (self._thread_name, len(self._tasks_in_progress))
-            self._output.debug(msg % args)
+            task_sizes = (self._thread_name, len(self._tasks_in_progress))
+            self._output.debug(msg % task_sizes)
 
         if self._threadpool is not None:
 
@@ -430,7 +434,7 @@ class BaseConsumer(Process):
         msg = "Sent POISON_PILL to the %s consumer in_queue"
         self._output.debug(msg % self._thread_name)
 
-    def join(self):
+    def join(self, timeout: float | None = None) -> None:
         """
         Poison the loop and wait for all queued work to finish this might take
         some time to process.

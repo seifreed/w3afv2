@@ -2,6 +2,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 
 from w3af.core.data.misc.number_generator import NumberGenerator
+from w3af.core.data.misc.serialize import dumps, loads
 
 
 class TestNumberGenerator(unittest.TestCase):
@@ -34,3 +35,11 @@ class TestNumberGenerator(unittest.TestCase):
 
         self.assertEqual(sorted(results), list(range(1, 201)))
         self.assertEqual(self.generator.get(), 200)
+
+    def test_serialization_restores_the_lock_and_counter(self):
+        self.generator.inc()
+
+        restored = loads(dumps(self.generator))
+
+        self.assertEqual(restored.get(), 1)
+        self.assertEqual(restored.inc(), 2)

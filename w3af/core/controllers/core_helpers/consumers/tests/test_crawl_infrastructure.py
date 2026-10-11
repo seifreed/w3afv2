@@ -109,7 +109,7 @@ class TestTimeLimit(PluginTest):
 class CrawlConsumerTest(unittest.TestCase):
     def setUp(self):
         self.core = w3afCore(knowledge_base=kb, configuration=cf)
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
         self.core.status.start()
         cf.save("baseURLs", [URL(BASE)])
         self.addCleanup(cf.save, "baseURLs", [])

@@ -94,7 +94,7 @@ class TestBaseConsumer(unittest.TestCase):
 
     def tearDown(self):
         self.bc._shutdown_threadpool()
-        self.core.worker_pool.terminate_join()
+        self.core.quit()
 
     def test_handle_exception(self):
         url = URL("http://127.0.0.1/")
@@ -249,7 +249,7 @@ class TestPendingWork(unittest.TestCase):
     def tearDown(self):
         self.release.set()
         self.bc._shutdown_threadpool()
-        self.core.worker_pool.terminate_join()
+        self.core.quit()
 
     def blocked_task(self, *args):
         self.release.wait(WAIT_TIMEOUT)
@@ -294,7 +294,7 @@ class TestAbstractConsumer(unittest.TestCase):
         self.core = w3afCore()
 
     def tearDown(self):
-        self.core.worker_pool.terminate_join()
+        self.core.quit()
 
     def test_abstract_methods(self):
         consumer = BaseConsumer(

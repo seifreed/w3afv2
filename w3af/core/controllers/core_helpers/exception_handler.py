@@ -26,6 +26,7 @@ import tempfile
 import threading
 import traceback
 from copy import copy
+from typing import TypedDict
 
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
@@ -39,6 +40,13 @@ from w3af.core.exceptions import (
     ScanMustStopException,
 )
 from w3af.core.traceback_utils import get_exception_location
+
+ExceptionSummaryEntry = tuple[object, object, Exception, str | None]
+
+
+class ExceptionSummary(TypedDict):
+    total_exceptions: int
+    exceptions: dict[object, list[ExceptionSummaryEntry]]
 
 
 def debug_enabled():
@@ -76,12 +84,10 @@ class ExceptionHandler:
         self._scan_id = None
 
     def handle_exception_data(self, exception_data):
-        self.handle(
-            exception_data.status,
-            exception_data.exception,
-            (None, None, exception_data.exception.__traceback__),
-            exception_data.enabled_plugins,
+        self._raise_if_exception_must_propagate(
+            exception_data.exception, exception_data.exception.__traceback__
         )
+        self._store_exception_data(exception_data)
 
     def handle(self, current_status, exception, exec_info, enabled_plugins):
         """
@@ -111,26 +117,32 @@ class ExceptionHandler:
         # handled here. Raise them so that w3afCore.py, most likely to the
         # except lines around self.strategy.start(), can decide what to do
         #
-        if isinstance(exception, self._unhandled_exception_types()):
-            raise exception.with_traceback(tb)
-
-        stop_on_first_exception = self._configuration.get("stop_on_first_exception")
-        if stop_on_first_exception:
-            raise exception.with_traceback(tb)
+        self._raise_if_exception_must_propagate(exception, tb)
 
         #
         # Now we really handle the exception that was produced by the plugin in
         # the way we want to.
         #
-        with self._lock:
-            edata = ExceptionData(
-                current_status,
-                exception,
-                tb,
-                enabled_plugins,
-                self._configuration,
-            )
+        edata = ExceptionData(
+            current_status,
+            exception,
+            tb,
+            enabled_plugins,
+            self._configuration,
+        )
+        self._store_exception_data(edata)
 
+    def _raise_if_exception_must_propagate(self, exception, tb):
+        if isinstance(exception, self._unhandled_exception_types()):
+            raise exception.with_traceback(tb)
+
+        if self._configuration.get("stop_on_first_exception"):
+            raise exception.with_traceback(tb)
+
+    def _store_exception_data(self, edata):
+        edata.release_traceback()
+
+        with self._lock:
             count = 0
             for stored_edata in self._exception_data:
                 if (
@@ -188,7 +200,7 @@ class ExceptionHandler:
 
         :return: A filtered exception list
         """
-        filtered_exceptions = []
+        filtered_exceptions: list[ExceptionData] = []
 
         for edata in self.get_all_exceptions():
             for unique in filtered_exceptions:
@@ -252,7 +264,10 @@ class ExceptionHandler:
         """
         :return: A dict with information about exceptions.
         """
-        res = {"total_exceptions": len(self._exception_data), "exceptions": {}}
+        res: ExceptionSummary = {
+            "total_exceptions": len(self._exception_data),
+            "exceptions": {},
+        }
         exception_dict = res["exceptions"]
 
         for exception in self._exception_data:
@@ -296,21 +311,18 @@ class ExceptionData:
         :param e: Exception instance
         :param tb: Traceback or None
         :param enabled_plugins: w3af enabled plugins
-        :param store_tb: When the exception is raised in a consumer and needs to
-                         be serialized to be sent to the main thread, it is
-                         impossible to keep the traceback
+        :param store_tb: Keep the exception traceback while a worker transports it
         """
         if not isinstance(e, Exception):
             raise TypeError("e must be an Exception")
         if not isinstance(current_status, CoreStatus):
             raise TypeError("current_status must be a CoreStatus")
 
-        self.traceback = None
         self.traceback_str = None
         self.function_name = None
         self.lineno = None
         self.filename = None
-        self.exception = None
+        self.exception: Exception = e
         self.exception_msg = None
         self.exception_class = None
         self.phase = None
@@ -357,30 +369,24 @@ class ExceptionData:
         self.enabled_plugins = enabled_plugins
 
     def _initialize_from_traceback(self, tb, configuration, store_tb):
-        if store_tb:
-            #
-            # According to [0] it is not a good idea to keep references to tracebacks:
-            #
-            #   > traceback refers to a linked list of frames, and each frame has references
-            #   > to lots of other stuff like the code object, the global dict, local dict,
-            #   > builtin dict, ...
-            #
-            # [0] https://bugs.python.org/issue13831
-            #
-            # TODO: Remove the next line:
-            self.traceback = tb
-
         # Extract the filename and line number where the exception was raised
         _, self.filename, self.function_name, self.lineno = get_exception_location(tb)
 
         # See add_traceback_string()
-        if hasattr(self.exception, "original_traceback_string"):
-            traceback_string = self.exception.original_traceback_string
-        else:
+        traceback_string = getattr(self.exception, "original_traceback_string", None)
+        if traceback_string is None:
             traceback_string = "".join(traceback.format_tb(tb))
-            self.exception.original_traceback_string = traceback_string
+            setattr(self.exception, "original_traceback_string", traceback_string)
 
         self.traceback_str = cleanup_bug_report(traceback_string, configuration)
+
+        if store_tb:
+            # The textual report is sufficient after construction. Keeping the
+            # traceback would retain every local from the failing frame.
+            self.exception.__traceback__ = None
+
+    def release_traceback(self):
+        self.exception.__traceback__ = None
 
     def get_summary(self):
         res = (

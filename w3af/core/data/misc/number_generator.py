@@ -37,6 +37,13 @@ class NumberGenerator:
         self._lock = Lock()
         self._id = 0
 
+    def __getstate__(self) -> dict[str, int]:
+        return {"_id": self._id}
+
+    def __setstate__(self, state: dict[str, int]) -> None:
+        self._lock = Lock()
+        self._id = state["_id"]
+
     def inc(self):
         """
         :return: The next number.

@@ -109,6 +109,7 @@ class TestExceptionHandler(unittest.TestCase):
         self.assertEqual(edata.exception_msg, str(handled_exception))
         self.assertEqual(edata.exception_class, handled_exception.__class__.__name__)
         self.assertGreater(edata.lineno, 0)
+        self.assertIsNone(handled_exception.__traceback__)
 
     @pytest.mark.smoke
     def test_handle_multiple(self):
@@ -409,7 +410,10 @@ class TestExceptionData(unittest.TestCase):
                 status, e, tb, enabled_plugins, cf, store_tb=True
             )
 
-            self.assertRaises(TypeError, dumps, exception_data)
+            serialized = dumps(exception_data)
+            restored = loads(serialized)
+            self.assertEqual(exception_data.to_json(), restored.to_json())
+            self.assertIsNone(exception_data.exception.__traceback__)
 
 
 cf = Config()

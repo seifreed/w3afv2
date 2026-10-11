@@ -4956,6 +4956,23 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: excepciones sin retener frames
+
+`ExceptionData` ya no conserva el objeto traceback en las excepciones que el
+core almacena. El canal de consumidores mantiene la traceback solo durante el
+transporte para preservar la ubicación y las excepciones no manejables siguen
+propagándose; al recibirlas, el handler usa el `ExceptionData` ya normalizado y
+libera la referencia a los frames antes de guardarlo.
+
+Además, `NumberGenerator` serializa únicamente su contador y reconstruye el
+lock al deserializar, haciendo válido el contrato de serialización de
+`CoreStatus` sin transportar locks de threads.
+
+Verificación: core exceptions **10 tests**, exception handler/consumer y
+number generator **48 tests**, mypy focal del handler sin errores, Black, Ruff y
+Bandit focales limpios. El score global continúa en **9.99/10**, con los gates
+globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: cleanup explícito de scans REST
 
 `ScanInfo.cleanup()` libera ahora el core completo mediante `quit()`, cierra el
