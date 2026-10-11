@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
 from operator import itemgetter
+from typing import Any
 
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -127,11 +128,17 @@ class extrusionServer:
         Analyze a list of packets for interesting traffic when the host is
         unknown.
         """
-        from scapy.all import IP, TCP, UDP, get_if_addr
+        from scapy import all as scapy
+
+        scapy_symbols: dict[str, Any] = vars(scapy)
+        IP: Any = scapy_symbols["IP"]
+        TCP: Any = scapy_symbols["TCP"]
+        UDP: Any = scapy_symbols["UDP"]
+        get_if_addr = scapy.get_if_addr
 
         # This is hard to do...
         possible_packets = []
-        possible_hosts = {}
+        possible_hosts: dict[str, int] = {}
         good_ports = []
         good_hosts = []
 
@@ -202,7 +209,12 @@ class extrusionServer:
         from it and which ports are the ones that can be used for reverse shell
         connections.
         """
-        from scapy.all import IP, TCP, UDP
+        from scapy import all as scapy
+
+        scapy_symbols: dict[str, Any] = vars(scapy)
+        IP: Any = scapy_symbols["IP"]
+        TCP: Any = scapy_symbols["TCP"]
+        UDP: Any = scapy_symbols["UDP"]
 
         good_ports = []
 

@@ -6007,3 +6007,14 @@ elementos derivados.
 
 Verificación: historia e identificadores SQL pasan **30 tests**; Mypy estricto,
 Ruff y Black pasan en el módulo. El score global continúa en **9.99/10**.
+
+## Actualización verificada: frontera dinámica de Scapy
+
+El servidor de extrusión obtiene las capas `IP`, `TCP` y `UDP` desde la tabla
+de símbolos de Scapy, cuya API es dinámica y no está completa en sus stubs.
+También declara el acumulador de hosts como `dict[str, int]`; se mantiene la
+carga diferida de Scapy para no penalizar el uso normal del proceso.
+
+Verificación: Mypy estricto, Ruff, Black, Bandit y compilación pasan en el
+módulo. No existe una suite específica de este servidor en el checkout actual;
+el score global continúa en **9.99/10**.
