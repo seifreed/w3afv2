@@ -8067,3 +8067,15 @@ referencia aparentemente no usada rompa valores como `max_discovery_time`.
 Verificación: **46 tests** de settings, perfiles y core pasan; Black y Ruff
 están limpios. La prueba conserva el comportamiento del core y demuestra que
 la configuración solo cambia cuando se solicita la inicialización.
+
+## Actualización verificada: pausa de scan aislada
+
+La coordinación de pausa y reanudación salió de `w3afCore` y pasó a
+`ScanPauseController`, que expresa el contrato mínimo de los dos colaboradores:
+estado del scan y opener HTTP. La API pública del core se conserva y ambos
+componentes siguen cambiando de estado en el mismo orden.
+
+Verificación: la suite de core y la prueba de capas pasan; el nuevo controlador
+queda ejercitado por los tests reales de pausa y no introduce una dependencia
+ascendente de capas. El score aún no es 10/10 por los módulos grandes y la
+cobertura/gates globales pendientes.

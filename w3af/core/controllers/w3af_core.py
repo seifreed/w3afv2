@@ -49,6 +49,9 @@ from w3af.core.controllers.core_helpers.scan_execution_controller import (
 from w3af.core.controllers.core_helpers.scan_environment_validator import (
     ScanEnvironmentValidator,
 )
+from w3af.core.controllers.core_helpers.scan_pause_controller import (
+    ScanPauseController,
+)
 from w3af.core.controllers.core_helpers.scan_reset_lifecycle import (
     ScanResetLifecycle,
 )
@@ -251,6 +254,7 @@ class w3afCore:
             lambda: self.STOP_TIMEOUT,
             lambda: self.STOP_LOOP_DELAY,
         )
+        self._pause_controller = ScanPauseController(self.status, self.uri_opener)
         self._strategy_runner = ScanStrategyRunner(output, get_home_dir)
         self._scan_start_lifecycle = ScanStartLifecycle(
             lambda: self.status,
@@ -425,8 +429,7 @@ class w3afCore:
         Pauses/Un-Pauses scan.
         :param pause_yes_no: True if the UI wants to pause the scan.
         """
-        self.status.pause(pause_yes_no)
-        self.uri_opener.pause(pause_yes_no)
+        self._pause_controller.pause(pause_yes_no)
 
     def verify_environment(self):
         self._environment_validator.validate()
