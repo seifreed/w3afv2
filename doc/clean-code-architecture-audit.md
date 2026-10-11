@@ -7753,3 +7753,14 @@ la política de routing queda aislada y depende de Protocols explícitos.
 
 Verificación: **14 tests**, **7 subtests** y la comprobación de capas pasan;
 Black, Ruff, mypy y Bandit dirigido pasan en los módulos modificados.
+
+## Actualización verificada: reset de scan separado del core
+
+La limpieza que prepara un segundo scan salió de `w3afCore.cleanup()` y pasó a
+`ScanResetLifecycle`. El nuevo componente mantiene el orden de reinicio de
+urllib, modo exploit, excepciones, KB, parser, detector 404, DNS y filesystem,
+mientras el core conserva la API pública y la posibilidad de consultar el
+histórico después de finalizar un scan.
+
+Verificación: la suite completa de `w3afCore` pasa **24 tests**; Black, Ruff y
+mypy pasan en los módulos modificados.

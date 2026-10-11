@@ -40,6 +40,9 @@ from w3af.core.controllers.core_helpers.scan_environment_validator import (
     ScanEnvironmentValidator,
 )
 from w3af.core.controllers.core_helpers.scan_end_lifecycle import ScanEndLifecycle
+from w3af.core.controllers.core_helpers.scan_reset_lifecycle import (
+    ScanResetLifecycle,
+)
 from w3af.core.controllers.core_helpers.scan_start_lifecycle import (
     ScanStartLifecycle,
 )
@@ -265,6 +268,16 @@ class w3afCore:
             self.target.clear,
             lambda: self.status.stop(),
         )
+        self._scan_reset_lifecycle = ScanResetLifecycle(
+            self.uri_opener,
+            lambda: self.uri_opener.set_exploit_mode(False),
+            self.exception_handler,
+            self.knowledge_base,
+            self._parser_cache,
+            self._fingerprint_404_lifecycle,
+            self._dns_cache,
+            lambda: remove_temp_dir(ignore_errors=True),
+        )
 
     def _prepare_scan_directories(self):
         prepare_home_directory()
@@ -386,37 +399,9 @@ class w3afCore:
 
         :return: None
         """
-        # End the ExtendedUrllib (clear the cache and close connections), this
-        # is only useful if there was a previous scan and the user is starting
-        # a new one.
-        #
-        # Please note that I'm not putting this end() thing in scan_end_hook
-        # because I want to be able to access the History() item even after the
-        # scan has finished to give the user access to the HTTP request and
-        # response associated with a vulnerability
-        self.uri_opener.restart()
-        self.uri_opener.set_exploit_mode(False)
-
-        # If this is not the first scan, I want to clear the old bug data
-        # that might be stored in the exception_handler.
-        self.exception_handler.clear()
-
-        # Clean all data that is stored in the kb
-        self.knowledge_base.cleanup()
-
-        # Stop the parser subprocess
-        self._parser_cache.clear()
-
-        self._fingerprint_404_lifecycle.cleanup()
-
-        self._dns_cache.clear()
-
-        # Remove the xurllib cache, bloom filters, DiskLists, etc.
-        #
-        # This needs to be done here and not in stop() because we want to keep
-        # these files (mostly the HTTP request/response data) for the user to
-        # analyze in the GUI after the scan has finished
-        remove_temp_dir(ignore_errors=True)
+        # History remains available after scan_end_hook(); reset only when a
+        # new scan is requested.
+        self._scan_reset_lifecycle.reset()
 
         # Not cleaning the config is a FEATURE, because the user is most likely
         # going to start a new scan to the same target, and he wants the proxy,
