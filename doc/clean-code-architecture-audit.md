@@ -4907,3 +4907,16 @@ de `multiprocessing` vivos al terminar.
 Verificación: la suite del ciclo de vida del output manager pasa **26 tests**;
 Black, Ruff, mypy y Bandit focales están limpios. El score global continúa en
 **9.99/10**, con los gates heredados del entorno todavía pendientes.
+
+## Actualización verificada: consumo inmediato del output lazy
+
+Cuando un caller solicita por primera vez `om.manager`, el manager default se
+inicia inmediatamente. Antes se podía crear solo la cola y dejar mensajes de
+`om.out` acumulándose sin consumidor hasta el final del proceso; ahora la cola
+se drena durante la ejecución y el cierre `atexit` conserva la responsabilidad
+de liberarla.
+
+Verificación: la suite del output manager pasa **27 tests** y las suites de
+output/DNS pasan **12 tests**; Black, Ruff, mypy y Bandit focales están limpios.
+El score global continúa en **9.99/10**, con los gates heredados del entorno
+todavía pendientes.

@@ -69,6 +69,7 @@ def _get_default_manager() -> OutputManager:
     global _manager
     if _manager is None:
         _manager = OutputManager()
+        _manager.start()
     return _manager
 
 
