@@ -7188,3 +7188,14 @@ real cubre TCP ocupado/disponible, UDP ocupado/disponible y protocolo inválido.
 Black, Ruff y Mypy pasan en los dos archivos modificados. Bandit focal queda
 sin hallazgos en producción; el test conserva el aviso B404 preexistente por
 usar `subprocess.getoutput()` para ejecutar la comprobación Linux real.
+
+## Actualización verificada: selección de clientes Python 3
+
+La selección del cliente de extrusión solo ejecutaba una expresión heredada de
+Python 2 (`print+3+3`) y siempre devolvía `python`, aunque el cliente enviado
+usa sintaxis de Python 3. Ahora prueba `python3` y después `python`, valida la
+versión mayor y rechaza explícitamente hosts sin un intérprete Python 3 válido.
+
+Verificación: la suite de extrusión pasa **3 tests y 2 omitidos**, incluyendo la
+selección con el intérprete Python 3 real del sistema. Black, Ruff, Mypy y
+Bandit de producción pasan en los dos archivos modificados.

@@ -65,6 +65,14 @@ class TestExtrusionScanner(unittest.TestCase):
         self.assertTrue(extrusionScanner.is_available(udp_port, "UDP"))
         self.assertFalse(extrusionScanner.is_available(0, "SCTP"))
 
+    @unittest.skipUnless(sys.platform != "win32", "Needs a POSIX shell")
+    def test_can_scan_with_python3(self):
+        es = object.__new__(extrusionScanner)
+        es._exec_method = subprocess.getoutput
+        es._output = om.out
+
+        self.assertTrue(es.can_scan())
+
     @onlyroot
     @pytest.mark.ci_fails
     def test_scan(self):

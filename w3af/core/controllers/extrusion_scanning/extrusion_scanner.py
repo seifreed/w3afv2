@@ -268,29 +268,30 @@ class extrusionScanner:
             - bash sockets ?
             - gcc compiler ?
         """
-        ### TODO! Implement this!
-        if "6" in self._exec("python -c print+3+3"):
-            # "python -c 'print 3+3'" fails with magic quotes on... but
-            # this trick of the print+3+3 works ( returns 6 ) and ALSO evades
-            # magic quotes
-            filename = os.path.join(
-                ROOT_PATH,
-                "core",
-                "controllers",
-                "extrusion_scanning",
-                "client",
-                "extrusion_client.py",
-            )
-            with open(filename) as file_handle:
-                fileContent = file_handle.read()
-            extension = "py"
-            interpreter = "python"
-        else:
-            msg = "Failed to find a suitable extrusion scanner client for"
-            msg += " the remote system."
-            raise BaseFrameworkException(msg)
+        for interpreter in ("python3", "python"):
+            try:
+                version = self._exec(
+                    f'{interpreter} -c "import sys; print(sys.version_info[0])"'
+                )
+            except BaseFrameworkException:
+                continue
 
-        return interpreter, fileContent, extension
+            if version.strip() == "3":
+                filename = os.path.join(
+                    ROOT_PATH,
+                    "core",
+                    "controllers",
+                    "extrusion_scanning",
+                    "client",
+                    "extrusion_client.py",
+                )
+                with open(filename) as file_handle:
+                    file_content = file_handle.read()
+                return interpreter, file_content, "py"
+
+        msg = "Failed to find a suitable Python 3 extrusion scanner client"
+        msg += " for the remote system."
+        raise BaseFrameworkException(msg)
 
     def _execExtrusionClient(self, interpreter, remoteFilename):
 
