@@ -114,13 +114,13 @@ class TestW3afCore(unittest.TestCase):
 
         self.core.scan_start_hook()
         self.core.status.stop()
-        timers = tuple(self.core._core_profiling_timers)
+        timers = tuple(self.core._scan_start_lifecycle._profiling_timers)
 
         self.assertTrue(timers)
 
         self.core.quit()
 
-        self.assertEqual(self.core._core_profiling_timers, [])
+        self.assertEqual(self.core._scan_start_lifecycle._profiling_timers, [])
         self.assertTrue(all(not timer.is_alive() for timer in timers))
 
     def test_unreferenced_core_stops_output_manager(self):

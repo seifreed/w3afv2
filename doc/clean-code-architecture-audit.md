@@ -7720,3 +7720,13 @@ fachada pública que delega la transición.
 
 Verificación: las suites de core y estrategia pasan; Black, Ruff y mypy dirigido
 pasan en el nuevo lifecycle y el controlador.
+
+## Actualización verificada: lifecycle explícito de inicio de scan
+
+`ScanStartLifecycle` es ahora dueño del primer-scan, profiling, preparación de
+directorios, creación del runtime, observers y detector 404. `w3afCore` conserva
+la fachada `scan_start_hook()` y solo marca el scan como iniciado después de
+validar el entorno, preservando el comportamiento ante errores de validación.
+
+Verificación: la regresión de profiling, core y estrategia pasan; Black, Ruff y
+mypy dirigido pasan en los módulos modificados.

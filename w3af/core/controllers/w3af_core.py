@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import threading
 import weakref
 
 from w3af.core.controllers.core_helpers import scan_strategy_runner
@@ -41,6 +40,9 @@ from w3af.core.controllers.core_helpers.scan_environment_validator import (
     ScanEnvironmentValidator,
 )
 from w3af.core.controllers.core_helpers.scan_end_lifecycle import ScanEndLifecycle
+from w3af.core.controllers.core_helpers.scan_start_lifecycle import (
+    ScanStartLifecycle,
+)
 from w3af.core.controllers.core_helpers.scan_stop_controller import (
     ScanStopController,
 )
@@ -236,11 +238,27 @@ class w3afCore:
             lambda: self.STOP_LOOP_DELAY,
         )
         self._strategy_runner = ScanStrategyRunner(output, get_home_dir)
+        self._scan_start_lifecycle = ScanStartLifecycle(
+            lambda: self.status,
+            lambda: self.strategy,
+            lambda: start_profiling(self, self._output, self._output_manager),
+            lambda timers: stop_profiling(
+                self,
+                self._output,
+                self._output_manager,
+                timers,
+            ),
+            self.cleanup,
+            self._prepare_scan_directories,
+            self._create_scan_runtime,
+            self._add_scan_observers,
+            self._fingerprint_404_lifecycle.start,
+        )
         self._scan_end_lifecycle = ScanEndLifecycle(
             output,
             manager,
             self._parser_cache,
-            self._stop_profiling,
+            self._scan_start_lifecycle.stop_profiling,
             self._worker_pool_manager.terminate,
             self.exploit_phase_prerequisites,
             self.plugins.zero_enabled_plugins,
@@ -248,50 +266,18 @@ class w3afCore:
             lambda: self.status.stop(),
         )
 
-        # Keep track of first scan to call cleanup or not
-        self._first_scan = True
-        self._core_profiling_timers: list[threading.Timer] = []
-        self._profiling_active = False
+    def _prepare_scan_directories(self):
+        prepare_home_directory()
+        prepare_tmp_directory()
+
+    def _add_scan_observers(self, strategy):
+        strategy.add_observer(DiskSpaceObserver())
+        strategy.add_observer(ThreadCountObserver(self._output))
+        strategy.add_observer(ThreadStateObserver(self._output))
 
     def scan_start_hook(self):
-        """
-        Create directories, threads and consumers required to perform a w3af
-        scan. Used both when we init the core and when we want to clear all
-        the previous results and state from an old scan and start again.
-
-        :return: None
-        """
-        self._stop_profiling()
-
-        # Create this again just to clear the internal states
-        scans_completed = self.status.scans_completed
-
-        self._core_profiling_timers = start_profiling(
-            self, self._output, self._output_manager
-        )
-        self._profiling_active = True
-
-        if not self._first_scan:
-            self.cleanup()
-
-        else:
-            # Create some directories, do this every time before starting a new
-            # scan and before doing any other core init because these are
-            # widely used
-            prepare_home_directory()
-            prepare_tmp_directory()
-
-        # Now that we know we're going to run a new scan, overwrite the old
-        # strategy which might still have data stored in it and create a new
-        # one
-        self._create_scan_runtime(scans_completed)
-        self.status.start()
-        self.strategy.add_observer(DiskSpaceObserver())
-        self.strategy.add_observer(ThreadCountObserver(self._output))
-        self.strategy.add_observer(ThreadStateObserver(self._output))
-
-        # Init the 404 detection for this core and scan.
-        self._fingerprint_404_lifecycle.start()
+        """Prepare directories, profiling and runtime for a new scan."""
+        self._scan_start_lifecycle.start()
 
     def _create_scan_runtime(self, scans_completed=0):
         self.strategy = CoreStrategy(
@@ -339,7 +325,7 @@ class w3afCore:
             self.plugins.get_all_plugin_options(),
         )
 
-        self._first_scan = False
+        self._scan_start_lifecycle.mark_scan_started()
 
         self._output.debug(
             f"Starting the scan using w3af version {get_w3af_version_minimal()}"
@@ -364,20 +350,6 @@ class w3afCore:
     def _run_strategy(self):
         """Run the strategy and translate expected scan-level failures."""
         self._strategy_runner.run(self.strategy, self.status.scans_completed)
-
-    def _stop_profiling(self):
-        """Stop profiling even when the scan exits before its end hook."""
-        if not self._profiling_active:
-            return
-
-        stop_profiling(
-            self,
-            self._output,
-            self._output_manager,
-            self._core_profiling_timers,
-        )
-        self._core_profiling_timers = []
-        self._profiling_active = False
 
     @property
     def worker_pool(self):
@@ -476,7 +448,7 @@ class w3afCore:
         The user wants to exit w3af ASAP, so we stop the scan and exit.
         """
         self.stop()
-        self._stop_profiling()
+        self._scan_start_lifecycle.stop_profiling()
         self.uri_opener.end()
         self._dns_cache.clear()
 
