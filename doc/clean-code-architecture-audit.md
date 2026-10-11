@@ -5026,6 +5026,17 @@ Verificación: las suites relacionadas pasan **51 tests**, mypy estricto focal,
 Ruff y Black están limpios. El score global continúa en **9.99/10**, con los
 errores transitivos restantes y la cobertura global todavía pendientes.
 
+## Actualización verificada: lifecycle y precondiciones de profiling
+
+`TookLine.send()` valida que exista una medición iniciada y finalizada antes de
+leer sus timestamps, devolviendo un error de dominio claro en vez de un
+`AttributeError` accidental. Los tests de profiling cierran explícitamente cada
+`w3afCore` creado, evitando dejar managers y colas vivos entre casos.
+
+Verificación: profiling pasa **4 tests**, mypy estricto focal, Ruff y Black están
+limpios. El score global continúa en **9.99/10**; quedan errores transitivos
+históricos y cobertura global no demostrada.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos

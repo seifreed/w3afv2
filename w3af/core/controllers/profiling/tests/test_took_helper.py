@@ -29,6 +29,11 @@ from w3af.core.controllers.w3af_core import w3afCore
 
 
 class TestTookHelper(unittest.TestCase):
+    def new_core(self):
+        core = w3afCore()
+        self.addCleanup(core.quit)
+        return core
+
     def send_took_line(self, w3af_core):
         messages = queue.Queue()
 
@@ -48,7 +53,7 @@ class TestTookHelper(unittest.TestCase):
         return sent_message
 
     def test_took_simple(self):
-        sent_message = self.send_took_line(w3afCore())
+        sent_message = self.send_took_line(self.new_core())
 
         self.assertRegex(
             sent_message,
@@ -57,7 +62,7 @@ class TestTookHelper(unittest.TestCase):
         )
 
     def test_took_with_rtt(self):
-        w3af_core = w3afCore()
+        w3af_core = self.new_core()
         w3af_core.uri_opener._rtt_sum_debugging_id["ML7aEYsa"] = 1.8
 
         sent_message = self.send_took_line(w3af_core)
@@ -69,7 +74,7 @@ class TestTookHelper(unittest.TestCase):
         )
 
     def test_took_with_cpu_bound_work(self):
-        w3af_core = w3afCore()
+        w3af_core = self.new_core()
         messages = queue.Queue()
         took_line = TookLine(
             w3af_core,
@@ -90,3 +95,15 @@ class TestTookHelper(unittest.TestCase):
             r"^plugin_name.method_name\(\) took \d+\.\d{2}s to run"
             r" \(\d+\.\d{2}s \d+% consuming CPU cycles\)$",
         )
+
+    def test_send_requires_a_started_measurement(self):
+        took_line = TookLine(
+            self.new_core(),
+            "plugin_name",
+            "method_name",
+            log_sink=LogSink(queue.Queue()),
+        )
+        took_line._start = None
+
+        with self.assertRaisesRegex(RuntimeError, "before start"):
+            took_line.send()

@@ -81,7 +81,13 @@ class TookLine:
         #               the wall time will keep running and the thread is not doing
         #               anything.
         #
+        if self._start is None:
+            raise RuntimeError("TookLine.send() called before start()")
+
         self.end()
+        if self._end is None:
+            raise RuntimeError("TookLine.send() did not record an end timestamp")
+
         parentheses_data = []
         spent_wall_time = self._end.wall_time - self._start.wall_time
 
