@@ -121,16 +121,18 @@ class PluginTest(unittest.TestCase):
         return list(self.canned_server.requests)
 
     def tearDown(self):
-        self.assert_all_get_desc_work()
-        self.w3afcore.quit()
+        try:
+            self.assert_all_get_desc_work()
+        finally:
+            self.w3afcore.quit()
 
-        if self.canned_server is not None:
-            # set_proxy() persists proxy_address/proxy_port into the process-wide
-            # config singleton, so without this reset a later test that builds a
-            # fresh w3afCore() would still route its traffic through this (now
-            # stopped) canned server and fail.
-            self.w3afcore.uri_opener.settings.set_proxy("", 0)
-            self.canned_server.stop()
+            if self.canned_server is not None:
+                # set_proxy() persists proxy_address/proxy_port into the process-wide
+                # config singleton, so without this reset a later test that builds a
+                # fresh w3afCore() would still route its traffic through this (now
+                # stopped) canned server and fail.
+                self.w3afcore.uri_opener.settings.set_proxy("", 0)
+                self.canned_server.stop()
 
     def assert_all_get_desc_work(self):
         """
