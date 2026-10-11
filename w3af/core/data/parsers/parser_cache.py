@@ -54,6 +54,7 @@ class ParserCache(CacheStats):
     CACHE_SIZE = 10
     MAX_CACHEABLE_BODY_LEN = 1024 * 1024
     DEBUG = is_core_profiling_enabled()
+    _cache: SynchronizedLRUDict
 
     def __init__(self, mp_parser=None, db: SQLiteDBMS | None = None):
         """
@@ -336,8 +337,8 @@ class ParserCache(CacheStats):
                 raise ScanMustStopException(msg % e)
             except DeserializationError as error:
                 msg = 'Unhandled exception running get_tags_by_filter("%s"): %s'
-                args = (http_response.get_url(), error)
-                raise BaseFrameworkException(msg % args) from error
+                error_args = (http_response.get_url(), error)
+                raise BaseFrameworkException(msg % error_args) from error
             else:
                 if cache:
                     self._cache[hash_string] = tags

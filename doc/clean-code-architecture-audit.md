@@ -5631,3 +5631,14 @@ cabeceras ni el ciclo de cierre de la respuesta keepalive.
 Verificación: mangle pasa **3 tests**; Black, Ruff, mypy focal y Bandit focal
 están limpios. El score global continúa en **9.99/10**, con los gates globales
 heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: contrato del ParserCache
+
+`ParserCache` declara su LRU concreto en lugar de heredar el tipo mínimo
+`Sized`, evitando que la caché pierda operaciones válidas (`get`, `values`,
+`clear` e indexación) en el análisis estático. También se separan los
+argumentos de logging de los tags cacheados para no reutilizar tipos distintos.
+
+Verificación: la suite de ParserCache pasa **28 tests**; Black, Ruff, mypy
+focal y Bandit focal están limpios. El score global continúa en **9.99/10**,
+con los gates globales heredados y la cobertura global todavía pendientes.
