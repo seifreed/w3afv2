@@ -7253,3 +7253,13 @@ mismo lock que protege la lista.
 
 Verificación: servidor y cliente del agente pasan **6 tests**; Black, Ruff,
 Mypy y Bandit de producción pasan en los archivos modificados.
+
+## Actualización verificada: lifecycle de relay y pipes
+
+`PipeThread` podía conservar entradas en su registro global si se detenía antes
+de ejecutar, y `TCPRelay` dejaba listeners o sockets de clientes abiertos al
+parar o cuando no había una conexión remota disponible. El cleanup ahora es
+idempotente, sincronizado para el registro de pipes y cubre todas esas rutas.
+
+Verificación: los tests de servidor pasan **2 tests**; Black, Ruff, Mypy y
+Bandit de producción pasan en los archivos modificados.

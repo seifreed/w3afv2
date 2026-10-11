@@ -5,7 +5,10 @@ import threading
 import unittest
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.w3afAgent.server.w3af_agent_server import ConnectionManager
+from w3af.core.controllers.w3afAgent.server.w3af_agent_server import (
+    ConnectionManager,
+    PipeThread,
+)
 
 
 class TestConnectionManager(unittest.TestCase):
@@ -25,3 +28,17 @@ class TestConnectionManager(unittest.TestCase):
             self.assertEqual(server.recv(1), b"")
         finally:
             server.close()
+
+    def test_pipe_stop_closes_sockets_and_releases_registry_entry(self):
+        source, sink = socket.socketpair()
+        try:
+            pipe = PipeThread(source, sink, om.out)
+
+            pipe.stop()
+
+            self.assertNotIn(pipe, PipeThread.pipes)
+            self.assertEqual(source.fileno(), -1)
+            self.assertEqual(sink.fileno(), -1)
+        finally:
+            source.close()
+            sink.close()

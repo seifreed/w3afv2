@@ -135,6 +135,7 @@ class ConnectionManager(Process):
 
 class PipeThread(Process):
     pipes: ClassVar[list] = []
+    _pipes_lock = threading.RLock()
 
     def __init__(self, source, sink, output):
         Process.__init__(self)
@@ -148,18 +149,30 @@ class PipeThread(Process):
             f"[PipeThread] Starting data forwarding: {self} ( {source.getpeername()} -> {sink.getpeername()} )"
         )
 
-        PipeThread.pipes.append(self)
-        self._output.debug(f"[PipeThread] Active forwardings: {len(PipeThread.pipes)}")
+        with PipeThread._pipes_lock:
+            PipeThread.pipes.append(self)
+            active_pipes = len(PipeThread.pipes)
+        self._output.debug(f"[PipeThread] Active forwardings: {active_pipes}")
 
         self._keep_running = True
 
     def stop(self):
         self._keep_running = False
-        try:
-            self.source.close()
-            self.sink.close()
-        except OSError:
-            pass
+        for connection in (self.source, self.sink):
+            try:
+                connection.close()
+            except OSError:
+                pass
+        self._remove_from_active_pipes()
+
+    def _remove_from_active_pipes(self):
+        with PipeThread._pipes_lock:
+            if self in PipeThread.pipes:
+                PipeThread.pipes.remove(self)
+            active_pipes = len(PipeThread.pipes)
+        self._output.debug(
+            f"[PipeThread] Terminated one connection, active forwardings: {active_pipes}"
+        )
 
     def run(self):
         while self._keep_running:
@@ -171,10 +184,7 @@ class PipeThread(Process):
             except OSError:
                 break
 
-        PipeThread.pipes.remove(self)
-        self._output.debug(
-            f"[PipeThread] Terminated one connection, active forwardings: {len(PipeThread.pipes)}"
-        )
+        self._remove_from_active_pipes()
 
 
 class TCPRelay(Process):
@@ -195,6 +205,7 @@ class TCPRelay(Process):
         try:
             self.sock.bind((self._ip_address, self._port))
         except OSError:
+            self.sock.close()
             raise BaseFrameworkException(
                 "Port ("
                 + self._ip_address
@@ -214,46 +225,51 @@ class TCPRelay(Process):
 
     def stop(self):
         self._keep_running = False
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            s.connect(("localhost", self._port))
-            s.close()
-        except OSError:
-            pass
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as wake_socket:
+            wake_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                wake_socket.connect(("localhost", self._port))
+            except OSError:
+                pass
 
-        for pipe in self._pipes:
+        for pipe in list(self._pipes):
             pipe.stop()
 
+        self.sock.close()
         self._output.debug("[TCPRelay] Stopped TCPRelay.")
 
     def run(self):
-        while self._keep_running:
-            try:
-                sock_cli, _address = self.sock.accept()
-            except OSError:
-                # This catches socket timeouts
-                pass
-            else:
-                self._output.debug("[TCPRelay] New socks client connection.")
-
-                # Get an active connection from the connection manager and start forwarding data
+        try:
+            while self._keep_running:
                 try:
-                    connToW3afClient = self._cm.get_connection()
-                except KeyboardInterrupt:
-                    self._output.information("Exiting.")
-                    break
-                except BaseFrameworkException:
-                    self._output.debug(
-                        "[TCPRelay] Connection manager has no active connections."
-                    )
+                    sock_cli, _address = self.sock.accept()
+                except OSError:
+                    # This catches socket timeouts
+                    pass
                 else:
-                    pt1 = PipeThread(sock_cli, connToW3afClient, self._output)
-                    self._pipes.append(pt1)
-                    pt1.start()
-                    pt2 = PipeThread(connToW3afClient, sock_cli, self._output)
-                    self._pipes.append(pt2)
-                    pt2.start()
+                    self._output.debug("[TCPRelay] New socks client connection.")
+
+                    # Get an active connection from the connection manager and start forwarding data
+                    try:
+                        connToW3afClient = self._cm.get_connection()
+                    except KeyboardInterrupt:
+                        self._output.information("Exiting.")
+                        sock_cli.close()
+                        break
+                    except BaseFrameworkException:
+                        self._output.debug(
+                            "[TCPRelay] Connection manager has no active connections."
+                        )
+                        sock_cli.close()
+                    else:
+                        pt1 = PipeThread(sock_cli, connToW3afClient, self._output)
+                        self._pipes.append(pt1)
+                        pt1.start()
+                        pt2 = PipeThread(connToW3afClient, sock_cli, self._output)
+                        self._pipes.append(pt2)
+                        pt2.start()
+        finally:
+            self.sock.close()
 
 
 class w3afAgentServer(Process):
