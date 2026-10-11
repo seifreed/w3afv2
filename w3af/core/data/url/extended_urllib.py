@@ -30,7 +30,7 @@ import urllib.error
 import urllib.request
 import uuid
 from http.client import BadStatusLine
-from typing import Any
+from typing import Any, Protocol, cast
 
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.config import Config
@@ -73,6 +73,10 @@ from . import opener_settings
 
 LOGGER = logging.getLogger(__name__)
 openssl: Any = importlib.import_module("OpenSSL")
+
+
+class _HTTPErrorWithId(Protocol):
+    id: int
 
 
 class ExtendedUrllib:
@@ -697,8 +701,9 @@ class ExtendedUrllib:
             # Raised by the handlers, for example when NTLM authentication
             # fails. Those errors are raised before the cache handler numbers
             # the response
-            if not hasattr(e, "id"):
-                e.id = self._id_generator.inc()
+            error = cast(_HTTPErrorWithId, e)
+            if not hasattr(error, "id"):
+                error.id = self._id_generator.inc()
 
             return self._handle_send_success(
                 req, e, grep, original_url, original_url_inst

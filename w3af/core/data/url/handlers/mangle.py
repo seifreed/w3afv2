@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Any
 
 from w3af.core.data.url.handlers.http_log import HTTPLogHandler
 from w3af.core.data.url.handlers.keepalive import HTTPResponse as kaHTTPResponse
@@ -88,6 +89,8 @@ class MangleHandler(urllib.request.BaseHandler):
 
 
 class MangledKeepAliveHTTPResponse(kaHTTPResponse):
+    id: Any
+
     def __init__(self):
         """
         Overriding in order to allow me to create a response without a socket

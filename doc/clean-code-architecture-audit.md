@@ -5942,3 +5942,15 @@ Verificación: proxy e intercept proxy pasan `mypy --check-untyped-defs`, Ruff,
 Black y Bandit; sus pruebas de integración pasan **23 tests**. Persisten solo
 dos warnings externos de `ldap3/pyasn1`; el score global continúa en
 **9.99/10**.
+
+## Actualización verificada: contratos de IDs en respuestas HTTP
+
+Los identificadores dinámicos que los handlers de URL adjuntan a
+`HTTPError` y a respuestas mangled están declarados como contratos de
+integración, en lugar de depender de atributos que la librería estándar no
+declara. Se conserva el comportamiento de cache y logging sin suprimir errores
+de mypy.
+
+Verificación: URL y mangle pasan **33 tests**; Ruff y Black pasan en ambos
+módulos. El análisis estricto deja únicamente los errores preexistentes de
+`opt_factory` y `history`; el score global continúa en **9.99/10**.
