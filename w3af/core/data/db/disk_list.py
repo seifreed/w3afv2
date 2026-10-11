@@ -211,7 +211,7 @@ class DiskList:
         for value in value_list:
             self.append(value)
 
-    def ordered_iter(self, batch_size=1000):
+    def ordered_iter(self, batch_size=1000, key=None):
         self._require_open()
 
         if batch_size <= 0:
@@ -231,13 +231,13 @@ class DiskList:
                 batch.append(self._load(row[0]))
                 if len(batch) == batch_size:
                     run_paths.append(
-                        self._write_sorted_run(temp_dir, batch, len(run_paths))
+                        self._write_sorted_run(temp_dir, batch, len(run_paths), key=key)
                     )
                     batch = []
 
             if batch:
                 run_paths.append(
-                    self._write_sorted_run(temp_dir, batch, len(run_paths))
+                    self._write_sorted_run(temp_dir, batch, len(run_paths), key=key)
                 )
 
             with ExitStack() as stack:
@@ -245,12 +245,12 @@ class DiskList:
                     stack.enter_context(open(path, "rb")) for path in run_paths
                 ]
                 runs = [self._read_sorted_run(run_file) for run_file in run_files]
-                yield from heapq.merge(*runs)
+                yield from heapq.merge(*runs, key=key)
 
-    def _write_sorted_run(self, temp_dir, objects, run_number):
+    def _write_sorted_run(self, temp_dir, objects, run_number, key=None):
         run_path = os.path.join(temp_dir, f"run-{run_number}")
         with open(run_path, "wb") as run_file:
-            for obj in sorted(objects):
+            for obj in sorted(objects, key=key):
                 serialize_dump(obj, run_file)
         return run_path
 

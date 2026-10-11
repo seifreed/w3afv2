@@ -260,6 +260,14 @@ class TestDiskList(unittest.TestCase):
 
         self.assertEqual([1, 2, 3, 4, 5, 6], sorted_dl)
 
+    def test_ordered_iter_accepts_a_sort_key(self):
+        dl = DiskList()
+        dl.extend(["four", "a", "three", "bb"])
+
+        sorted_dl = list(dl.ordered_iter(batch_size=2, key=len))
+
+        self.assertEqual(["a", "bb", "four", "three"], sorted_dl)
+
     def test_ordered_iter_rejects_invalid_batch_size(self):
         dl = DiskList()
 

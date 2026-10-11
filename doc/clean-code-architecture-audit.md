@@ -4762,3 +4762,15 @@ Verificación: **22 tests** de la cola y `CrawlInfrastructure` pasan; Black,
 Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**, con
 los gates heredados, el fallback standalone y otros módulos grandes todavía
 pendientes.
+
+## Actualización verificada: resumen del crawl sin listas duplicadas
+
+`CrawlInfrastructure.show_summary()` usa ahora los `DiskSet` directamente:
+obtiene los conteos desde SQLite, ordena por lotes con `DiskList.ordered_iter()`
+y envía cada URL y fuzzable request sin materializar colecciones completas ni
+duplicar sus representaciones como strings.
+
+Verificación: **41 tests** de `DiskList` y `CrawlInfrastructure` pasan; Black,
+Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**, con
+los gates heredados, el fallback standalone y otros módulos grandes todavía
+pendientes.

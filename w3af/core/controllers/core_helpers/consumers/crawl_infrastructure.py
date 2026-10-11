@@ -366,34 +366,28 @@ class CrawlInfrastructure(BaseConsumer):
         This method is called after the crawl and infrastructure phases finishes
         and reports identified URLs and fuzzable requests to the user.
         """
-        if not len(self._knowledge_base.get_all_known_urls()):
+        known_urls = self._knowledge_base.get_all_known_urls()
+        known_fuzzable_requests = self._knowledge_base.get_all_known_fuzzable_requests()
+
+        if not len(known_urls):
             self._output.information("No URLs found during crawl phase.")
             return
 
-        # Sort URLs
-        tmp_url_list = list(set(self._knowledge_base.get_all_known_urls()))
-
-        all_known_fuzzable_requests = (
-            self._knowledge_base.get_all_known_fuzzable_requests()
-        )
-
         msg = "Found %s URLs and %s different injections points."
-        args = (len(tmp_url_list), len(all_known_fuzzable_requests))
+        args = (len(known_urls), len(known_fuzzable_requests))
         self._output.information(msg % args)
 
         # print the URLs
         self._output.information("The URL list is:")
 
-        tmp_url_list = [f"- {u.url_string}" for u in tmp_url_list]
-        tmp_url_list.sort()
-        list(map(self._output.information, tmp_url_list))
+        for url in known_urls.ordered_iter(key=lambda value: value.url_string):
+            self._output.information(f"- {url.url_string}")
 
         # Now I simply print the list that I have after the filter.
         self._output.information("The list of fuzzable requests is:")
 
-        tmp_fr = [f"- {fr!s}" for fr in all_known_fuzzable_requests]
-        tmp_fr.sort()
-        list(map(self._output.information, tmp_fr))
+        for fuzzable_request in known_fuzzable_requests.ordered_iter(key=str):
+            self._output.information(f"- {fuzzable_request!s}")
 
     def _should_stop_discovery(self):
         """
