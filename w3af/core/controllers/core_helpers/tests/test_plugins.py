@@ -196,6 +196,15 @@ class TestW3afCorePlugins(unittest.TestCase):
             ["self_reference"],
         )
 
+    def test_mangle_plugins_reach_core_opener(self):
+        self.core.plugins.set_plugins(["sed"], "mangle")
+        self.core.plugins.init_plugins()
+
+        self.assertEqual(
+            self.core.uri_opener.settings._mangle_plugins,
+            self.core.plugins.get_plugin_instances("mangle"),
+        )
+
     def test_set_plugins_negative(self):
         enabled = [
             "fake",

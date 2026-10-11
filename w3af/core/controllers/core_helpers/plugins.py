@@ -223,6 +223,3 @@ class CorePlugins:
         self._plugin_integration.set_evasion_plugins(
             self.get_plugin_instances("evasion")
         )
-
-    def _set_mangle_plugins(self, plugins):
-        self._plugin_integration.set_mangle_plugins(plugins)

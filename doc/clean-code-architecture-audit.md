@@ -8216,3 +8216,8 @@ las interfaces de usuario, perfiles o tests.
 El estrechamiento de tipo usado por el test de ciclo de vida se expresa ahora
 con una validación explícita en lugar de un `assert`, por lo que la revisión
 Bandit focal del módulo vuelve a quedar limpia sin supresiones.
+
+La revisión de cobertura detectó además un método privado sin callers en
+`CorePlugins`; se eliminó en lugar de mantener una ruta muerta. Los módulos
+`CorePlugins` y `PluginConfiguration` quedan con **100% de cobertura** en sus
+40 pruebas focalizadas.
