@@ -5,7 +5,7 @@ import sys
 from typing import ClassVar
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.plugin_instance_factory import (
+from w3af.core.controllers.core_helpers.plugin_loader import (
     create_plugin_instance,
 )
 from w3af.core.controllers.misc.get_file_list import get_file_list

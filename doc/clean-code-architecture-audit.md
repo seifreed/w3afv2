@@ -7322,6 +7322,16 @@ API muerta que sugería un control inexistente sobre los consumidores.
 Verificación: la prueba de pausa de `w3afCore` pasa; Black, Ruff y mypy pasan
 en los dos módulos modificados.
 
+## Actualización verificada: límite neutral del loader de plugins
+
+La política compartida de instanciación se movió a `plugin_loader.py`. El
+catálogo de descubrimiento y la fábrica de runtime dependen ahora de ese
+loader común, sin que el catálogo dependa de una clase que además configura
+servicios de ejecución.
+
+Verificación: **36 tests** de catálogo, fábrica y resolución pasan; Black,
+Ruff y mypy pasan en los tres módulos modificados.
+
 ## Actualización verificada: construcción única de plugins
 
 `PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica
