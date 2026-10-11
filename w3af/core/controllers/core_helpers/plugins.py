@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import Any
+
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
 from w3af.core.controllers.core_helpers.plugin_dependency_resolver import (
     PluginDependencyResolver,
@@ -28,6 +30,7 @@ from w3af.core.controllers.core_helpers.plugin_instance_factory import (
     PluginInstanceFactory,
 )
 from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
+from w3af.core.controllers.plugins.plugin import Plugin
 
 
 class CorePlugins(PluginCatalog):
@@ -40,9 +43,9 @@ class CorePlugins(PluginCatalog):
         self._plugin_selection = PluginSelection(self.get_plugin_list)
 
         self.initialized = False
-        self._plugins_names_dict = None
-        self._plugins_options = None
-        self.plugins = None
+        self._plugins_names_dict: dict[str, list[str]]
+        self._plugins_options: dict[str, dict[str, Any]]
+        self.plugins: dict[str, list[Plugin]]
         self.zero_enabled_plugins()
 
     def zero_enabled_plugins(self):
@@ -183,11 +186,10 @@ class CorePlugins(PluginCatalog):
 
         return plugin_inst
 
-    def get_quick_instance(self, plugin_type, plugin_name):
+    def get_quick_instance(self, plugin_type, plugin_name, db=None):
         """Create dependency metadata instances on this core's database."""
-        return super().get_quick_instance(
-            plugin_type, plugin_name, self._w3af_core.database
-        )
+        database = self._w3af_core.database if db is None else db
+        return super().get_quick_instance(plugin_type, plugin_name, database)
 
     def expand_all(self):
         self._plugin_selection.expand_all()

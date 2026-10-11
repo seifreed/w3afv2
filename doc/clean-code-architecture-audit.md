@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: estado explícito de `CorePlugins`
+
+`CorePlugins` declara ahora sus mapas de nombres, opciones e instancias desde
+la composición inicial, en vez de exponerlos como `None` durante el análisis
+estático. `get_quick_instance()` mantiene la llamada corta usada por el core
+y acepta también una DB explícita para conservar el contrato del catálogo.
+
+Verificación: la suite de composición de plugins pasa **32 tests** y mypy
+estricto, Ruff y Black están limpios. Persisten únicamente warnings de
+deprecación emitidos por dependencias externas durante algunos imports.
+
 ## Actualización verificada: invariantes de profiling y Bloom filters
 
 El detector de delays tipa sus respuestas, los timers de profiling declaran su
