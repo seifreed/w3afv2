@@ -39,6 +39,7 @@ from w3af.core.data.db.history import (
     PendingCompressionJob,
     TraceReadException,
 )
+from w3af.core.data.db.history_trace_compressor import HistoryTraceCompressor
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
@@ -66,6 +67,18 @@ class TestHistoryItem(unittest.TestCase):
         h1 = HistoryItem()
         h2 = HistoryItem()
         self.assertEqual(h1._db, h2._db)
+
+    def test_compression_state_is_local_to_each_history_session(self):
+        first = HistoryTraceCompressor("first")
+        second = HistoryTraceCompressor("second")
+        job = PendingCompressionJob(1, 2)
+
+        first._pending_compression_jobs.append(job)
+
+        self.assertEqual(first.get_pending_job(), job)
+        self.assertIsNone(second.get_pending_job())
+        self.assertEqual(first._latest_compression_job_end, 0)
+        self.assertEqual(second._latest_compression_job_end, 0)
 
     def test_injected_database_is_preserved_by_find(self):
         first_db = create_temp_db_instance()

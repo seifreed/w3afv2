@@ -58,7 +58,6 @@ class HistoryItem:
     Represents history item
     """
 
-    _db = None
     _DATA_TABLE = "history_items"
     _COLUMNS: ClassVar[list[tuple[str, str]]] = [
         ("id", "INTEGER"),
@@ -105,11 +104,9 @@ class HistoryItem:
     time = 0.2
     charset = None
 
-    history_lock = threading.RLock()
-    compression_lock = HistoryTraceCompressor.compression_lock
-
     def __init__(self, db=None):
         self._db = get_default_temp_db_instance() if db is None else db
+        self._history_lock = threading.RLock()
 
         self._session_dir = os.path.join(
             get_temp_dir(), self._db.get_file_name() + "_traces"
@@ -135,7 +132,7 @@ class HistoryItem:
         self.init_db()
 
     def init_traces_dir(self):
-        with self.history_lock:
+        with self._history_lock:
             if not os.path.exists(self._session_dir):
                 os.mkdir(self._session_dir)
 
@@ -143,7 +140,7 @@ class HistoryItem:
         """
         Init history table and indexes.
         """
-        with self.history_lock:
+        with self._history_lock:
             self._history_repository.init()
 
     def get_response(self):

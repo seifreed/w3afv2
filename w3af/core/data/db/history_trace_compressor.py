@@ -4,7 +4,6 @@ import os
 import threading
 import zipfile
 from dataclasses import dataclass
-from typing import ClassVar
 
 
 @dataclass(frozen=True)
@@ -30,15 +29,14 @@ class HistoryTraceCompressor:
     _UNCOMPRESSED_FILES = 50
     _MIN_FILE_COUNT = _COMPRESSED_FILE_BATCH + _UNCOMPRESSED_FILES
 
-    _pending_compression_jobs: ClassVar[list[PendingCompressionJob]] = []
-    _latest_compression_job_end: ClassVar[int] = 0
-    compression_lock = threading.RLock()
-
     def __init__(self, session_dir: str) -> None:
         self._session_dir = session_dir
+        self._pending_compression_jobs: list[PendingCompressionJob] = []
+        self._latest_compression_job_end = 0
+        self._compression_lock = threading.RLock()
 
     def get_pending_job(self) -> PendingCompressionJob | None:
-        with self.compression_lock:
+        with self._compression_lock:
             try:
                 return self._pending_compression_jobs.pop(0)
             except IndexError:
@@ -49,7 +47,7 @@ class HistoryTraceCompressor:
         if response_id % 100 != 0:
             return
 
-        with self.compression_lock:
+        with self._compression_lock:
             files = [
                 os.path.join(self._session_dir, filename)
                 for filename in os.listdir(self._session_dir)
@@ -71,7 +69,7 @@ class HistoryTraceCompressor:
                     break
 
                 self._pending_compression_jobs.append(PendingCompressionJob(start, end))
-                HistoryTraceCompressor._latest_compression_job_end = end
+                self._latest_compression_job_end = end
                 files = files[self._COMPRESSED_FILE_BATCH :]
 
     def process(self, pending_compression: PendingCompressionJob) -> None:

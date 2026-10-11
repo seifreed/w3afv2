@@ -4457,3 +4457,15 @@ Verificación: **31 tests** XML, **9 tests** grep, **2 tests** de render HTML y
 **33 tests** API/History pasan. Black, Ruff y mypy pasan en los archivos
 modificados. El score global sigue en **9.99/10**: aún queda el fallback global
 para componentes standalone y la auditoría completa de módulos heredados.
+
+## Actualización verificada: compresión de History aislada por sesión
+
+`HistoryTraceCompressor` ya no guarda en la clase la cola de trabajos, el último
+identificador comprimido ni el lock. Cada sesión de History posee esos recursos
+de forma independiente. `HistoryItem` también usa un lock de instancia y no
+conserva un atributo de DB mutable en la clase.
+
+La regresión demuestra que dos compresores no comparten trabajos ni contadores.
+Verificación: **26 tests** de History pasan; Black, Ruff y mypy pasan en los
+archivos modificados. El score global queda en **9.99/10**, con el fallback
+standalone de DB y los módulos heredados todavía pendientes.
