@@ -1,6 +1,7 @@
 """Build and configure runtime plugin instances."""
 
 from w3af.core.controllers.misc.factory import factory
+from w3af.core.data.db.dbms import database_context
 
 
 class PluginInstanceFactory:
@@ -11,7 +12,8 @@ class PluginInstanceFactory:
         self._output = output
 
     def create(self, plugin_type, plugin_name, custom_options=None):
-        plugin_instance = factory(f"w3af.plugins.{plugin_type}.{plugin_name}")
+        with database_context(self._w3af_core.database):
+            plugin_instance = factory(f"w3af.plugins.{plugin_type}.{plugin_name}")
         plugin_instance.set_url_opener(self._w3af_core.uri_opener)
         plugin_instance.set_worker_pool(self._w3af_core.worker_pool)
         plugin_instance.set_w3af_core(self._w3af_core)

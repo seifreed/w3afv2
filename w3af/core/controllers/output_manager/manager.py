@@ -36,6 +36,7 @@ from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.data.db.dbms import database_context
 
 LOGGER = logging.getLogger(__name__)
 
@@ -532,8 +533,12 @@ class OutputManager(Process):
             self._output_plugin_instances.append(plugin)
 
     def _get_plugin_instance(self, plugin_name):
-        plugin = factory(f"w3af.plugins.output.{plugin_name}")
         w3af_core = self._get_w3af_core()
+        if w3af_core is None:
+            plugin = factory(f"w3af.plugins.output.{plugin_name}")
+        else:
+            with database_context(w3af_core.database):
+                plugin = factory(f"w3af.plugins.output.{plugin_name}")
         plugin.set_w3af_core(proxy(w3af_core) if w3af_core is not None else None)
         plugin.set_output(self._output)
         if w3af_core is not None:

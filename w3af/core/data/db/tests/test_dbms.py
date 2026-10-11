@@ -37,6 +37,7 @@ from w3af.core.data.db.dbms import (
     SQLiteDBMS,
     SQLiteExecutor,
     create_temp_db_instance,
+    database_context,
     get_default_persistent_db_instance,
     get_default_temp_db_instance,
 )
@@ -251,6 +252,15 @@ class TestDefaultDB(unittest.TestCase):
         self.assertEqual(
             id(get_default_temp_db_instance()), id(get_default_temp_db_instance())
         )
+
+    def test_database_context_uses_scoped_db(self):
+        scoped_db = create_temp_db_instance()
+        self.addCleanup(TestDBMS.close_db, scoped_db)
+
+        with database_context(scoped_db):
+            self.assertIs(get_default_temp_db_instance(), scoped_db)
+
+        self.assertIsNot(get_default_temp_db_instance(), scoped_db)
 
     def test_get_default_persistent_db_instance(self):
         self.assertIs(

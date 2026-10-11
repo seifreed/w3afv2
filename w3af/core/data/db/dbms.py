@@ -24,6 +24,8 @@ import logging
 import os
 import sqlite3
 from concurrent.futures import Future
+from contextlib import contextmanager
+from contextvars import ContextVar
 from functools import wraps
 from multiprocessing.dummy import Process, Queue
 from uuid import uuid4
@@ -462,6 +464,9 @@ class SQLiteExecutor(Process):
 
 
 temp_default_db = None
+_current_database: ContextVar[SQLiteDBMS | None] = ContextVar(
+    "w3af_current_database", default=None
+)
 
 
 def create_temp_db_instance():
@@ -471,8 +476,21 @@ def create_temp_db_instance():
     return SQLiteDBMS(filename)
 
 
+@contextmanager
+def database_context(database: SQLiteDBMS):
+    """Use ``database`` for transient objects created in this context."""
+    token = _current_database.set(database)
+    try:
+        yield
+    finally:
+        _current_database.reset(token)
+
+
 def get_default_temp_db_instance():
     global temp_default_db
+
+    if database := _current_database.get():
+        return database
 
     if temp_default_db is None:
         temp_default_db = create_temp_db_instance()

@@ -92,6 +92,17 @@ class TestW3afCorePlugins(unittest.TestCase):
 
         self.assertEqual(plugin_inst.get_name(), "sqli")
 
+    def test_plugin_disk_state_uses_core_database(self):
+        plugin_inst = self.core.plugins.get_plugin_inst("crawl", "web_spider")
+        quick_instance = self.core.plugins.get_quick_instance("crawl", "web_spider")
+
+        self.assertIs(plugin_inst._broken_links.db, self.core.database)
+        self.assertIs(quick_instance._broken_links.db, self.core.database)
+
+        self.core._output_manager.set_output_plugins(["xml_file"])
+        output_plugin = self.core._output_manager.get_output_plugin_inst()[0]
+        self.assertIs(output_plugin._errors.db, self.core.database)
+
     def test_get_plugin_inst_all(self):
         for plugin_type in itertools.chain(
             self.core.plugins.get_plugin_types(), ["attack"]

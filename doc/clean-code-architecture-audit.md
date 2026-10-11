@@ -4469,3 +4469,21 @@ La regresión demuestra que dos compresores no comparten trabajos ni contadores.
 Verificación: **26 tests** de History pasan; Black, Ruff y mypy pasan en los
 archivos modificados. El score global queda en **9.99/10**, con el fallback
 standalone de DB y los módulos heredados todavía pendientes.
+
+## Actualización verificada: construcción de plugins aislada por core
+
+Los plugins que crean `DiskList`, `DiskSet`, `DiskDict` o estado de History en
+su constructor ya reciben, durante esa fase, la base SQLite del `w3afCore` que
+los está creando. Esto cubre tanto las instancias definitivas como las
+instancias rápidas usadas por el resolvedor de dependencias y los plugins de
+salida. El contexto se restaura siempre al salir, por lo que los usos
+standalone conservan su fallback temporal sin compartirlo con un scan.
+
+La regresión verifica la identidad de la DB en plugins definitivos, instancias
+rápidas y `xml_file`, además del aislamiento del contexto. Una prueba dinámica
+construyó todos los plugins disponibles y dos salidas: el proceso mantuvo un
+solo hilo SQLite del core y terminó con **0** hilos tras liberar recursos.
+Verificación: **50 tests** de DB y registro de plugins pasan; Black y Ruff
+focales pasan. El score global continúa en **9.99/10**, con los gates globales,
+el fallback standalone y los módulos heredados de gran tamaño todavía
+pendientes.
