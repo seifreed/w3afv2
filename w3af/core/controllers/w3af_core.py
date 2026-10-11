@@ -26,6 +26,9 @@ from w3af.core.controllers.core_helpers import scan_strategy_runner
 from w3af.core.controllers.core_helpers.core_resource_lifecycle import (
     CoreResourceLifecycle,
 )
+from w3af.core.controllers.core_helpers.core_shutdown_lifecycle import (
+    CoreShutdownLifecycle,
+)
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
 from w3af.core.controllers.core_helpers.fingerprint_404_lifecycle import (
     Fingerprint404Lifecycle,
@@ -278,6 +281,16 @@ class w3afCore:
             self._dns_cache,
             lambda: remove_temp_dir(ignore_errors=True),
         )
+        self._shutdown_lifecycle = CoreShutdownLifecycle(
+            self.stop,
+            self._scan_start_lifecycle.stop_profiling,
+            self.uri_opener.end,
+            self._dns_cache.clear,
+            self._fingerprint_404_lifecycle.cleanup,
+            lambda: remove_data_logging(self._output),
+            self._resource_finalizer,
+            lambda: remove_temp_dir(ignore_errors=True),
+        )
 
     def _prepare_scan_directories(self):
         prepare_home_directory()
@@ -432,22 +445,7 @@ class w3afCore:
         """
         The user wants to exit w3af ASAP, so we stop the scan and exit.
         """
-        self.stop()
-        self._scan_start_lifecycle.stop_profiling()
-        self.uri_opener.end()
-        self._dns_cache.clear()
-
-        self._fingerprint_404_lifecycle.cleanup()
-
-        remove_data_logging(self._output)
-        self._resource_finalizer()
-
-        # Remove the xurllib cache, bloom filters, DiskLists, etc.
-        #
-        # This needs to be done here and not in stop() because we want to keep
-        # these files (mostly the HTTP request/response data) for the user to
-        # analyze in the GUI after the scan has finished
-        remove_temp_dir(ignore_errors=True)
+        self._shutdown_lifecycle.quit()
 
     def pause(self, pause_yes_no):
         """

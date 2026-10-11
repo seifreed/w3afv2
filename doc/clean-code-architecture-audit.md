@@ -7802,3 +7802,14 @@ callbacks explícitamente.
 Verificación: **66 tests** de plugins, estrategia y `w3afCore` pasan; el módulo
 nuevo pasa mypy dirigido, Black y Ruff. `CorePlugins` queda en 235 líneas y la
 preparación de instancias tiene una frontera propia.
+
+## Actualización verificada: shutdown del core separado
+
+El cierre de un core salió de `w3afCore.quit()` y pasó a
+`CoreShutdownLifecycle`, que conserva explícitamente el orden stop, profiling,
+URI, DNS, fingerprint, logging, recursos y temporales. La fachada del core
+solo delega el cierre y mantiene la API pública existente.
+
+Verificación: **66 tests** de core, plugins y parada pasan; los tests existentes
+de quit idempotente siguen verdes. El nuevo lifecycle pasa mypy dirigido, Black
+y Ruff.
