@@ -28,7 +28,7 @@ from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
-from w3af.core.ui.api.utils.scans import get_scan_info_from_id
+from w3af.core.ui.api.utils.scans import get_scan_core, get_scan_info_from_id
 
 
 @app.route("/scans/<int:scan_id>/exceptions/", methods=["GET"])
@@ -50,7 +50,8 @@ def list_exceptions(scan_id):
 
     data = []
 
-    all_exceptions = scan_info.w3af_core.exception_handler.get_all_exceptions()
+    core = get_scan_core(scan_info)
+    all_exceptions = core.exception_handler.get_all_exceptions()
 
     for exception_id, exception_data in enumerate(all_exceptions):
         data.append(exception_to_json(exception_data, scan_id, exception_id))
@@ -71,7 +72,8 @@ def get_exception_details(scan_id, exception_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    all_exceptions = scan_info.w3af_core.exception_handler.get_all_exceptions()
+    core = get_scan_core(scan_info)
+    all_exceptions = core.exception_handler.get_all_exceptions()
 
     for i_exception_id, exception_data in enumerate(all_exceptions):
         if exception_id == i_exception_id:
@@ -117,7 +119,8 @@ def exception_creator(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    current_status = FakeStatus(scan_info.w3af_core._output)
+    core = get_scan_core(scan_info)
+    current_status = FakeStatus(core._output)
     current_status.set_running_plugin("phase", "plugin")
     current_status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
@@ -127,8 +130,7 @@ def exception_creator(scan_id):
         exec_info = sys.exc_info()
         enabled_plugins = ""
 
-        scan_info.w3af_core.exception_handler.write_crash_file = lambda x: x
-        scan_info.w3af_core.exception_handler.handle(
+        core.exception_handler.handle(
             current_status, exception, exec_info, enabled_plugins
         )
 

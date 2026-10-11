@@ -24,8 +24,13 @@ import logging
 import os
 import tempfile
 from itertools import count
+from typing import TYPE_CHECKING
 
 from w3af.core.ui.api.db.master import SCANS, ScanInfo
+from w3af.core.ui.api.utils.error import abort
+
+if TYPE_CHECKING:
+    from w3af.core.controllers.w3af_core import w3afCore
 
 PROFILE_EXTENSION = ".pw3af"
 PROFILE_ENCODING = "utf-8"
@@ -36,6 +41,13 @@ _scan_ids = count()
 
 def get_scan_info_from_id(scan_id: int) -> ScanInfo | None:
     return SCANS.get(scan_id, None)
+
+
+def get_scan_core(scan_info: ScanInfo) -> "w3afCore":
+    core = scan_info.w3af_core
+    if core is None:
+        abort(400, "Scan state is invalid")
+    return core
 
 
 def get_new_scan_id() -> int:

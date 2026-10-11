@@ -5807,3 +5807,14 @@ Verificación: las pruebas de rutas de error y cleanup pasan **12 tests y 11
 subtests**; mypy global baja a **640 errores en 261 archivos** desde 646, y
 Black, Ruff y Bandit del recurso pasan sin hallazgos. El score global continúa
 en **9.99/10**.
+
+## Actualización verificada: utilidad común para cores de API
+
+La validación de `ScanInfo.w3af_core` vive ahora en `api.utils.scans`, junto al
+lookup y arranque de scans. Los recursos de scans y excepciones reutilizan ese
+contrato, y la ruta de creación de excepciones ejecuta el `ExceptionHandler`
+real sin reemplazar métodos en runtime.
+
+Verificación: las pruebas API pasan **13 tests y 11 subtests**; mypy global
+baja a **635 errores en 261 archivos** desde 640, y Black, Ruff y Bandit de
+los tres módulos pasan sin hallazgos. El score global continúa en **9.99/10**.

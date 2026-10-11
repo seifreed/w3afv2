@@ -35,6 +35,7 @@ from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.log_handler import RESTAPIOutput
 from w3af.core.ui.api.utils.scans import (
     create_temp_profile,
+    get_scan_core,
     get_new_scan_id,
     get_scan_info_from_id,
     remove_temp_profile,
@@ -256,7 +257,7 @@ def scan_pause(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    core = _get_scan_core(scan_info)
+    core = get_scan_core(scan_info)
     if core.status.get_simplified_status() != RUNNING:
         abort(403, "Scan can not be paused")
 
@@ -278,7 +279,7 @@ def scan_resume(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    core = _get_scan_core(scan_info)
+    core = get_scan_core(scan_info)
     if not core.status.is_paused():
         abort(403, "Scan is not paused")
 
@@ -301,7 +302,7 @@ def scan_stop(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    core = _get_scan_core(scan_info)
+    core = get_scan_core(scan_info)
     if not core.can_stop():
         abort(403, "Scan can not be stop")
 
@@ -310,10 +311,3 @@ def scan_stop(scan_id):
     t.start()
 
     return jsonify({"message": "Stopping scan"})
-
-
-def _get_scan_core(scan_info: ScanInfo) -> w3afCore:
-    core = scan_info.w3af_core
-    if core is None:
-        abort(400, "Scan state is invalid")
-    return core
