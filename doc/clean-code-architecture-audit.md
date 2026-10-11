@@ -6959,3 +6959,18 @@ Los errores de `logout()` se envían ahora al mismo canal de excepciones del
 consumer y no impiden ejecutar `end()` del plugin afectado.
 
 Verificación adicional: `test_auth.py` pasa **6 tests**.
+
+## Actualización verificada: cleanup de procesos y ThreadPool en tests
+
+El test concurrente de RTT registra tanto `terminate()` como `join()` para sus
+25 hilos. Los tests del parser multiproceso cierran sus colas y garantizan el
+join o terminate de los hijos, incluso si falla una aserción. Las fixtures de
+profiling terminan explícitamente un hijo que no responda dentro del timeout,
+evitando procesos y memoria retenidos entre casos.
+
+Verificación: RTT pasa **8 tests**, parser multiproceso **38 tests** y
+profiling **13 tests**. Black, Ruff y Mypy pasan en los cuatro archivos
+modificados; no quedan procesos de pytest, workers o parsers activos. El score
+global continúa en **9.99/10** porque aún no existe evidencia de cobertura
+global al 100% ni de las gates literales sobre artefactos generados y código
+vendorizado.

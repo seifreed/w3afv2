@@ -53,6 +53,9 @@ class TestProcesses(unittest.TestCase):
         processes.cancel_thread(processes.SAVE_PROCESS_PTR)
         self.release.set()
         self.child.join(timeout=60)
+        if self.child.is_alive():
+            self.child.terminate()
+            self.child.join()
         remove_output_files(processes.PROFILING_OUTPUT_FMT)
 
     def test_profiling_disabled_does_nothing(self):

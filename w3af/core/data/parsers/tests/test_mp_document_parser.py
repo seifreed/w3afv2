@@ -235,8 +235,12 @@ class TestMPDocumentParser(unittest.TestCase):
             vulnerabilities might not be identified.
         """
         queue: MultiprocessingQueue[bool] = multiprocessing.Queue()
+        self.addCleanup(queue.join_thread)
+        self.addCleanup(queue.close)
 
         p = multiprocessing.Process(target=daemon_child, args=(queue,))
+        self.addCleanup(p.join)
+        self.addCleanup(p.terminate)
         p.daemon = True
         p.start()
         p.join()
@@ -248,8 +252,12 @@ class TestMPDocumentParser(unittest.TestCase):
         Making sure that the previous failure is due to "p.daemon = True"
         """
         queue: MultiprocessingQueue[bool] = multiprocessing.Queue()
+        self.addCleanup(queue.join_thread)
+        self.addCleanup(queue.close)
 
         p = multiprocessing.Process(target=daemon_child, args=(queue,))
+        self.addCleanup(p.join)
+        self.addCleanup(p.terminate)
         p.start()
         p.join()
 

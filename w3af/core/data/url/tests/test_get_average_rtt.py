@@ -145,6 +145,7 @@ class TestGetAverageRTT(unittest.TestCase):
         fuzzable_request, server = self.serve(DelayedResponder([0.5]))
 
         pool = ThreadPool(25)
+        self.addCleanup(pool.join)
         self.addCleanup(pool.terminate)
 
         iterations = 50

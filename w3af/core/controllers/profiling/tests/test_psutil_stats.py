@@ -109,6 +109,9 @@ class TestPsutilStats(unittest.TestCase):
         finally:
             release.set()
             child.join(timeout=60)
+            if child.is_alive():
+                child.terminate()
+                child.join()
 
         self.assertGreaterEqual(len(usage), 2)
         for memory in usage:
@@ -129,6 +132,9 @@ class TestPsutilStats(unittest.TestCase):
         finished = psutil.Process(child.pid)
         release.set()
         child.join(timeout=60)
+        if child.is_alive():
+            child.terminate()
+            child.join()
 
         self.assertIsNone(get_process_memory(finished))
 
