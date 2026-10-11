@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import functools
 import logging
 import threading
 import time
@@ -29,7 +28,6 @@ import uuid
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.number_generator import NumberGenerator
-from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.url.constants import (
     MAX_ERROR_COUNT,
     TIMEOUT_ADJUST_LIMIT,
@@ -37,12 +35,13 @@ from w3af.core.data.url.constants import (
 from w3af.core.data.url.failed_response_recorder import FailedResponseRecorder
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.grep_dispatcher import GrepDispatcher
-from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
+from w3af.core.data.url.helpers import get_exception_reason
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
 from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.request_builder import RequestBuilder
 from w3af.core.data.url.request_error_handler import RequestErrorHandler
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
+from w3af.core.data.url.request_api import RequestApi
 from w3af.core.data.url.request_metrics import RequestMetrics
 from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.request_retry_handler import RequestRetryHandler
@@ -199,6 +198,11 @@ class ExtendedUrllib:
             self._handle_send_socket_error,
             self._handle_send_urllib_error,
             self._handle_send_success,
+        )
+        self._request_api = RequestApi(
+            self._request_builder,
+            self._size_limit_override,
+            self.send,
         )
 
     @property
@@ -370,12 +374,7 @@ class ExtendedUrllib:
         :param debugging_id: A unique identifier for this call to audit()
         :return: (HTTP response, Sanitized HTTP response body)
         """
-        http_response = self.send_mutant(
-            mutant, cache=False, debugging_id=debugging_id, grep=grep
-        )
-        clean_body = get_clean_body(mutant, http_response)
-
-        return http_response, clean_body
+        return self._request_api.send_clean(mutant, debugging_id, grep)
 
     def send_raw_request(self, head, postdata):
         """
@@ -393,16 +392,7 @@ class ExtendedUrllib:
 
         :return: An HTTPResponse object.
         """
-        fuzz_req = http_request_parser(head, postdata)
-
-        function_reference = getattr(self, fuzz_req.get_method())
-        return function_reference(
-            fuzz_req.get_uri(),
-            data=fuzz_req.get_data(),
-            headers=fuzz_req.get_headers(),
-            cache=False,
-            grep=False,
-        )
+        return self._request_api.send_raw_request(head, postdata)
 
     def send_mutant(
         self,
@@ -432,48 +422,21 @@ class ExtendedUrllib:
         :return: The HTTPResponse object associated with the request
                  that was just sent.
         """
-        #
-        # IMPORTANT NOTE: If you touch something here, the whole framework may
-        # stop working!
-        #
-        uri = mutant.get_uri()
-        data = mutant.get_data()
-        headers = mutant.get_all_headers()
-
-        # Also add the cookie header; this is needed by the CookieMutant
-        if cookies:
-            mutant_cookie = mutant.get_cookie()
-            if mutant_cookie:
-                headers["Cookie"] = str(mutant_cookie)
-
-        args = (uri,)
-        kwargs = {
-            "data": data,
-            "headers": headers,
-            "grep": grep,
-            "cache": cache,
-            "cookies": cookies,
-            "session": session,
-            "error_handling": error_handling,
-            "timeout": timeout,
-            "follow_redirects": follow_redirects,
-            "use_basic_auth": use_basic_auth,
-            "respect_size_limit": respect_size_limit,
-            "debugging_id": debugging_id,
-            "binary_response": binary_response,
-        }
-        method = mutant.get_method()
-
-        functor = getattr(self, method)
-        res = functor(*args, **kwargs)
-
-        if callback is not None:
-            # The user specified a custom callback for analyzing the HTTP
-            # response this is commonly used when sending requests in an
-            # async way.
-            callback(mutant, res)
-
-        return res
+        return self._request_api.send_mutant(
+            mutant,
+            callback=callback,
+            grep=grep,
+            cache=cache,
+            cookies=cookies,
+            session=session,
+            error_handling=error_handling,
+            timeout=timeout,
+            follow_redirects=follow_redirects,
+            use_basic_auth=use_basic_auth,
+            respect_size_limit=respect_size_limit,
+            debugging_id=debugging_id,
+            binary_response=binary_response,
+        )
 
     def GET(
         self,
@@ -516,25 +479,24 @@ class ExtendedUrllib:
 
         :return: An HTTPResponse object.
         """
-        req = self._request_builder.build_get(
+        return self._request_api.GET(
             uri,
-            data,
-            headers,
-            cache,
-            cookies,
-            session,
-            error_handling,
-            timeout,
-            follow_redirects,
-            use_basic_auth,
-            use_proxy,
-            debugging_id,
-            new_connection,
-            binary_response,
+            data=data,
+            headers=headers,
+            cache=cache,
+            grep=grep,
+            cookies=cookies,
+            session=session,
+            respect_size_limit=respect_size_limit,
+            new_connection=new_connection,
+            error_handling=error_handling,
+            timeout=timeout,
+            follow_redirects=follow_redirects,
+            use_basic_auth=use_basic_auth,
+            use_proxy=use_proxy,
+            debugging_id=debugging_id,
+            binary_response=binary_response,
         )
-
-        with self._size_limit_override.apply(respect_size_limit):
-            return self.send(req, grep=grep)
 
     def POST(
         self,
@@ -566,77 +528,27 @@ class ExtendedUrllib:
         :see: The GET() for documentation on the other parameters
         :return: An HTTPResponse object.
         """
-        req = self._request_builder.build_post(
+        return self._request_api.POST(
             uri,
-            data,
-            headers,
-            cookies,
-            session,
-            error_handling,
-            timeout,
-            use_basic_auth,
-            use_proxy,
-            debugging_id,
-            new_connection,
-            binary_response,
+            data=data,
+            headers=headers,
+            grep=grep,
+            cache=cache,
+            cookies=cookies,
+            session=session,
+            error_handling=error_handling,
+            timeout=timeout,
+            follow_redirects=follow_redirects,
+            use_basic_auth=use_basic_auth,
+            use_proxy=use_proxy,
+            debugging_id=debugging_id,
+            new_connection=new_connection,
+            respect_size_limit=respect_size_limit,
+            binary_response=binary_response,
         )
 
-        return self.send(req, grep=grep)
-
     def __getattr__(self, method_name):
-        """
-        This is a "catch-all" way to be able to handle every HTTP method.
-
-        :param method_name: The name of the method being called:
-        xurllib_instance.OPTIONS will make method_name == 'OPTIONS'.
-        """
-
-        def any_method(
-            uri_opener,
-            method,
-            uri,
-            data=None,
-            headers=None,
-            cache=False,
-            grep=True,
-            cookies=True,
-            session=None,
-            error_handling=True,
-            timeout=None,
-            use_basic_auth=True,
-            use_proxy=True,
-            follow_redirects=False,
-            debugging_id=None,
-            new_connection=False,
-            respect_size_limit=None,
-            binary_response=False,
-        ):
-            """
-            :return: An HTTPResponse object that's the result of sending
-                     the request with a method different from GET or POST.
-            """
-            req = uri_opener._request_builder.build_custom(
-                method,
-                uri,
-                data,
-                headers,
-                cache,
-                cookies,
-                session,
-                error_handling,
-                timeout,
-                use_basic_auth,
-                use_proxy,
-                follow_redirects,
-                debugging_id,
-                new_connection,
-                binary_response,
-            )
-            return uri_opener.send(req, grep=grep)
-
-        method_partial = functools.partial(any_method, self, method_name)
-        method_partial.__doc__ = f"Send {method_name} HTTP request"
-        return method_partial
+        return getattr(self._request_api, method_name)
 
     def _track_rtt(self, http_response, debugging_id):
         """

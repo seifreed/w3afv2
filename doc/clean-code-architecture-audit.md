@@ -53,7 +53,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 - `w3af/core/controllers/core_helpers/plugins.py` (240 líneas) mezcla
   descubrimiento del filesystem, importación dinámica, configuración, orden de
   dependencias, creación de instancias y coordinación con output.
-- `w3af/core/data/url/extended_urllib.py` (838 líneas) concentra transporte,
+- `w3af/core/data/url/extended_urllib.py` (688 líneas) concentra transporte,
   reintentos, pausas, métricas, evasiones y estado de requests.
 - La inicialización de plugins contiene mapas de tipos repetidos; su conjunto
   se mantenía manualmente y podía desincronizarse del filesystem.
@@ -7867,3 +7867,18 @@ Verificación: **80 tests HTTP** pasan; la cobertura del componente nuevo es
 **100%**; la prueba de capas, Black, Ruff, mypy dirigido y Bandit dirigido
 pasan. La suite solo conserva dos warnings deprecados en dependencias
 externas (`ldap3/pyasn1`).
+
+## Actualización verificada: API de requests separada del transporte
+
+La construcción de requests públicos (`GET`, `POST`, métodos dinámicos,
+`send_mutant`, `send_clean` y `send_raw_request`) salió de
+`ExtendedUrllib` y pasó a `RequestApi`. La fachada conserva las firmas y la
+API histórica, mientras `RequestSender` sigue siendo el único límite de
+transporte. Los parámetros heredados se delegan con nombres explícitos para
+evitar cambios accidentales por orden posicional.
+
+Verificación: **102 tests** de urllib, proxy, timeout, integración y plugins
+pasan; la cobertura del nuevo `RequestApi` es **100% (41 statements)**; la
+prueba de capas, Black y Ruff globales pasan, y Bandit dirigido no encuentra
+hallazgos. Mypy dirigido no encuentra errores propios, pero su recorrido
+transitivo sigue bloqueado por los stubs ausentes de `defusedxml`.
