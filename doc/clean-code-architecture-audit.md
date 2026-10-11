@@ -5621,3 +5621,13 @@ Verificación: las suites de API y errores de ExtendedUrllib pasan **29 tests**;
 Black, Ruff, mypy focal y Bandit focal están limpios. El score global continúa
 en **9.99/10**, con los gates globales heredados y la cobertura global todavía
 pendientes.
+
+## Actualización verificada: respuesta mangle con atributo dinámico
+
+La conversión de respuestas modificadas conserva el `id` que `urllib` añade en
+runtime mediante un único acceso dinámico explícito. No cambia el cuerpo, las
+cabeceras ni el ciclo de cierre de la respuesta keepalive.
+
+Verificación: mangle pasa **3 tests**; Black, Ruff, mypy focal y Bandit focal
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
