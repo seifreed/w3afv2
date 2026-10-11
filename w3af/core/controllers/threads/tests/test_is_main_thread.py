@@ -36,7 +36,7 @@ class TestIsMainThread(unittest.TestCase):
         def thread_func(result_queue):
             result_queue.put(is_main_thread())
 
-        result_queue = queue.Queue()
+        result_queue: queue.Queue[bool] = queue.Queue()
 
         t = threading.Thread(target=thread_func, args=(result_queue,))
         t.start()

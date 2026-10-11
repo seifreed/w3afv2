@@ -91,7 +91,7 @@ class TestPoolOperations(unittest.TestCase):
 
     def test_apply_async_callback_receives_successful_results(self):
         pool = self.new_pool()
-        received = []
+        received: list[int] = []
 
         pool.apply_async(square, (5,), callback=received.append).get()
         failed = pool.apply_async(fail_on_odd, (1,), callback=received.append)
@@ -206,7 +206,7 @@ class TestPoolOperations(unittest.TestCase):
         self.assertEqual(pool.get_worker_count(), os.cpu_count() or 1)
 
     def test_initializer(self):
-        initialized = []
+        initialized: list[str] = []
         pool = self.new_pool(1, initializer=initialized.append, initargs=("ready",))
         pool.apply(square, (1,))
         self.assertEqual(initialized, ["ready"])

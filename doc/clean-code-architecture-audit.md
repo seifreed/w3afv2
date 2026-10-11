@@ -6524,3 +6524,12 @@ desproporcionada de memoria.
 
 Verificación: el fichero pasa Mypy, Ruff y Black; sus **3 tests** pasan. El
 pico medido baja a **58 MiB de RSS**.
+
+## Actualización verificada: resultados de pools de threads
+
+Las fixtures de operaciones de `Pool` y de detección del thread principal
+declaran los tipos de sus colas y colecciones de resultados. Se conserva el
+flujo real de workers, callbacks y teardown.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en ambas
+fixtures; sus **33 tests** pasan. El score global continúa en **9.99/10**.
