@@ -24,9 +24,6 @@ import copy
 import hashlib
 import logging
 import threading
-import urllib.error
-import urllib.parse
-import urllib.request
 from collections.abc import Iterable
 
 from w3af.core.data.db.disk_item import DiskItem
@@ -221,40 +218,14 @@ class HTTPResponse(DiskItem):
 
         :return: A HTTPResponse instance
         """
-        resp = httplibresp
-        code, msg, hdrs, body = (resp.code, resp.msg, resp.info(), resp.read())
-        hdrs = Headers(merge_repeated_headers(hdrs.items()))
+        from w3af.core.data.url.http_response_factory import from_httplib_resp
 
-        if original_url:
-            url_inst = URL(resp.geturl(), original_url.encoding)
-            url_inst = url_inst.url_decode()
-        else:
-            url_inst = original_url = URL(resp.geturl())
-
-        httplib_time = DEFAULT_WAIT_TIME
-        if hasattr(httplibresp, "get_wait_time"):
-            # This is defined in the keep alive http response object
-            httplib_time = httplibresp.get_wait_time()
-
-        if isinstance(resp, urllib.error.HTTPError):
-            # This is possible because in errors.py I do:
-            # err = urllib2.HTTPError(req.get_full_url(), code, msg, hdrs, resp)
-            charset = getattr(resp.fp, "encoding", None)
-        else:
-            # The encoding attribute is only set on CachedResponse instances
-            charset = getattr(resp, "encoding", None)
-
-        return cls(
-            code,
-            body,
-            hdrs,
-            url_inst,
+        return from_httplib_resp(
+            cls,
+            httplibresp,
             original_url,
-            msg,
-            charset=charset,
-            time=httplib_time,
-            binary_response=binary_response,
-            parser_cache=parser_cache,
+            binary_response,
+            parser_cache,
         )
 
     @classmethod
@@ -267,50 +238,18 @@ class HTTPResponse(DiskItem):
 
         :param unserialized_dict: A dict just as returned by to_dict()
         """
-        code = unserialized_dict["code"]
-        msg = unserialized_dict["msg"]
-        headers = unserialized_dict["headers"]
-        body = unserialized_dict["body"]
-        charset = unserialized_dict["charset"]
-        _time = unserialized_dict["time"]
-        _id = unserialized_dict["id"]
-        url = URL(unserialized_dict["uri"])
-        debugging_id = unserialized_dict["debugging_id"]
+        from w3af.core.data.url.http_response_serializer import from_dict
 
-        headers_inst = Headers(list(headers.items()))
-
-        return cls(
-            code,
-            body,
-            headers_inst,
-            url,
-            url,
-            msg=msg,
-            _id=_id,
-            time=_time,
-            charset=charset,
-            set_body=True,
-            debugging_id=debugging_id,
-        )
+        return from_dict(cls, unserialized_dict)
 
     def to_dict(self):
         """
         :return: A dict that represents the current object and is serializable
                  by the json or msgpack modules.
         """
-        # Note: The Headers() object can be serialized by msgpack because it
-        #       inherits from dict() and doesn't mangle it too much
-        return {
-            "headers": dict(self.get_headers()),
-            "code": self.get_code(),
-            "msg": self.get_msg(),
-            "body": self.get_body(),
-            "time": self.get_wait_time(),
-            "id": self.get_id(),
-            "charset": self.get_charset(),
-            "uri": self.get_uri().url_string,
-            "debugging_id": self._debugging_id,
-        }
+        from w3af.core.data.url.http_response_serializer import to_dict
+
+        return to_dict(self)
 
     def get_eq_attrs(self):
         return (

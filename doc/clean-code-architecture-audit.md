@@ -7841,3 +7841,16 @@ Verificación: **79 tests**, **7 subtests**, la prueba de capas, Black y Ruff
 globales pasan; Bandit dirigido sobre los módulos modificados no encuentra
 hallazgos. `mypy` transitivo sigue limitado por stubs ausentes de dependencias
 externas (`defusedxml`).
+
+## Actualización verificada: adaptadores de `HTTPResponse` aislados
+
+La entidad `HTTPResponse` conserva sus classmethods públicos, pero la lectura
+de respuestas `http.client` y la conversión msgpack viven ahora en
+`http_response_factory.py` y `http_response_serializer.py`. El modelo ya no
+contiene la lógica de transporte ni la representación de IPC; las fachadas
+locales preservan compatibilidad con todos los callers existentes.
+
+Verificación: **74 tests** de respuesta, serialización y parser cache pasan;
+Black, Ruff, mypy dirigido, Bandit dirigido y la prueba de capas pasan. La
+suite mantiene únicamente las notas informativas de mypy sobre funciones
+antiguas sin anotaciones.
