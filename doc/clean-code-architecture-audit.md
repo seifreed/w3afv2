@@ -8012,3 +8012,18 @@ orden de inicialización existente y mantiene el contrato de `CorePlugins(None,
 
 Verificación: **38 tests** de plugins pasan; la regresión de construcción
 temprana fue reproducida y corregida; Black, Ruff y mypy dirigido pasan.
+
+## Actualización verificada: preparación de la fase de explotación aislada
+
+La política que prepara el opener HTTP para explotación (`clear()` y
+`set_exploit_mode(True)`) vive ahora en `ExploitPhaseLifecycle`. `w3afCore`
+conserva el método público `exploit_phase_prerequisites()` como delegación y
+`ScanEndLifecycle` recibe directamente el colaborador que necesita. Esto
+reduce otra responsabilidad de ciclo de vida en el composition root sin
+alterar el orden de liberación ni el comportamiento del opener.
+
+Verificación: **25 tests** del core, la prueba de capas, Black, Ruff, mypy y
+Bandit dirigido pasan. La nota no se declara 10/10: siguen pendientes la
+composición del constructor de `w3afCore`, la concentración de
+`ExtendedUrllib`, la cobertura global y los gates que recorren artefactos
+generados o dependencias externas.

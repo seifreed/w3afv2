@@ -30,6 +30,9 @@ from w3af.core.controllers.core_helpers.core_shutdown_lifecycle import (
     CoreShutdownLifecycle,
 )
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
+from w3af.core.controllers.core_helpers.exploit_phase_lifecycle import (
+    ExploitPhaseLifecycle,
+)
 from w3af.core.controllers.core_helpers.fingerprint_404_lifecycle import (
     Fingerprint404Lifecycle,
 )
@@ -237,6 +240,7 @@ class w3afCore:
             self._database,
             self.uri_opener,
         )
+        self._exploit_phase_lifecycle = ExploitPhaseLifecycle(output, self.uri_opener)
         self._stop_controller = ScanStopController(
             output,
             self.uri_opener,
@@ -269,7 +273,7 @@ class w3afCore:
             self._parser_cache,
             self._scan_start_lifecycle.stop_profiling,
             self._worker_pool_manager.terminate,
-            self.exploit_phase_prerequisites,
+            self._exploit_phase_lifecycle.prepare,
             self.plugins.zero_enabled_plugins,
             self.target.clear,
             lambda: self.status.stop(),
@@ -438,15 +442,4 @@ class w3afCore:
         from the core during the exploitation phase. In other words, which
         internal objects do I need alive after a scan?
         """
-        self._output.debug("Setting exploit phase prerequisites")
-
-        # We disable raising the exception, so we do this only once and don't
-        # affect other parts of the tool such as the exploitation or manual HTTP
-        # request sending from the GUI
-        #
-        # https://github.com/andresriancho/w3af/issues/2704
-        # https://github.com/andresriancho/w3af/issues/2711
-        self.uri_opener.clear()
-
-        # Disable some internal checks so the exploits can "bend" the matrix
-        self.uri_opener.set_exploit_mode(True)
+        self._exploit_phase_lifecycle.prepare()

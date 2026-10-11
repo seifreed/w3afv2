@@ -270,6 +270,11 @@ class TestW3afCore(unittest.TestCase):
         self.core.pause(False)
         self.assertFalse(self.core.status.is_paused())
 
+    def test_exploit_phase_prerequisites_enable_exploit_mode(self):
+        self.core.exploit_phase_prerequisites()
+
+        self.assertTrue(self.core.uri_opener.exploit_mode)
+
     def stop_running_core(self):
         recorder = start_recording_output(self.core._output_manager)
         self.core.STOP_TIMEOUT = 1
