@@ -438,7 +438,6 @@ class ConnectionManager:
 
         with self._lock:
             used_connections = self._used_conns.copy()
-            free_connections = self._free_conns.copy()
 
         for conn in used_connections:
             current_request_start = conn.current_request_start
@@ -462,6 +461,9 @@ class ConnectionManager:
                 msg = "%s has been in used state for %.2f seconds"
                 args = (conn, time_in_used_state)
                 debug(msg % args)
+
+        with self._lock:
+            free_connections = self._free_conns.copy()
 
         for conn in free_connections:
             connection_manager_move_ts = conn.connection_manager_move_ts

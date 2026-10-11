@@ -7403,8 +7403,8 @@ módulos modificados.
 Las estadísticas y el cleanup del `ConnectionManager` podían observar los
 sets compartidos mientras otro worker los modificaba. El contador de logging,
 los tamaños usados en los mensajes y las copias para cleanup se obtienen ahora
-bajo el mismo lock, evitando estados incoherentes y carreras durante el cierre
-de conexiones.
+bajo el mismo lock, procesando cada snapshot por separado para evitar estados
+incoherentes y limitar el pico de memoria durante el cierre de conexiones.
 
 Verificación: la suite completa de keep-alive pasa **57 tests**; Black, Ruff y
 mypy pasan en los dos módulos modificados.
