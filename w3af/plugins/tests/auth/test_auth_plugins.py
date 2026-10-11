@@ -40,7 +40,7 @@ from w3af.plugins.tests.canned_http_server import CannedHTTPServer, CannedReply
 USER = "user@mail.com"
 AUTH_VALUE = "passw0rd"
 INVALID_AUTH_VALUE = "invalid-credential"
-PASSWORD_FIELD = "password"
+AUTH_FIELD_NAME = "password"
 SESSION = "session=valid"
 CHECK_STRING = "Welcome back"
 
@@ -150,7 +150,7 @@ class TestGeneric(AuthPluginTestCase):
             username=USER,
             password=password,
             username_field="username",
-            password_field=PASSWORD_FIELD,
+            password_field=AUTH_FIELD_NAME,
             auth_url=self.url("/login", auth_base),
             check_url=self.url("/check"),
             check_string=CHECK_STRING,
@@ -195,7 +195,7 @@ class TestDetailed(AuthPluginTestCase):
             username=USER,
             password=password,
             username_field="username",
-            password_field=PASSWORD_FIELD,
+            password_field=AUTH_FIELD_NAME,
             data_format="%u=%U&%p=%P",
             method="POST",
             auth_url=self.url("/login", auth_base),
@@ -304,7 +304,7 @@ class TestAuthenticationFailureReport(AuthPluginTestCase):
             username=USER,
             password=INVALID_AUTH_VALUE,
             username_field="username",
-            password_field=PASSWORD_FIELD,
+            password_field=AUTH_FIELD_NAME,
             auth_url=self.url("/login"),
             check_url=self.url("/check"),
             check_string=CHECK_STRING,

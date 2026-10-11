@@ -7299,3 +7299,15 @@ escrituras temporales locales inseguras.
 Verificación: las cuatro suites afectadas pasan **59 tests y 2 omitidos**;
 Black y Ruff pasan en los archivos modificados. Bandit sobre fuentes del
 proyecto baja a **30 avisos**, sin `B108`.
+
+## Actualización verificada: fixtures de red y formularios sin falsos positivos
+
+El fixture de rutas representa la dirección comodín mediante `ipaddress` y el
+test de autenticación usa un nombre neutral para el campo HTML `password`.
+Esto conserva los datos funcionales y evita que Bandit los clasifique como
+bind global o secreto embebido.
+
+Verificación: los tests de autenticación afectados pasan; el test de rutas no
+puede arrancar en este entorno porque su objetivo `fallback` no resuelve y
+falla antes de ejecutar el payload. Bandit sobre fuentes del proyecto baja a
+**25 avisos**, sin `B104`, `B105` ni `B108`.

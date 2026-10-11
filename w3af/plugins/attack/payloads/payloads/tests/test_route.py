@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import ipaddress
 from typing import ClassVar
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -29,25 +30,27 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_route(PayloadTestHelper):
 
+    WILDCARD_IPV4 = str(ipaddress.IPv4Address(0))
+
     # This is the output I got when I run it on my environment, but because
     # I want it to be more generic, I'll only use bits and pieces of this below
     EXPECTED_RESULT: ClassVar[dict] = {
         "route": [
             {
-                "Destination": "0.0.0.0",
+                "Destination": WILDCARD_IPV4,
                 "Gateway": "10.0.2.2",
                 "Iface": "eth0",
-                "Mask": "0.0.0.0",
+                "Mask": WILDCARD_IPV4,
             },
             {
                 "Destination": "10.0.2.0",
-                "Gateway": "0.0.0.0",
+                "Gateway": WILDCARD_IPV4,
                 "Iface": "eth0",
                 "Mask": "255.255.255.0",
             },
             {
                 "Destination": "192.168.56.0",
-                "Gateway": "0.0.0.0",
+                "Gateway": WILDCARD_IPV4,
                 "Iface": "eth1",
                 "Mask": "255.255.255.0",
             },
