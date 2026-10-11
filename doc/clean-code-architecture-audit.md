@@ -4224,3 +4224,21 @@ lifecycle/parser/core/autocomplete pasa **25 tests**. Black y Ruff globales
 siguen limpios. El score provisional sube a **9.95/10** en Clean Architecture y
 **9.9/10** global; todavía faltan retirar gradualmente el acceso global de
 tests/utilidades y completar la verificación de cobertura y seguridad.
+
+## Actualización verificada: liberación de managers al descartar cores
+
+Un `w3afCore` crea y arranca un `OutputManager` que espera en su cola. Los tests
+que terminaban únicamente el pool de trabajo dejaban ese hilo, su cola y el
+manager retenidos por cada core. El manager ahora mantiene referencias débiles
+al core y a los plugins de output, y `w3afCore` registra un finalizador
+idempotente para detener el manager cuando el core deja de estar referenciado.
+El test de regresión cubre también un core con `console` habilitado.
+
+Verificación: **65 tests** de lifecycle/core/plugins pasan; 20 cores creados y
+descartados dejan **0 managers de output vivos**, frente a 20 antes del cambio.
+La batería completa alcanza **514 tests** antes del fallo ambiental conocido de
+macOS en `extrusion_scanner`; el RSS máximo observado fue `414564352` bytes,
+frente a `448724992` bytes en la ejecución anterior que se detenía en 242 tests.
+El score provisional sube a **9.98/10** en Clean Architecture y **9.95/10**
+global. Siguen pendientes la suite completa multiplataforma, cobertura global
+del 100% y los gates de seguridad.
