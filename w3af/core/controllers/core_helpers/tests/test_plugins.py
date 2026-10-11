@@ -247,6 +247,18 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.assertEqual(self.core.plugins.plugins["crawl"], [])
         self.assertEqual(broken_links._state, CLOSED)
 
+    def test_zero_enabled_plugins_does_not_end_consumer_plugins_twice(self):
+        self.core.plugins.set_plugins(["path_disclosure"], "grep")
+        self.core.plugins.init_plugins()
+
+        plugin = self.core.plugins.plugins["grep"][0]
+        plugin.end()
+        self.core.plugins.mark_plugin_ended(plugin)
+
+        self.core.plugins.zero_enabled_plugins()
+
+        self.assertEqual(self.core.plugins.plugins["grep"], [])
+
     def test_plugin_options_invalid(self):
         self.assertRaises(
             TypeError, self.core.plugins.set_plugin_options, "crawl", "web_spider", None

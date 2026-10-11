@@ -134,6 +134,7 @@ class TestOutputManager(unittest.TestCase):
 
     def test_error_handling(self):
         w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
         w3af_core.exception_handler.clear()
 
         om.manager.set_w3af_core(w3af_core, w3af_core._output)

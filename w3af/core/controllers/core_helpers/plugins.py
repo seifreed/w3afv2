@@ -26,8 +26,8 @@ from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
 from w3af.core.controllers.core_helpers.plugin_instance_factory import (
     PluginInstanceFactory,
 )
-from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
 from w3af.core.controllers.core_helpers.plugin_runtime import PluginRuntime
+from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
 from w3af.core.controllers.plugins.plugin import Plugin
 
 
@@ -67,6 +67,10 @@ class CorePlugins(PluginCatalog):
         # After we zero all options and enabled plugins we need to call
         # init_plugins again
         self.initialized = False
+
+    def mark_plugin_ended(self, plugin: Plugin) -> None:
+        """Record a plugin ended by its scan consumer."""
+        self._plugin_runtime.mark_instance_ended(plugin)
 
     def init_plugins(self):
         """

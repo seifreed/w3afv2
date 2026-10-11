@@ -7618,3 +7618,16 @@ ya no pertenecen a `CoreStrategy`.
 Verificación: la batería combinada de consumidores, estado, plugins, perfiles,
 excepciones, observer y mangle pasa **139 tests**; el RSS máximo observado fue
 **227147776 bytes**. Black y Ruff pasan en los archivos modificados.
+
+## Actualización verificada: ownership único del cierre de plugins
+
+Los consumidores ya registran las instancias que han terminado correctamente.
+`PluginRuntime` las omite al liberar las referencias restantes, evitando que un
+segundo `end()` vuelva a cerrar `DiskList`, SQLite u otros recursos. El cambio
+mantiene el cierre completo cuando `CorePlugins` actúa como dueño directo, como
+al cambiar de perfil.
+
+Verificación: **58 tests** de urllib y plugins pasan con RSS máximo de
+**215269376 bytes**; la regresión de XML pasa en sus casos binarios y de URL.
+Black, Ruff y mypy pasan en los módulos modificados. Se añadió también el test
+que faltaba para `system_log` en la comprobación de cobertura de plugins.

@@ -328,6 +328,7 @@ class BaseConsumer(Process):
             else:
                 msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, plugin)
+                self._w3af_core.plugins.mark_plugin_ended(plugin)
 
         self._output.debug(f"Finished {consumer_label} consumer _teardown()")
 

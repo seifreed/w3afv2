@@ -153,6 +153,8 @@ class grep(BaseConsumer):
                 )
                 continue
 
+            self._w3af_core.plugins.mark_plugin_ended(plugin)
+
             spent_time = time.time() - start_time
             msg = "Spent %.2f seconds running %s.end()"
             args = (spent_time, plugin.get_name())

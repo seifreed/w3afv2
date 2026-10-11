@@ -94,6 +94,7 @@ class auth(BaseConsumer):
                     "auth", plugin.get_name(), "plugin.logout()", exception
                 )
             plugin.end()
+            self._w3af_core.plugins.mark_plugin_ended(plugin)
 
     # Adding task here because we want to let the rest of the world know
     # that we're still doing something. The _task_done below will "undo"

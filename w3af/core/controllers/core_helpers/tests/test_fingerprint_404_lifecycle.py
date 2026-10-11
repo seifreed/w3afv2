@@ -7,11 +7,11 @@ from w3af.core.controllers.core_helpers.fingerprint_404_lifecycle import (
 )
 from w3af.core.controllers.output_manager import create_output_manager
 from w3af.core.data.db.dbms import create_temp_db_instance
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.parsers.doc.url import URL
 
 
 class TestFingerprint404Lifecycle(unittest.TestCase):

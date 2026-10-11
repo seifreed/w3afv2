@@ -85,6 +85,7 @@ class TestProfiling(unittest.TestCase):
     def test_nothing_is_profiled_by_default(self):
         flags = dict.fromkeys(ALL_FLAGS, "0")
         w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
 
         with environment_variables(**flags):
             core_timers = start_profiling(w3af_core, om.out, om.manager)
@@ -97,6 +98,7 @@ class TestProfiling(unittest.TestCase):
 
     def test_every_profiler_writes_its_output_file(self):
         w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
         w3af_core.status.start()
 
         with environment_variables(**ALL_FLAGS):

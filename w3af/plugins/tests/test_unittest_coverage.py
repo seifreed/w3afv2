@@ -35,6 +35,7 @@ class TestUnittestCoverage(unittest.TestCase):
 
     def setUp(self):
         self.w3afcore = w3afCore()
+        self.addCleanup(self.w3afcore.quit)
 
     def test_audit(self):
         self._analyze_unittests("audit")

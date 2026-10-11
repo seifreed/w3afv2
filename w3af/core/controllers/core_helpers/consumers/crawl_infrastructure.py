@@ -192,6 +192,7 @@ class CrawlInfrastructure(BaseConsumer):
             else:
                 msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, teardown_plugin)
+                self._w3af_core.plugins.mark_plugin_ended(teardown_plugin)
 
             finally:
                 self._disabled_plugins.add(teardown_plugin)

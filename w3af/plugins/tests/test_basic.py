@@ -77,6 +77,7 @@ class TestBasic(unittest.TestCase):
 
     def setUp(self):
         self.w3afcore = w3afCore()
+        self.addCleanup(self.w3afcore.quit)
 
         self.plugin_types = self.w3afcore.plugins.get_plugin_types()
         self.plugin_types += ["attack"]

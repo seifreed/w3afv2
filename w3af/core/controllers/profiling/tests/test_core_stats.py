@@ -57,6 +57,7 @@ class TestCoreStats(unittest.TestCase):
 
     def started_core(self):
         w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
         w3af_core.status.start()
         return w3af_core
 
@@ -73,7 +74,9 @@ class TestCoreStats(unittest.TestCase):
         self.assertIn("hit_rate", data["Cache stats"])
 
     def test_dump_data_of_not_started_scan_saves_the_exception(self):
-        dump_data(w3afCore(), om.manager)
+        w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
+        dump_data(w3af_core, om.manager)
 
         data = read_json_output(core_stats.PROFILING_OUTPUT_FMT)
         self.assertIn("get_run_time before start", data["Exception"])

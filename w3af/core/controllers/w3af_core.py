@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import threading
 import weakref
 
+from w3af.core.controllers.core_helpers import scan_strategy_runner
 from w3af.core.controllers.core_helpers.core_resource_lifecycle import (
     CoreResourceLifecycle,
 )
@@ -42,7 +43,6 @@ from w3af.core.controllers.core_helpers.scan_environment_validator import (
 from w3af.core.controllers.core_helpers.scan_stop_controller import (
     ScanStopController,
 )
-from w3af.core.controllers.core_helpers import scan_strategy_runner
 from w3af.core.controllers.core_helpers.status import (
     PAUSED,
     RUNNING,

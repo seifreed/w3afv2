@@ -619,6 +619,7 @@ class TestScanInfo(XMLNodeGeneratorTest):
 
     def test_render_simple(self):
         w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
 
         w3af_core.plugins.set_plugins(["sqli"], "audit")
         w3af_core.plugins.set_plugins(["web_spider"], "crawl")
@@ -686,6 +687,7 @@ class TestScanStatus(XMLNodeGeneratorTest):
 
     def test_render_simple(self):
         w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
 
         w3af_core.status.start()
         w3af_core.status.set_running_plugin("crawl", "web_spider")
@@ -1267,6 +1269,7 @@ class TestXMLFileEdgeCases(unittest.TestCase):
 
         plugin = xml_file_with_output()
         w3af_core = w3afCore()
+        self.addCleanup(w3af_core.quit)
         plugin.set_w3af_core(w3af_core)
         plugin.set_configuration(w3af_core.configuration)
         options = plugin.get_options()
