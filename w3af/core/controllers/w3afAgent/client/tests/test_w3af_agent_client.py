@@ -74,6 +74,18 @@ class TestW3afAgentClient(unittest.TestCase):
         finally:
             server.close()
 
+    def test_discard_connection_closes_socket(self):
+        client, server = socket.socketpair()
+        try:
+            manager = object.__new__(ConnectionManager)
+            manager._connections = [client]
+
+            manager._discard_connection(client)
+
+            self.assertEqual(server.recv(1), b"")
+        finally:
+            server.close()
+
 
 if __name__ == "__main__":
     unittest.main()

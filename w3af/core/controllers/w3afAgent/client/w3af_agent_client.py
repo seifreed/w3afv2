@@ -270,6 +270,7 @@ class ConnectionManager(threading.Thread):
             try:
                 s.connect((self._w3afAgentServer_address, self._w3afAgentServer_port))
             except OSError as e:
+                s.close()
                 log.debug(
                     "Failed to connect to the w3afAgentServer, exception: " + str(e)
                 )
@@ -287,16 +288,25 @@ class ConnectionManager(threading.Thread):
             )
 
             for error_socket in cast(list[socket.socket], in_error):
-                self._connections.remove(error_socket)
+                self._discard_connection(error_socket)
 
             for ready_socket in ready_to_read:
-                req = self.decode_request(ready_socket.recv(1024))
+                self._connections.remove(ready_socket)
+                try:
+                    req = self.decode_request(ready_socket.recv(1024))
+                except (OSError, SocksError):
+                    ready_socket.close()
+                    continue
+
                 handler = SocksHandler(ready_socket, req)
                 handler.set_bind_address(self._bindAddy)
                 handler.start()
-                self._connections.remove(ready_socket)
 
             self.gen_connections(self._connectionPoolLen)
+
+    def _discard_connection(self, connection):
+        self._connections.remove(connection)
+        connection.close()
 
     @staticmethod
     def decode_request(data: bytes) -> SocksRequest:

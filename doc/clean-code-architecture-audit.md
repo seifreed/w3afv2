@@ -7232,3 +7232,13 @@ cada solicitud SOCKS procesada.
 
 Verificación: el cliente del agente pasa **4 tests**; Black, Ruff, Mypy y
 Bandit de producción pasan en el cliente y su regresión de lifecycle.
+
+## Actualización verificada: errores del pool de conexiones SOCKS
+
+El pool retiraba sockets marcados por `select` sin cerrarlos y una petición
+malformada podía abandonar un socket listo sin liberarlo. La retirada ahora
+centraliza eliminación y cierre, las tramas inválidas se descartan limpiamente
+y un fallo de conexión inicial cierra el descriptor antes de terminar.
+
+Verificación: el cliente del agente pasa **5 tests**; Black, Ruff, Mypy y
+Bandit de producción pasan en el cliente y sus pruebas de ownership.
