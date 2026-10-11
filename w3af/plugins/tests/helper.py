@@ -117,6 +117,8 @@ class PluginTest(unittest.TestCase):
         """
         :return: The CannedRequest objects received by the canned server
         """
+        if self.canned_server is None:
+            raise RuntimeError("The canned server has not been started")
         return list(self.canned_server.requests)
 
     def tearDown(self):

@@ -100,7 +100,7 @@ class dom_xss(GrepPlugin):
         :param response: The HTTP response object
         :return: list of dom xss items
         """
-        res = []
+        res: list[str] = []
         match = self._script_re.search(response.get_body())
 
         if not match:

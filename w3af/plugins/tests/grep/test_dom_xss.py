@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
@@ -48,6 +49,8 @@ class TestDOMXSS(unittest.TestCase):
         create_temp_dir()
         kb.cleanup()
         self.plugin = dom_xss()
+        self.plugin.set_output(om.out)
+        self.plugin.set_knowledge_base(kb)
         self.url = URL("http://www.w3af.com/dom-xss.html")
         self.request = FuzzableRequest(self.url)
 

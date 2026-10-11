@@ -6168,3 +6168,14 @@ tipos sin alterar destinatarios, contenido ni manejo de fallos.
 
 Verificación: output email pasa **5 tests**; Mypy con cuerpos no tipados, Ruff
 y Black pasan en el módulo. El score global continúa en **9.99/10**.
+
+## Actualización verificada: estado tipado en plugins de transformación
+
+`sed`, `serialized_object`, `dom_xss` y `wordnet` declaran sus colecciones
+internas y resultados con los tipos que realmente manejan. Los fixtures
+directos configuran output y KB reales, y `w3afCore`/`PluginTest` validan sus
+dependencias opcionales antes de usarlas.
+
+Verificación: los cuatro plugins pasan **31 tests**; Mypy con cuerpos no
+tipados, Ruff y Black pasan en producción, tests y dependencias de ciclo de
+vida modificadas. El score global continúa en **9.99/10**.

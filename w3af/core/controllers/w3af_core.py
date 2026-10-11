@@ -176,7 +176,7 @@ class w3afCore:
         )
         self._output = output
         self._output_manager = manager
-        self._fingerprint_404 = None
+        self._fingerprint_404: Fingerprint404 | None = None
         self._worker_pool_manager = WorkerPoolManager(
             output,
             self.WORKER_THREADS,

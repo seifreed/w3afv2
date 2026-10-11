@@ -95,7 +95,7 @@ class TestWordnet(PluginTest):
             "show.py?color=red",
         )
 
-        frs = kb.get_all_known_fuzzable_requests()
+        frs = self.kb.get_all_known_fuzzable_requests()
 
         self.assertEqual(
             {fr.get_uri().url_string for fr in frs},

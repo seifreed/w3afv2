@@ -39,7 +39,7 @@ class sed(ManglePlugin):
 
     def __init__(self):
         ManglePlugin.__init__(self)
-        self._manglers = {
+        self._manglers: dict[str, dict[str, set[tuple[re.Pattern[str], str]]]] = {
             "q": {"b": set(), "h": set()},
             "s": {"b": set(), "h": set()},
         }

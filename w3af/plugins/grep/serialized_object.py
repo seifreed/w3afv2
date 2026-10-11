@@ -53,7 +53,7 @@ class serialized_object(GrepPlugin):
 
     def __init__(self):
         GrepPlugin.__init__(self)
-        self._cache = deque()
+        self._cache: deque[int] = deque()
 
     def grep(self, request, response):
         """

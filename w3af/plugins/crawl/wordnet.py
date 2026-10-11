@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from itertools import chain, repeat
+from typing import Any
 
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -120,7 +121,7 @@ class wordnet(CrawlPlugin):
 
         :return: A list of related words.
         """
-        result = []
+        result: list[Any] = []
 
         if not word or word.isdigit():
             return result

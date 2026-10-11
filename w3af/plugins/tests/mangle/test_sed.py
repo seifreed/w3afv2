@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_request import HTTPRequest
@@ -37,6 +38,7 @@ class TestSed(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
         self.plugin = sed()
+        self.plugin.set_output(om.out)
         self.url = URL("http://www.w3af.com/")
         self.request = HTTPRequest(self.url)
 

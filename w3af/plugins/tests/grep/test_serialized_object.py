@@ -24,6 +24,7 @@ import base64
 import unittest
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
@@ -47,6 +48,8 @@ class TestSerializedObject(unittest.TestCase):
         kb.cleanup()
 
         self.plugin = serialized_object()
+        self.plugin.set_output(om.out)
+        self.plugin.set_knowledge_base(kb)
 
         self.url = URL("http://www.w3af.com/")
         self.headers = Headers([("content-type", "text/html")])
