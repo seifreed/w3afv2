@@ -4310,3 +4310,18 @@ Verificación: **23 tests** de `ExtendedUrllib` pasan, incluyendo una petición
 real seguida de un rebuild que deja el pool anterior en cero conexiones;
 Black, Ruff y mypy focal pasan. La suite completa sigue pendiente por fallos
 ambientales y fixtures preexistentes descritos arriba.
+
+## Actualización verificada: resolver DNS inyectado por core
+
+La caché DNS dejó de reemplazar `socket.getaddrinfo` a nivel de proceso.
+`DNSCache` es ahora un recurso propio de cada core y su método se propaga por
+`ExtendedUrllib`, `OpenerSettings`, los handlers keep-alive y las conexiones
+HTTP/HTTPS, incluidas las conexiones mediante proxy. El cleanup sólo vacía el
+recurso local; no necesita restaurar una función global ni puede cruzar dos
+scans concurrentes.
+
+Verificación: **4 tests** específicos de `DNSCache`, **16 tests** de core y
+**78 tests** de HTTP/keep-alive pasan; además se cubre el uso real de un
+resolver inyectado. Black, Ruff y mypy focal pasan. El generador global de IDs
+y `parser_cache.dpc` siguen siendo los dos estados compartidos pendientes de
+aislar antes de poder declarar 10/10.
