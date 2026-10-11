@@ -173,11 +173,6 @@ class CoreStrategy:
         self.terminate()
         self._output.debug("strategy.stop() completed")
 
-    def pause(self, pause_yes_no):
-        # FIXME: Consumers should have something to do with this, most likely
-        # another constant similar to the poison pill
-        pass
-
     def terminate(self):
         """
         Consume (without processing) all queues with data which are in

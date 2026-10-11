@@ -557,7 +557,6 @@ class w3afCore:
         :param pause_yes_no: True if the UI wants to pause the scan.
         """
         self.status.pause(pause_yes_no)
-        self.strategy.pause(pause_yes_no)
         self.uri_opener.pause(pause_yes_no)
 
     def verify_environment(self):

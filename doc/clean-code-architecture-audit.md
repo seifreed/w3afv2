@@ -7312,6 +7312,16 @@ puede arrancar en este entorno porque su objetivo `fallback` no resuelve y
 falla antes de ejecutar el payload. Bandit sobre fuentes del proyecto baja a
 **25 avisos**, sin `B104`, `B105` ni `B108`.
 
+## Actualización verificada: eliminación de pausa sin efecto
+
+`CoreStrategy.pause()` era un método vacío con un `FIXME` y un único caller en
+`w3afCore`. La pausa efectiva ya se aplica en `CoreStatus` y
+`ExtendedUrllib`; se eliminó el método y la llamada interna para evitar una
+API muerta que sugería un control inexistente sobre los consumidores.
+
+Verificación: la prueba de pausa de `w3afCore` pasa; Black, Ruff y mypy pasan
+en los dos módulos modificados.
+
 ## Actualización verificada: construcción única de plugins
 
 `PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica
