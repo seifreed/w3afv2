@@ -28,6 +28,9 @@ from typing import Any
 from tblib.decorators import Error
 
 from w3af.core.configurable import Configurable
+from w3af.core.controllers.plugins.plugin_runtime_context import (
+    PluginRuntimeContext,
+)
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.data.kb.info import Info
@@ -38,9 +41,6 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import new_no_content_resp
 from w3af.core.exceptions import BaseFrameworkException
-from w3af.core.controllers.plugins.plugin_runtime_context import (
-    PluginRuntimeContext,
-)
 
 
 class Plugin(Configurable):

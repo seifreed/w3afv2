@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import weakref
 
 from w3af.core.controllers.core_helpers import scan_strategy_runner
+from w3af.core.controllers.core_helpers.core_resource_factory import (
+    CoreResourceFactory,
+)
 from w3af.core.controllers.core_helpers.core_shutdown_lifecycle import (
     CoreShutdownLifecycle,
 )
@@ -32,9 +35,6 @@ from w3af.core.controllers.core_helpers.exploit_phase_lifecycle import (
 )
 from w3af.core.controllers.core_helpers.fingerprint_404_lifecycle import (
     Fingerprint404Lifecycle,
-)
-from w3af.core.controllers.core_helpers.core_resource_factory import (
-    CoreResourceFactory,
 )
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.core_helpers.profiles import (
@@ -46,11 +46,11 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
     prepare_tmp_directory,
 )
 from w3af.core.controllers.core_helpers.scan_end_lifecycle import ScanEndLifecycle
-from w3af.core.controllers.core_helpers.scan_execution_controller import (
-    ScanExecutionController,
-)
 from w3af.core.controllers.core_helpers.scan_environment_validator import (
     ScanEnvironmentValidator,
+)
+from w3af.core.controllers.core_helpers.scan_execution_controller import (
+    ScanExecutionController,
 )
 from w3af.core.controllers.core_helpers.scan_pause_controller import (
     ScanPauseController,
@@ -58,17 +58,14 @@ from w3af.core.controllers.core_helpers.scan_pause_controller import (
 from w3af.core.controllers.core_helpers.scan_reset_lifecycle import (
     ScanResetLifecycle,
 )
+from w3af.core.controllers.core_helpers.scan_runtime_context import (
+    ScanRuntimeContext,
+)
 from w3af.core.controllers.core_helpers.scan_start_lifecycle import (
     ScanStartLifecycle,
 )
 from w3af.core.controllers.core_helpers.scan_stop_controller import (
     ScanStopController,
-)
-from w3af.core.controllers.core_helpers.scan_runtime_context import (
-    ScanRuntimeContext,
-)
-from w3af.core.controllers.plugins.plugin_runtime_context import (
-    PluginRuntimeContext,
 )
 from w3af.core.controllers.core_helpers.status import (
     PAUSED,
@@ -91,6 +88,9 @@ from w3af.core.controllers.core_helpers.target import CoreTarget
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.output_manager.logging_bridge import remove_data_logging
+from w3af.core.controllers.plugins.plugin_runtime_context import (
+    PluginRuntimeContext,
+)
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase

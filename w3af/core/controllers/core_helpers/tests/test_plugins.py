@@ -305,7 +305,7 @@ class TestW3afCorePlugins(unittest.TestCase):
 
         plugin = self.core.plugins.get_plugin_instances("crawl")[0]
         if not isinstance(plugin, web_spider):
-            raise AssertionError("Expected the crawl plugin to be web_spider")
+            raise TypeError("Expected the crawl plugin to be web_spider")
         broken_links = plugin._broken_links
 
         self.core.plugins.zero_enabled_plugins()

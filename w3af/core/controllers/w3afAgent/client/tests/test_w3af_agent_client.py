@@ -1,10 +1,6 @@
 import socket
 import unittest
 
-from w3af.core.controllers.w3afAgent.client.w3af_agent_client import (
-    ConnectionManager,
-    SocksHandler,
-)
 from w3af.core.controllers.w3afAgent.client.socks_protocol import (
     COMMAND_CONNECT,
     Request_Bad_Version,
@@ -12,6 +8,10 @@ from w3af.core.controllers.w3afAgent.client.socks_protocol import (
     Request_Invalid_Port,
     Request_Unknown_Command,
     port2string,
+)
+from w3af.core.controllers.w3afAgent.client.w3af_agent_client import (
+    ConnectionManager,
+    SocksHandler,
 )
 
 

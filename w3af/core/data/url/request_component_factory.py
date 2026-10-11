@@ -9,14 +9,14 @@ from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.grep_dispatcher import GrepDispatcher
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
 from w3af.core.data.url.rate_limiter import RateLimiter
+from w3af.core.data.url.request_api import RequestApi
 from w3af.core.data.url.request_builder import RequestBuilder
 from w3af.core.data.url.request_error_handler import RequestErrorHandler
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
-from w3af.core.data.url.request_api import RequestApi
 from w3af.core.data.url.request_metrics import RequestMetrics
 from w3af.core.data.url.request_mode_controller import RequestModeController
-from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.request_preflight import RequestPreflight
+from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.request_retry_handler import RequestRetryHandler
 from w3af.core.data.url.request_sender import RequestSender
 from w3af.core.data.url.response_history import ResponseHistory

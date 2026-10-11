@@ -32,8 +32,8 @@ from w3af.core.controllers.core_helpers.plugin_instance_factory import (
 )
 from w3af.core.controllers.core_helpers.plugin_runtime import PluginRuntime
 from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
-from w3af.core.controllers.core_helpers.plugin_state import PluginState
 from w3af.core.controllers.core_helpers.plugin_setup import PluginSetup
+from w3af.core.controllers.core_helpers.plugin_state import PluginState
 from w3af.core.controllers.plugins.plugin import Plugin
 
 
