@@ -286,7 +286,10 @@ class web_spider(CrawlPlugin):
             return False
 
         # Filter the URL according to the configured regular expressions
-        if not self._compiled_follow_re.match(ref.url_string):
+        compiled_follow_re = self._compiled_follow_re
+        if compiled_follow_re is None:
+            return False
+        if not compiled_follow_re.match(ref.url_string):
             msg = "web_spider will ignore %s (not match follow regex)"
             args = (ref.url_string,)
             self._output.debug(msg % args)
@@ -463,7 +466,14 @@ class web_spider(CrawlPlugin):
             # Do not use threads here, it will dead-lock (for unknown
             # reasons). This is tested in TestDeadLock unittest.
             for args in self._urls_to_verify_generator(resp, original_request):
-                self._verify_reference(*args, be_recursive=False)
+                reference, request, response, possibly_broken = args
+                self._verify_reference(
+                    reference,
+                    request,
+                    response,
+                    possibly_broken,
+                    be_recursive=False,
+                )
 
         # Store the broken links
         if not possibly_broken and resp.get_code() not in self.UNAUTH_FORBID:

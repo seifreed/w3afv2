@@ -5919,6 +5919,16 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: contratos de web spider
+
+`web_spider` valida localmente la regex de seguimiento antes de usarla y
+desempaqueta explícitamente las referencias antes de forzar la recursión a
+`False`. Esto hace visible el contrato de cuatro argumentos y evita llamadas
+ambiguas con `*args`.
+
+Verificación: web spider pasa **12 tests**; Mypy con cuerpos no tipados, Ruff
+y Black pasan en el módulo. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: contrato de cookies
 
 `CookieMixIn` hereda ahora del modelo `Info` que realmente extiende: un
