@@ -113,7 +113,7 @@ class pluginsTypeMenu(menu):
             self._plugins[p] = len(plugin.get_options())
         self._configs = {}
 
-    def suggest_commands(self, part, *skip):
+    def suggest_commands(self, part="", onlyLocal=False):
         return suggest(
             list(self._plugins.keys()) + ["all"], part.lstrip("!")
         ) + suggest(self.get_commands(), part)
@@ -127,7 +127,7 @@ class pluginsTypeMenu(menu):
         plugins = list(self._plugins.keys())
         return suggest(plugins, part.lstrip("!"), alreadySel)
 
-    def get_commands(self):
+    def get_commands(self, onlyLocal=False):
         return ["config", "desc"]
 
     def execute(self, tokens):

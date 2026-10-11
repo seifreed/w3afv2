@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
@@ -116,8 +117,10 @@ class TestAuditPlugin(unittest.TestCase):
     def test_audit_return_vulns_logs_errors(self):
         recorder = start_recording_output()
         freq = FuzzableRequest(URL("http://127.0.0.1/"))
+        plugin = sqli()
+        plugin.set_output(om.out)
 
-        self.assertEqual(sqli().audit_return_vulns(freq), [])
+        self.assertEqual(plugin.audit_return_vulns(freq), [])
         self.assertIn("send_mutant", recorder.messages_of("error")[0])
 
 
@@ -163,6 +166,7 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_kb_append_outside_audit_return_vulns(self):
         plugin = appends_vulns()
+        plugin.set_output(om.out)
         plugin.set_knowledge_base(kb)
         start_recording_output()
 
@@ -173,6 +177,7 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_kb_append_while_returning_vulns(self):
         plugin = appends_vulns()
+        plugin.set_output(om.out)
         plugin.set_knowledge_base(kb)
         start_recording_output()
         plugin._store_kb_vulns = True
@@ -187,6 +192,7 @@ class TestAuditPluginBase(unittest.TestCase):
         uri_opener = ExtendedUrllib()
         self.addCleanup(uri_opener.end)
         plugin = appends_vulns()
+        plugin.set_output(om.out)
         plugin.set_knowledge_base(kb)
         plugin.set_url_opener(uri_opener)
         start_recording_output()
@@ -198,8 +204,10 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_404_detection_errors_are_logged(self):
         recorder = start_recording_output()
+        plugin = detects_404_errors()
+        plugin.set_output(om.out)
 
-        self.assertIsNone(detects_404_errors().audit_with_copy(self.freq, None, "d"))
+        self.assertIsNone(plugin.audit_with_copy(self.freq, None, "d"))
         self.assertIn("404 detection failed", recorder.messages_of("debug"))
 
     def test_audit_must_be_implemented(self):
@@ -209,6 +217,7 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_has_bug(self):
         plugin = appends_vulns()
+        plugin.set_output(om.out)
         plugin.set_knowledge_base(kb)
         mutant = qs_mutant()
         start_recording_output()

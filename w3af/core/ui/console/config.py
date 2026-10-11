@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import Any
+
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.ui.console.menu import menu
@@ -88,12 +90,12 @@ class ConfigMenu(menu):
         self._console.draw_table(table, True)
 
     def _group_options_by_tabid(self):
-        self._tabbed_options = {}
+        self._tabbed_options: dict[str, dict[str, Any]] = {}
         for opt in self._options:
             tabid = opt.get_tabid()
 
             if tabid not in self._tabbed_options:
-                target = {}
+                target: dict[str, Any] = {}
                 self._tabbed_options[tabid] = target
             else:
                 target = self._tabbed_options[tabid]
@@ -194,7 +196,7 @@ class ConfigMenu(menu):
         else:
             return []
 
-    def _cmd_help(self, params):
+    def _cmd_help(self, params, brief=False):
         if len(params) == 1:
             optName = params[0]
             if optName in self._opt_dict:

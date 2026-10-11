@@ -6070,3 +6070,13 @@ incompatibilidad callable sin alterar la conversión flexible de valores.
 Verificación: OpenAPI pasa **38 tests**; Mypy estricto, Ruff y Black pasan en
 el módulo. Pytest emite únicamente warnings deprecados desde `jsonschema` y
 `bravado_core`; el score global continúa en **9.99/10**.
+
+## Actualización verificada: contratos de plugins y consola
+
+Los overrides de menú coinciden ahora con `menu`, `AuthPlugin` declara su
+historial booleano y `AuditPlugin.kb_append_uniq` conserva el parámetro
+`filter_by` del contrato base. Los tests directos de auditoría configuran
+output real, evitando errores por estado implícito.
+
+Verificación: auth/audit pasan **31 tests**; Mypy estricto, Ruff y Black pasan
+en los módulos y fixtures modificados. El score global continúa en **9.99/10**.
