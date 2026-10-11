@@ -44,6 +44,7 @@ from w3af.core.filesystem import get_temp_dir
 from w3af.plugins.tests.helper import create_target_option_list
 
 HOME_DIR_VARIABLE = "W3AF_HOME_DIR"
+CORE_PROFILING_VARIABLE = "W3AF_CORE_PROFILING"
 
 
 def linked_site(method, path):
@@ -106,6 +107,22 @@ class TestW3afCore(unittest.TestCase):
 
         self.assertFalse(self.core._output_manager.is_alive())
 
+    def test_quit_stops_profiling_started_by_scan(self):
+        previous = os.environ.get(CORE_PROFILING_VARIABLE)
+        os.environ[CORE_PROFILING_VARIABLE] = "1"
+        self.addCleanup(self.restore_environment, CORE_PROFILING_VARIABLE, previous)
+
+        self.core.scan_start_hook()
+        self.core.status.stop()
+        timers = tuple(self.core._core_profiling_timers)
+
+        self.assertTrue(timers)
+
+        self.core.quit()
+
+        self.assertEqual(self.core._core_profiling_timers, [])
+        self.assertTrue(all(not timer.is_alive() for timer in timers))
+
     def test_unreferenced_core_stops_output_manager(self):
         core = w3afCore()
         core.plugins.set_plugins(["console"], "output")
@@ -116,6 +133,13 @@ class TestW3afCore(unittest.TestCase):
         gc.collect()
 
         self.assertFalse(manager.is_alive())
+
+    @staticmethod
+    def restore_environment(name, previous):
+        if previous is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = previous
 
     def test_unreferenced_core_stops_parser_workers(self):
         core = w3afCore()

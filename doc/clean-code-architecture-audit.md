@@ -7665,3 +7665,15 @@ la configuración y no pueden mutarla accidentalmente por referencia.
 Verificación: **35 tests** de plugins pasan; la prueba nueva cubre la
 inmutabilidad observable de los tres getters. Black y Ruff pasan en los
 archivos modificados.
+
+## Actualización verificada: cleanup de profiling en abortos
+
+El profiling iniciado por `scan_start_hook()` quedaba fuera del ciclo de
+recursos cuando una prueba o una UI abandonaba el scan antes de
+`scan_end_hook()`. `w3afCore` controla ahora el estado del profiling y lo
+detiene de forma idempotente desde `quit()`, evitando timers vivos que retengan
+el core y sus caches. La regresión comprueba el caso real con
+`W3AF_CORE_PROFILING=1`.
+
+Verificación: el test de regresión y la batería combinada de core y profiling
+pasan (**28 tests**); Black y Ruff pasan en los archivos modificados.

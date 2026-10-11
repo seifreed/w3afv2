@@ -239,6 +239,7 @@ class w3afCore:
         # Keep track of first scan to call cleanup or not
         self._first_scan = True
         self._core_profiling_timers: list[threading.Timer] = []
+        self._profiling_active = False
 
     def scan_start_hook(self):
         """
@@ -248,12 +249,15 @@ class w3afCore:
 
         :return: None
         """
+        self._stop_profiling()
+
         # Create this again just to clear the internal states
         scans_completed = self.status.scans_completed
 
         self._core_profiling_timers = start_profiling(
             self, self._output, self._output_manager
         )
+        self._profiling_active = True
 
         if not self._first_scan:
             self.cleanup()
@@ -348,6 +352,20 @@ class w3afCore:
     def _run_strategy(self):
         """Run the strategy and translate expected scan-level failures."""
         self._strategy_runner.run(self.strategy, self.status.scans_completed)
+
+    def _stop_profiling(self):
+        """Stop profiling even when the scan exits before its end hook."""
+        if not self._profiling_active:
+            return
+
+        stop_profiling(
+            self,
+            self._output,
+            self._output_manager,
+            self._core_profiling_timers,
+        )
+        self._core_profiling_timers = []
+        self._profiling_active = False
 
     @property
     def worker_pool(self):
@@ -446,6 +464,7 @@ class w3afCore:
         The user wants to exit w3af ASAP, so we stop the scan and exit.
         """
         self.stop()
+        self._stop_profiling()
         self.uri_opener.end()
         self._dns_cache.clear()
 
@@ -479,12 +498,7 @@ class w3afCore:
         """
         This method is called when the process ends normally or by an error.
         """
-        stop_profiling(
-            self,
-            self._output,
-            self._output_manager,
-            self._core_profiling_timers,
-        )
+        self._stop_profiling()
         self._parser_cache.clear()
 
         try:
