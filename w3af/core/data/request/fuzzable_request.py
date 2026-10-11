@@ -111,7 +111,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         self._post_data = KeyValueContainer() if post_data is None else post_data
 
         # Set the headers
-        self._headers = None
+        self._headers = Headers()
         pheaders = Headers() if headers is None else headers
         self.set_headers(pheaders)
 
@@ -135,7 +135,8 @@ class FuzzableRequest(RequestMixIn, DiskItem):
 
     def __setstate__(self, state):
         state.setdefault("_fuzzable_headers", ())
-        [setattr(self, k, v) for k, v in state.items()]
+        for key, value in state.items():
+            setattr(self, key, value)
 
     def get_default_headers(self):
         """
@@ -434,7 +435,9 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         self._method = method
 
     def set_headers(self, headers):
-        if headers is not None and not isinstance(headers, Headers):
+        if headers is None:
+            headers = Headers()
+        elif not isinstance(headers, Headers):
             raise TypeError(TYPE_ERROR % ("headers", "Headers"))
 
         for header_name in self.REMOVE_HEADERS:
@@ -613,7 +616,8 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         """
         :return: A list of post-data parameters that contain a file
         """
-        try:
-            return self._post_data.get_file_vars()
-        except AttributeError:
+        get_file_vars = getattr(self._post_data, "get_file_vars", None)
+        if get_file_vars is None:
             return []
+
+        return get_file_vars()

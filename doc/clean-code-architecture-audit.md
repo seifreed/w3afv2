@@ -5665,3 +5665,15 @@ requiriendo y conservando una descripción válida.
 Verificación: `Info` e `InfoSet` pasan **50 tests**; Black, Ruff, mypy focal y
 Bandit focal están limpios. El score global continúa en **9.99/10**, con los
 gates globales heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: invariantes de FuzzableRequest
+
+`FuzzableRequest` mantiene `_headers` como `Headers` desde su construcción,
+normaliza explícitamente `None` en `set_headers`, y consulta `get_file_vars`
+solo cuando el contenedor concreto lo ofrece. La deserialización ya no usa una
+comprensión por efectos secundarios.
+
+Verificación: toda la suite de `core.data.request` pasa **55 tests**; Black,
+Ruff, mypy focal y Bandit focal están limpios. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
