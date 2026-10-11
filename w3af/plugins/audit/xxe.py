@@ -209,7 +209,7 @@ class xxe(AuditPlugin):
 
             for file_name in itertools.chain(self.WINDOWS_FILES, self.LINUX_FILES):
                 dtd = self.ENTITY_DEF % file_name
-                xml_body = etree.tostring(xml_root).replace(
+                xml_body = etree.tostring(xml_root, encoding="unicode").replace(
                     self.XXE_MARKER, self.ENTITY
                 )
                 yield dtd + xml_body

@@ -25,11 +25,22 @@ from typing import ClassVar
 
 from lxml import etree
 
+from w3af.plugins.audit.xxe import xxe
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 test_config = {
     "audit": (PluginConfig("xxe"),),
 }
+
+
+def test_xml_payloads_are_text():
+    plugin = xxe()
+    root = etree.fromstring("<note><to>Tove</to></note>")
+
+    payload = next(plugin._create_xml_payloads(root))
+
+    assert isinstance(payload, str)
+    assert "&xxe_test;" in payload
 
 
 class TestXXESimple(PluginTest):
@@ -47,7 +58,7 @@ class TestXXESimple(PluginTest):
             )
             try:
                 root = etree.fromstring(str(xml), parser=parser)
-                body = etree.tostring(root)
+                body = etree.tostring(root, encoding="unicode")
             except (etree.LxmlError, ValueError) as e:
                 body = str(e)
 
@@ -118,7 +129,7 @@ class TestXXENegativeWithError(PluginTest):
 
             try:
                 root = etree.fromstring(str(xml), parser=parser)
-                body = etree.tostring(root)
+                body = etree.tostring(root, encoding="unicode")
             except (etree.LxmlError, ValueError) as e:
                 body = str(e)
 
@@ -159,7 +170,7 @@ class TestXXENegativeNoError(PluginTest):
 
             try:
                 root = etree.fromstring(str(xml), parser=parser)
-                body = etree.tostring(root)
+                body = etree.tostring(root, encoding="unicode")
             except (etree.LxmlError, ValueError):
                 body = "Generic error here"
 

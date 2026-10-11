@@ -6359,3 +6359,15 @@ cuerpos no tipados, Ruff y Black pasan en el módulo. La suite histórica
 `test_private_ip.py` aún requiere configurar su KB antes de ejecutarse y no se
 considera evidencia contra este cambio. El score global continúa en
 **9.99/10**.
+
+## Actualización verificada: frontera de texto en payloads XXE
+
+`xxe` serializa el árbol XML con `encoding="unicode"` antes de reemplazar
+marcadores y concatenar la DTD. El payload mantiene así el contrato de texto y
+no mezcla `bytes` con `str` durante la construcción.
+
+Verificación: la prueba focalizada del payload pasa **1 test**; Mypy con
+cuerpos no tipados, Ruff y Black pasan en producción y fixture. La suite
+completa histórica de XXE mantiene **4 fallos y 2 tests pasados** de detección
+con la implementación anterior y con la actual; no se atribuyen a este cambio.
+El score global continúa en **9.99/10**.
