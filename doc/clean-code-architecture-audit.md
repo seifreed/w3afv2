@@ -4543,6 +4543,19 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: escape XML lineal para entradas grandes
+
+Los filtros `escape_attr` y `escape_text` acumulaban cada carácter con `+=`.
+Para payloads, URLs o cuerpos extensos esto generaba copias intermedias del
+resultado y picos de memoria innecesarios durante los tests y la generación de
+informes. Ahora acumulan fragmentos y hacen un único `join()`, manteniendo las
+salidas y las reglas de escape existentes.
+
+La regresión usa una entrada repetida de gran tamaño y verifica ambos filtros.
+Verificación: **32 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
+El score global continúa en **9.99/10**, con los gates heredados, el fallback
+standalone y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: modelos XML separados del orquestador
 
 `HTTPTransaction`, `ScanInfo`, `ScanStatus` y `Finding` viven ahora en

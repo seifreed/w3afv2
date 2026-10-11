@@ -1178,6 +1178,19 @@ class TestEscapeFiltersWithAutoescape(unittest.TestCase):
         for raw, expected in self.TEXT_CASES:
             self.assertEqual(jinja2_text_value_escape_filter(raw), expected)
 
+    def test_large_filter_input_preserves_output(self):
+        payload = "safe<&\x00\t\r\n" * 4096
+        attr_expected = (
+            "safe&lt;&amp;&lt;character code=&quot;0000&quot;/&gt;"
+            "&lt;character code=&quot;0009&quot;/&gt;\r\n"
+        ) * 4096
+        text_expected = (
+            'safe&lt;&amp;<character code="0000"/><character code="0009"/>\r\n'
+        ) * 4096
+
+        self.assertEqual(jinja2_attr_value_escape_filter(payload), attr_expected)
+        self.assertEqual(jinja2_text_value_escape_filter(payload), text_expected)
+
     def test_attr_rendered_once_escaped_and_well_formed(self):
         for raw, expected in self.ATTR_CASES:
             rendered = self.render("escape_attr", raw)

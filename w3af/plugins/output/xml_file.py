@@ -569,11 +569,11 @@ def jinja2_attr_value_escape_filter(value):
     # Fix some encoding errors which are triggered when the value is not an
     # unicode string
     value = smart_unicode(value)
-    retval = ""
+    retval = []
 
     for letter in value:
         if letter in ATTR_VALUE_ESCAPES_IGNORE:
-            retval += letter
+            retval.append(letter)
             continue
 
         escape = _get_escape(
@@ -582,11 +582,11 @@ def jinja2_attr_value_escape_filter(value):
             "&lt;character code=&quot;%04x&quot;/&gt;",
         )
         if escape is not None:
-            retval += escape
+            retval.append(escape)
         else:
-            retval += letter
+            retval.append(letter)
 
-    return _PreEscaped(retval)
+    return _PreEscaped("".join(retval))
 
 
 TEXT_VALUE_ESCAPES = {
@@ -636,17 +636,17 @@ def jinja2_text_value_escape_filter(value):
     # Fix some encoding errors which are triggered when the value is not an
     # unicode string
     value = smart_unicode(value)
-    retval = ""
+    retval = []
 
     for letter in value:
         if letter in TEXT_VALUE_ESCAPES_IGNORE:
-            retval += letter
+            retval.append(letter)
             continue
 
         escape = _get_escape(letter, TEXT_VALUE_ESCAPES, '<character code="%04x"/>')
         if escape is not None:
-            retval += escape
+            retval.append(escape)
         else:
-            retval += letter
+            retval.append(letter)
 
-    return _PreEscaped(retval)
+    return _PreEscaped("".join(retval))
