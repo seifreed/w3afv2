@@ -6562,3 +6562,11 @@ manteniendo el test sobre yappi real.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **2 tests**
 de CPU profiling pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: reportes del resolver de plugins
+
+La fixture del resolver declara sus reportes como `list[str]`, alineándose con
+el callback de reporting que recibe `PluginDependencyResolver`.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **4 tests**
+del resolver pasan. El score global continúa en **9.99/10**.

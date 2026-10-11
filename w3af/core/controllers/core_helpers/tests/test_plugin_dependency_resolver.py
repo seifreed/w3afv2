@@ -18,7 +18,7 @@ class DependencyPlugin:
 class TestPluginDependencyResolver(unittest.TestCase):
     def resolver(self, plugin_names, dependencies):
         provider = {key: DependencyPlugin(value) for key, value in dependencies.items()}
-        reports = []
+        reports: list[str] = []
         resolver = PluginDependencyResolver(
             plugin_names,
             lambda plugin_type, plugin_name: provider[(plugin_type, plugin_name)],
