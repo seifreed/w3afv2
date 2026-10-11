@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -38,6 +39,7 @@ from w3af.plugins.tests.helper import onlyroot
 
 class TestClientlessReverseHTTP(unittest.TestCase):
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Needs a Linux host")
     def test_upload_file_mock(self):
         exec_method = subprocess.getoutput
         os = "linux"

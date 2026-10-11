@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 from w3af.core.controllers.misc.factory import factory
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.exceptions import BaseFrameworkException
 
 FIXTURES = "w3af.core.controllers.misc.tests.factory_fixtures"
@@ -36,7 +37,9 @@ class TestFactory(unittest.TestCase):
         self.assertEqual(instance.name, "w3af")
 
     def test_creates_real_plugin(self):
-        spider = factory("w3af.plugins.crawl.web_spider")
+        database = create_temp_db_instance()
+        self.addCleanup(database.close)
+        spider = factory("w3af.plugins.crawl.web_spider", database)
 
         self.assertEqual(spider.get_name(), "web_spider")
 

@@ -7127,3 +7127,16 @@ completa de cobertura se detuvo de forma controlada tras reproducir el bloqueo
 al 1% para no mantener procesos auxiliares abiertos. El score global continúa
 en **9.99/10** por las limitaciones de cobertura y gates globales documentadas
 arriba.
+
+## Actualización verificada: tests de plataforma y dependencias inyectadas
+
+El test del factory intentaba crear `web_spider` sin la SQLite requerida por su
+constructor. Ahora inyecta una base temporal real y la cierra en cleanup. Los
+tests de transferencia que ejecutan comandos Linux contra el sistema local
+quedan marcados como Linux-only, evitando falsos fallos en macOS sin cambiar el
+protocolo remoto.
+
+Verificación: factory, transferencia y plugins pasan **118 tests, 3 omitidos y
+9 subtests**; Black y Ruff pasan en los tres archivos modificados. La suite
+completa previa alcanzó **524 tests** antes de estos fallos de plataforma; el
+score global continúa en **9.99/10** hasta completar la verificación total.
