@@ -258,7 +258,9 @@ class TestW3afCore(unittest.TestCase):
         self.assertEqual(second_scan_urls, first_scan_urls)
         self.assertEqual(self.core.exception_handler.get_all_exceptions(), [])
         self.assertEqual(self.core.status.scans_completed, 2)
-        self.assertIs(self.core.status._consumer_metrics._strategy, self.core.strategy)
+        self.assertEqual(self.core.status.get_crawl_qsize(), 0)
+        self.assertEqual(self.core.status.get_audit_qsize(), 0)
+        self.assertEqual(self.core.status.get_grep_qsize(), 0)
 
     def test_pause_and_resume(self):
         self.core.status.start()

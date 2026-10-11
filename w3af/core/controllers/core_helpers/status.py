@@ -23,20 +23,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 
 from w3af.core.controllers.core_helpers.status_activity import StatusActivity
-from w3af.core.controllers.core_helpers.status_adjustments import (
-    get_audit_adjustment,
-    get_crawl_adjustment,
-    get_grep_adjustment,
-)
 from w3af.core.controllers.core_helpers.status_consumers import ConsumerMetrics
 from w3af.core.controllers.core_helpers.status_eta import (
     AUDIT,
     CRAWL,
     GREP,
     Adjustment,
-    EtaCalculator,
 )
 from w3af.core.controllers.core_helpers.status_lifecycle import StatusLifecycle
+from w3af.core.controllers.core_helpers.status_metrics import StatusMetrics
 from w3af.core.controllers.core_helpers.status_presenter import StatusPresenter
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.data.misc.number_generator import NumberGenerator
@@ -44,6 +39,17 @@ from w3af.core.data.misc.number_generator import NumberGenerator
 PAUSED = "Paused"
 STOPPED = "Stopped"
 RUNNING = "Running"
+
+__all__ = [
+    "AUDIT",
+    "CRAWL",
+    "GREP",
+    "PAUSED",
+    "RUNNING",
+    "STOPPED",
+    "Adjustment",
+    "CoreStatus",
+]
 
 
 class CoreStatus:
@@ -58,19 +64,23 @@ class CoreStatus:
     ):
         self._output = output
         self._id_generator = NumberGenerator() if id_generator is None else id_generator
-        self._consumer_metrics = consumer_metrics or ConsumerMetrics()
+        consumer_metrics = consumer_metrics or ConsumerMetrics()
         self._lifecycle = StatusLifecycle(scans_completed)
         self._request_count_at_start = self._id_generator.get()
 
         self._activity = StatusActivity()
-
-        self._eta_calculator = EtaCalculator()
+        self._metrics = StatusMetrics(
+            consumer_metrics,
+            self._lifecycle,
+            output,
+        )
 
     def detach_runtime_dependencies(self):
-        self._consumer_metrics = ConsumerMetrics()
+        self._metrics.detach_runtime_dependencies()
 
     def set_output(self, output):
         self._output = output
+        self._metrics.set_output(output)
 
     @property
     def scans_completed(self):
@@ -213,124 +223,71 @@ class CoreStatus:
         self._activity.set_current_fuzzable_request(plugin_type, fuzzable_request)
 
     def get_crawl_input_speed(self):
-        return self._consumer_metrics.get_input_speed(CRAWL)
+        return self._metrics.get_crawl_input_speed()
 
     def get_crawl_output_speed(self):
-        return self._consumer_metrics.get_output_speed(CRAWL)
+        return self._metrics.get_crawl_output_speed()
 
     def get_crawl_qsize(self):
-        return self._consumer_metrics.get_queue_size(CRAWL)
+        return self._metrics.get_crawl_qsize()
 
     def get_crawl_output_qsize(self):
-        return self._consumer_metrics.get_output_queue_size(CRAWL)
+        return self._metrics.get_crawl_output_qsize()
 
     def get_crawl_processed_tasks(self):
-        return self._consumer_metrics.get_processed_tasks(CRAWL)
+        return self._metrics.get_crawl_processed_tasks()
 
     def has_finished_crawl(self):
-        return self._consumer_metrics.has_finished(CRAWL)
+        return self._metrics.has_finished_crawl()
 
     def get_crawl_eta(self):
-        if not self.has_started():
-            return None
-
-        adjustment = self.get_crawl_adjustment_ratio()
-
-        return self.calculate_eta(
-            self.get_crawl_input_speed(),
-            self.get_crawl_output_speed(),
-            self.get_crawl_qsize(),
-            CRAWL,
-            adjustment=adjustment,
-        )
+        return self._metrics.get_crawl_eta()
 
     def get_grep_processed_tasks(self):
-        return self._consumer_metrics.get_processed_tasks(GREP)
+        return self._metrics.get_grep_processed_tasks()
 
     def get_grep_qsize(self):
-        return self._consumer_metrics.get_queue_size(GREP)
+        return self._metrics.get_grep_qsize()
 
     def has_finished_grep(self):
-        return self._consumer_metrics.has_finished(GREP)
+        return self._metrics.has_finished_grep()
 
     def get_grep_input_speed(self):
-        return self._consumer_metrics.get_input_speed(GREP)
+        return self._metrics.get_grep_input_speed()
 
     def get_grep_output_speed(self):
-        return self._consumer_metrics.get_output_speed(GREP)
+        return self._metrics.get_grep_output_speed()
 
     def get_grep_eta(self):
-        if not self.has_started():
-            return None
-
-        adjustment = self.get_grep_adjustment_ratio()
-
-        return self.calculate_eta(
-            self.get_grep_input_speed(),
-            self.get_grep_output_speed(),
-            self.get_grep_qsize(),
-            GREP,
-            adjustment=adjustment,
-        )
+        return self._metrics.get_grep_eta()
 
     def get_audit_input_speed(self):
-        return self._consumer_metrics.get_input_speed(AUDIT)
+        return self._metrics.get_audit_input_speed()
 
     def get_audit_output_speed(self):
-        return self._consumer_metrics.get_output_speed(AUDIT)
+        return self._metrics.get_audit_output_speed()
 
     def get_audit_qsize(self):
-        return self._consumer_metrics.get_queue_size(AUDIT)
+        return self._metrics.get_audit_qsize()
 
     def get_audit_processed_tasks(self):
-        return self._consumer_metrics.get_processed_tasks(AUDIT)
+        return self._metrics.get_audit_processed_tasks()
 
     def has_finished_audit(self):
-        return self._consumer_metrics.has_finished(AUDIT)
+        return self._metrics.has_finished_audit()
 
     def get_audit_eta(self):
-        if not self.has_started():
-            return None
-
-        adjustment = self.get_audit_adjustment_ratio()
-
-        return self.calculate_eta(
-            self.get_audit_input_speed(),
-            self.get_audit_output_speed(),
-            self.get_audit_qsize(),
-            AUDIT,
-            adjustment=adjustment,
-        )
+        return self._metrics.get_audit_eta()
 
     def get_core_worker_pool_queue_size(self):
-        return self._consumer_metrics.get_worker_pool_queue_size()
+        return self._metrics.get_core_worker_pool_queue_size()
 
     def log_calculate_eta(
         self, eta, input_speed, output_speed, queue_size, _type, adjustment
     ):
-        """
-        :return: None, a log line is added.
-        """
-        run_time = self.get_run_time_seconds()
-
-        msg = (
-            "Calculated %s ETA: %.2f seconds. (input speed:%.2f,"
-            " output speed:%.2f, queue size: %i, adjustment known: %.2f,"
-            " adjustment unknown: %.2f, average: %s, run time: %.2f)"
+        self._metrics.log_calculate_eta(
+            eta, input_speed, output_speed, queue_size, _type, adjustment
         )
-        args = (
-            _type,
-            eta,
-            input_speed,
-            output_speed,
-            queue_size,
-            adjustment.known,
-            adjustment.unknown,
-            adjustment.average,
-            run_time,
-        )
-
-        self._output.debug(msg % args)
 
     def calculate_eta(
         self, input_speed, output_speed, queue_size, _type, adjustment=None
@@ -352,18 +309,9 @@ class CoreStatus:
                            speed.
         :return: ETA in epoch format, None if one of the parameters is None.
         """
-        if adjustment is None:
-            adjustment = Adjustment()
-
-        eta = self._eta_calculator.calculate(
+        return self._metrics.calculate_eta(
             input_speed, output_speed, queue_size, _type, adjustment
         )
-
-        self.log_calculate_eta(
-            eta, input_speed, output_speed, queue_size, _type, adjustment
-        )
-
-        return eta
 
     def get_simplified_status(self):
         """
@@ -390,33 +338,10 @@ class CoreStatus:
         """
         :return: A % of scan progress as an integer
         """
-        eta = self.get_eta() if eta is None else eta
-
-        run_time = self.get_run_time_seconds()
-        estimated_end_time = run_time + eta
-
-        progress = int(run_time / estimated_end_time * 100)
-
-        # If the calculated progress is 100% but any of the consumers is still
-        # running, then we should return 99%. This happens when the ETA estimation
-        # is incorrect (often)
-        if progress == 100 and self.any_consumer_running():
-            progress = 99
-
-        self._output.debug(
-            f"The scan will finish in {eta:.2f} seconds ({progress}% done)"
-        )
-
-        return progress
+        return self._metrics.get_progress_percentage(eta)
 
     def any_consumer_running(self):
-        if not self.has_finished_crawl():
-            return True
-
-        if not self.has_finished_audit():
-            return True
-
-        return not self.has_finished_grep()
+        return self._metrics.any_consumer_running()
 
     def get_crawl_adjustment_ratio(self):
         """
@@ -434,91 +359,29 @@ class CoreStatus:
 
         :return: The crawl adjustment ratio to use in this run
         """
-        return get_crawl_adjustment(self.get_run_time_seconds())
+        return self._metrics.get_crawl_adjustment_ratio()
 
     def get_audit_adjustment_ratio(self):
         """
         :see: Documentation for get_crawl_adjustment_ratio
         """
-        return get_audit_adjustment(
-            self.get_run_time_seconds(), self.has_finished_crawl()
-        )
+        return self._metrics.get_audit_adjustment_ratio()
 
     def get_grep_adjustment_ratio(self):
         """
         :see: Documentation for get_crawl_adjustment_ratio
         """
-        return get_grep_adjustment(
-            self.get_run_time_seconds(),
-            self.has_finished_crawl(),
-            self.has_finished_audit(),
-        )
+        return self._metrics.get_grep_adjustment_ratio()
 
     def log_eta(self, msg):
-        self._output.debug(f"[get_eta] {msg}")
+        self._metrics.log_eta(msg)
 
     def get_eta(self):
         """
         Calculate the estimated number of seconds to complete the scan
         :return: Scan ETA in seconds.
         """
-        # We're most likely never going to reach this case, but just in case
-        # I'm adding it. Just zero, meaning: we're finishing now
-        if self.has_finished_grep():
-            self.log_eta("ETA is 0. Grep consumer has already finished.")
-            return 0
-
-        # The easiest case is when we're not sending any more HTTP requests,
-        # we just need to run the grep plugins (if enabled) on the HTTP requests
-        # and responses that were captured before
-        if self.has_finished_crawl() and self.has_finished_audit():
-            self.log_eta(
-                "Crawl and audit consumers have finished,"
-                " ETA calculated using grep ETA."
-            )
-            return self.get_grep_eta()
-
-        # The crawling phase has finished, but we're running audit (if enabled)
-        # and grep (if enabled). Grep and audit plugins will run in different
-        # threads. In most cases audit plugins will finish and grep plugins
-        # will continue to run for (at least) a couple of minutes.
-        if self.has_finished_crawl() and not self.has_finished_audit():
-            grep_eta = self.get_grep_eta()
-            audit_eta = self.get_audit_eta()
-
-            after_audit = 0.0
-            if grep_eta >= audit_eta:
-                after_audit = grep_eta - audit_eta
-                after_audit = after_audit * 0.1
-
-            self.log_eta(
-                "Crawl has finished. Using audit and grep ETAs"
-                " to calculate overall ETA."
-            )
-            return audit_eta + after_audit
-
-        # The crawling, audit and grep (all if they were enabled) are running.
-        # Estimating ETA here is difficult!
-        self.log_eta("ETA calculation will merge ETAs for all phases.")
-
-        grep_eta = self.get_grep_eta()
-        audit_eta = self.get_audit_eta()
-        crawl_eta = self.get_crawl_eta()
-
-        audit_after_crawl = 0.0
-        if audit_eta > crawl_eta:
-            audit_after_crawl = audit_eta - crawl_eta
-
-        grep_after_crawl_audit = 0.0
-        if grep_eta >= audit_eta:
-            grep_after_crawl_audit += grep_eta - audit_eta
-
-        if grep_eta >= crawl_eta:
-            grep_after_crawl_audit += grep_eta - crawl_eta
-
-        audit_after_crawl = audit_after_crawl * 0.75
-        grep_after_crawl_audit = grep_after_crawl_audit * 0.05
-        return crawl_eta + audit_after_crawl + grep_after_crawl_audit
+        return self._metrics.get_eta()
 
     def get_sent_request_count(self):
         """
