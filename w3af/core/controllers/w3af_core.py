@@ -40,6 +40,9 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
     prepare_tmp_directory,
 )
 from w3af.core.controllers.core_helpers.scan_end_lifecycle import ScanEndLifecycle
+from w3af.core.controllers.core_helpers.scan_execution_controller import (
+    ScanExecutionController,
+)
 from w3af.core.controllers.core_helpers.scan_environment_validator import (
     ScanEnvironmentValidator,
 )
@@ -291,6 +294,18 @@ class w3afCore:
             self._resource_finalizer,
             lambda: remove_temp_dir(ignore_errors=True),
         )
+        self._scan_execution = ScanExecutionController(
+            output,
+            manager,
+            self.plugins,
+            self._scan_start_lifecycle,
+            self._scan_end_lifecycle,
+            self._strategy_runner,
+            lambda: self.strategy,
+            lambda: self.status,
+            self.verify_environment,
+            get_w3af_version_minimal,
+        )
 
     def _prepare_scan_directories(self):
         prepare_home_directory()
@@ -328,54 +343,7 @@ class w3afCore:
         @raise: This method raises almost every possible exception, so please
                 do your error handling!
         """
-        self._output.debug("Called w3afCore.start()")
-
-        self.scan_start_hook()
-
-        try:
-            # Just in case the GUI / Console forgot to do this...
-            self.verify_environment()
-        except Exception as e:
-            error = (
-                'verify_environment() raised an exception: "%s". This'
-                " should never happen. Are you (UI developer) sure that"
-                " you called verify_environment() *before* start() ?"
-            )
-            self._output.error(error % e)
-            raise
-
-        # Let the output plugins know what kind of plugins we're
-        # using during the scan
-        self._output_manager.log_enabled_plugins(
-            self.plugins.get_all_enabled_plugins(),
-            self.plugins.get_all_plugin_options(),
-        )
-
-        self._scan_start_lifecycle.mark_scan_started()
-
-        self._output.debug(
-            f"Starting the scan using w3af version {get_w3af_version_minimal()}"
-        )
-
-        try:
-            self._run_strategy()
-
-        finally:
-            time_spent = self.status.get_scan_time()
-
-            self._output.information(f"Scan finished in {time_spent}")
-            self._output.information("Stopping the core...")
-
-            self.strategy.stop()
-            self.scan_end_hook()
-
-            # Make sure this line is the last one. This avoids race conditions
-            # https://github.com/andresriancho/w3af/issues/1487
-            self.status.scan_finished()
-
-    def _run_strategy(self):
-        """Run the strategy and translate expected scan-level failures."""
-        self._strategy_runner.run(self.strategy, self.status.scans_completed)
+        self._scan_execution.start()
 
     @property
     def worker_pool(self):

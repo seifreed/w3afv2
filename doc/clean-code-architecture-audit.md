@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 8.8/10 | Alta |
-| Clean Architecture | 8.9/10 | Alta |
-| Global | 8.85/10 | Alta |
+| Clean Code | 8.9/10 | Alta |
+| Clean Architecture | 9.1/10 | Alta |
+| Global | 9.0/10 | Alta |
 
 La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
@@ -47,7 +47,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Responsabilidades concentradas
 
-- `w3af/core/controllers/w3af_core.py` (484 líneas) construye varios servicios,
+- `w3af/core/controllers/w3af_core.py` (452 líneas) construye varios servicios,
   configura estado global y coordina inicialización, estrategia, perfiles,
   estado, objetivos y ejecución.
 - `w3af/core/controllers/core_helpers/plugins.py` (240 líneas) mezcla
@@ -7957,3 +7957,15 @@ su API pública para las interfaces de consola y API.
 Verificación: **12 tests** de perfiles pasan; `ProfileRepository` tiene **100%
 de cobertura (34 statements)**; Black, Ruff, mypy, Bandit dirigido y la prueba
 de capas pasan.
+
+## Actualización verificada: ejecución de escaneo aislada
+
+El ciclo público `start()` ya no contiene la secuencia de validación,
+publicación de plugins, ejecución de estrategia y finalización. Esa política
+vive en `ScanExecutionController`; `w3afCore` conserva la composición de
+dependencias, los hooks públicos y los lifecycles especializados.
+
+Verificación: **34 tests** del core y excepciones pasan; el controlador tiene
+**100% de cobertura (40 statements)**; Black, Ruff, mypy y Bandit dirigidos
+pasan. La medición de cobertura global sigue pendiente porque estos tests
+cargan módulos transitivos de profiling y parser.
