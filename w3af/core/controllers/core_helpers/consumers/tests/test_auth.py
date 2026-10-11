@@ -55,6 +55,7 @@ class TestAuthConsumer(unittest.TestCase):
         consumer.join()
 
         self.assertGreaterEqual(plugin.logins, 1)
+        self.assertEqual(plugin.logouts, 1)
         self.assertEqual(plugin.end_calls, 1)
         self.assertTrue(consumer.has_finished())
         self.assertEqual(drain_results(consumer), [])

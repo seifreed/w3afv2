@@ -1,6 +1,7 @@
 import threading
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
@@ -19,6 +20,7 @@ class unit_session_auth(AuthSessionPlugin):
     def __init__(self):
         super().__init__()
         self.set_knowledge_base(kb)
+        self.set_output(om.out)
 
     def _get_main_authentication_url(self):
         return self.check_url

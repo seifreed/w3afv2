@@ -6944,3 +6944,13 @@ salir del proceso.
 Verificación: Black, Ruff y Mypy pasan en los módulos modificados; la batería
 combinada de consumers y parser cache pasa **64 tests** sin traceback de
 finalizer ni workers persistentes.
+
+## Actualización verificada: cierre explícito de sesiones de autenticación
+
+El consumer de autenticación invoca ahora `logout()` antes de `end()`, cerrando
+el lifecycle que el contrato de `AuthPlugin` ya definía y eliminando el TODO
+pendiente. Las fixtures de sesión inyectan también su salida real, sin depender
+de un atributo global implícito.
+
+Verificación: Black, Ruff y Mypy pasan en los archivos modificados; la batería
+de plugins y consumers de autenticación pasa **59 tests**.

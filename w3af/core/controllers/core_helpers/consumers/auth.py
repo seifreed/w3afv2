@@ -86,6 +86,7 @@ class auth(BaseConsumer):
 
     def _end_plugins(self):
         for plugin in self._consumer_plugins:
+            plugin.logout()
             plugin.end()
 
     # Adding task here because we want to let the rest of the world know

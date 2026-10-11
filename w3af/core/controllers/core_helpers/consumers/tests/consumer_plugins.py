@@ -84,6 +84,7 @@ class counting_auth(EndBehaviour, AuthPlugin):
         super().__init__()
         self.active_session = active_session
         self.logins = 0
+        self.logouts = 0
         self.login_event = threading.Event()
 
     def has_active_session(self, debugging_id=None):
@@ -92,6 +93,9 @@ class counting_auth(EndBehaviour, AuthPlugin):
     def login(self, debugging_id=None):
         self.logins += 1
         self.login_event.set()
+
+    def logout(self):
+        self.logouts += 1
 
 
 class crashing_auth(EndBehaviour, AuthPlugin):
