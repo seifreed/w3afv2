@@ -29,6 +29,7 @@ import yaml
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc_settings import MiscSettings
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
@@ -207,7 +208,9 @@ class TestOpenAPIWithoutUrlPartsDiscovery(PluginTest):
 class TestOpenAPIPluginInternals(unittest.TestCase):
 
     def setUp(self):
-        self.knowledge_base = DBKnowledgeBase()
+        self.database = create_temp_db_instance()
+        self.addCleanup(self.database.close)
+        self.knowledge_base = DBKnowledgeBase(db=self.database)
         self.knowledge_base.setup()
         self.addCleanup(self.knowledge_base.cleanup)
         self.addCleanup(MiscSettings(cf).set_default_values)
