@@ -23,9 +23,6 @@ import copy
 import unittest
 from typing import ClassVar
 
-import pytest
-from scapy.error import Scapy_Exception
-
 import w3af.core.controllers.output_manager as om
 import w3af.plugins.infrastructure.http_vs_https_dist as hvshsdist
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
@@ -47,7 +44,7 @@ DIFFERENT_ROUTES_DESC = (
 def can_run_traceroute():
     try:
         hvshsdist._traceroute("127.0.0.1", 80)
-    except (OSError, Scapy_Exception):
+    except hvshsdist._traceroute_error_types():
         return False
     return True
 
@@ -194,7 +191,7 @@ class test_http_vs_https_dist(unittest.TestCase):
         with log.attached_to_output_manager():
             self.plugininst.discover(fuzz_req, None)
 
-        with self.assertRaises((OSError, Scapy_Exception)) as traceroute_error:
+        with self.assertRaises(hvshsdist._traceroute_error_types()) as traceroute_error:
             hvshsdist._traceroute("unresolvable.invalid", 443)
 
         expected = hvshsdist.TRACEROUTE_ERROR_MSG % traceroute_error.exception
@@ -215,15 +212,19 @@ class test_http_vs_https_dist(unittest.TestCase):
         self.assertIn("privileges", self.plugininst.get_long_desc())
 
 
-@pytest.mark.skipif(
-    not can_run_traceroute(), reason="this user can not send raw packets"
-)
 class TestHTTPvsHTTPS(PluginTest):
     """
     Trace the routes to the loopback interface, where both the HTTP and HTTPS
     ports answer with a TCP reset, while the canned server answers the HTTP
     requests sent to the target.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        if not can_run_traceroute():
+            raise unittest.SkipTest("this user can not send raw packets")
+
+        super().setUpClass()
 
     target_url = "http://127.0.0.1/"
 

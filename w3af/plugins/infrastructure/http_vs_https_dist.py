@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import Any
 
-from scapy.error import Scapy_Exception
-
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
@@ -69,7 +67,7 @@ class http_vs_https_dist(InfrastructurePlugin):
         try:
             https_troute = _traceroute(domain, https_port)
             http_troute = _traceroute(domain, http_port)
-        except (OSError, Scapy_Exception) as e:
+        except _traceroute_error_types() as e:
             # Raised when the user has no privileges to send raw packets, and
             # also when the domain can not be resolved or resolves to an IPv6
             # address, which scapy's traceroute does not support.
@@ -196,6 +194,12 @@ def _trace_str(ip_tuples):
     return "\n".join(
         f"    {hop} {ip_tuple[0]}" for hop, ip_tuple in enumerate(ip_tuples)
     )
+
+
+def _traceroute_error_types():
+    from scapy.error import Scapy_Exception
+
+    return OSError, Scapy_Exception
 
 
 def _traceroute(domain, port):

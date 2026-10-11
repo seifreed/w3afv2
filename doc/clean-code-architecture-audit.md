@@ -7894,3 +7894,16 @@ Los tests consumen explícitamente la frontera de protocolo.
 Verificación: **8 tests** del paquete `w3afAgent` pasan; el módulo de protocolo
 tiene **100% de cobertura (72 statements)**; mypy, Bandit, Black, Ruff y la
 prueba de capas pasan.
+
+## Actualización verificada: colección de tests sin importación eager de Scapy
+
+`http_vs_https_dist` ya no importa `scapy.error` al cargar el módulo. La tupla
+de excepciones se construye solo cuando se ejecuta un traceroute, y el probe de
+capacidad del test de integración dejó de ejecutarse durante la colección de
+pytest. Se conserva el mismo comportamiento de los tests y del plugin, pero se
+evita cargar la parte pesada de Scapy para descubrir casos que quizá no se
+ejecuten.
+
+Verificación: **14 tests** pasan con **100% de cobertura** del plugin; la
+colección conserva **4895 tests** y su RSS máximo baja de aproximadamente
+**313 MB a 258 MB** en macOS. Black, Ruff, mypy y Bandit dirigidos pasan.
