@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import collections
 import json
 import re
+from typing import Any
 
 import vulners
 
@@ -81,13 +82,13 @@ class vulners_db(GrepPlugin):
         self._vulners_api_key = ""
 
         # Vulners shared objects
-        self._vulners_api = None
-        self.rules_table = None
+        self._vulners_api: Any = None
+        self.rules_table: dict[str, dict[str, Any]] | None = None
         self.rules_updated = False
 
         self._already_visited = ScalableBloomFilter()
         self._vulnerability_cache = SynchronizedLRUDict(self.VULNERABILITY_CACHE_SIZE)
-        self._multi_re = None
+        self._multi_re: MultiRE | None = None
 
     def grep(self, request, response):
         """
@@ -112,7 +113,9 @@ class vulners_db(GrepPlugin):
         # Check if we have downloaded rules well.
         # If there is no rules - something went wrong, time to exit.
         # If there is no API instance - same story. We cant go further.
-        if not self.rules_table or not self._vulners_api:
+        multi_re = self._multi_re
+        vulners_api = self._vulners_api
+        if not self.rules_table or vulners_api is None or multi_re is None:
             return
 
         # We do not parse non-text output
@@ -127,9 +130,9 @@ class vulners_db(GrepPlugin):
         raw_response = response.dump()
 
         # Here we will store unique vulnerability map
-        vulnerabilities_summary = {}
+        vulnerabilities_summary: dict[str, dict[str, Any]] = {}
 
-        for match, _, _, software_list in self._multi_re.query(raw_response):
+        for match, _, _, software_list in multi_re.query(raw_response):
             detected_version = match.group(1)
 
             for software_name in software_list:
@@ -201,11 +204,13 @@ class vulners_db(GrepPlugin):
         self.rules_table = json.loads(json_table)
 
         # Adapt it for MultiRe structure [(regex,alias)] removing regex duplicated
-        regex_aliases = collections.defaultdict(list)
+        regex_aliases: collections.defaultdict[str, list[str]] = (
+            collections.defaultdict(list)
+        )
         for software_name in self.rules_table:
-            regex_aliases[self.rules_table[software_name].get("regex")] += [
-                software_name
-            ]
+            regex = self.rules_table[software_name].get("regex")
+            if isinstance(regex, str):
+                regex_aliases[regex].append(software_name)
 
         # Now create fast RE filter
         # Using re.IGNORECASE because w3af is modifying headers when making RAW dump.
@@ -240,18 +245,22 @@ class vulners_db(GrepPlugin):
         if cache_key in self._vulnerability_cache:
             return self._vulnerability_cache[cache_key]
 
+        vulners_api = self._vulners_api
+        if vulners_api is None:
+            return []
+
         args = (software_name, software_version, check_type)
         self._output.debug("Detected {} version {} (check type: {})".format(*args))
 
         if check_type == "cpe":
-            software = f"{software_name}:{software_version}"
+            software: str | dict[str, str] = f"{software_name}:{software_version}"
         else:
             software = {"product": software_name, "version": software_version}
 
         # Ask Vulners about vulnerabilities, the API might be down or rate
         # limit us, so errors are not fatal.
         try:
-            results = self._vulners_api.audit.software(
+            results = vulners_api.audit.software(
                 [software], fields=list(self.BULLETIN_FIELDS)
             )
         except vulners.VulnersError as e:

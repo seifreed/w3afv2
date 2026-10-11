@@ -5918,3 +5918,15 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 **3 tests**. La deuda estricta de producción de este módulo baja a **0
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
+
+## Actualización verificada: frontera tipada del plugin Vulners
+
+El plugin `vulners_db` separa ahora el JSON externo de reglas y la API opcional
+del flujo de detección: las reglas y acumuladores tienen forma explícita, la
+API se estrecha antes de invocarse y las entradas sin expresión regular válida
+se descartan antes de construir `MultiRE`.
+
+Verificación: el módulo queda sin errores propios con
+`mypy --check-untyped-defs`, Ruff y Black pasan, y la suite real de Vulners
+pasa **13 tests**. Persisten únicamente tres errores transversales de mypy en
+`opt_factory`/`Vuln`; el score global continúa en **9.99/10**.
