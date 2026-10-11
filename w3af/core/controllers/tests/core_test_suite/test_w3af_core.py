@@ -120,6 +120,16 @@ class TestW3afCore(unittest.TestCase):
 
         self.assertIsNone(parser_cache._mp_parser._pool)
 
+    def test_unreferenced_core_stops_worker_pool(self):
+        core = w3afCore()
+        pool = core.worker_pool
+        self.addCleanup(pool.terminate_join)
+
+        del core
+        gc.collect()
+
+        self.assertFalse(pool.is_running())
+
     def test_cores_own_id_generators(self):
         first = w3afCore()
         second = w3afCore()

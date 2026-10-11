@@ -34,3 +34,10 @@ class TestWorkerPoolManager(unittest.TestCase):
 
         self.assertIsNone(manager._pool)
         self.assertIsNot(manager.get_pool(), pool)
+
+    def test_terminate_without_pool_does_not_create_one(self):
+        manager = self.create_manager()
+
+        manager.terminate()
+
+        self.assertIsNone(manager._pool)

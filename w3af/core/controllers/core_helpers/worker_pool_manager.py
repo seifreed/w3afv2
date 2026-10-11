@@ -45,6 +45,9 @@ class WorkerPoolManager:
 
     def terminate(self):
         self._output.debug("Called _terminate_worker_pool()")
+        if self._pool is None:
+            return
+
         monkey_patch_debug(self._output)
         try:
             self.get_pool().terminate_join()

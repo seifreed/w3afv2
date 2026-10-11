@@ -6974,3 +6974,16 @@ modificados; no quedan procesos de pytest, workers o parsers activos. El score
 global continúa en **9.99/10** porque aún no existe evidencia de cobertura
 global al 100% ni de las gates literales sobre artefactos generados y código
 vendorizado.
+
+## Actualización verificada: ownership del pool del core
+
+El finalizer de `w3afCore` recibe ahora el `WorkerPoolManager` y lo termina
+antes de liberar el resto de recursos. `WorkerPoolManager.terminate()` deja de
+crear un pool nuevo cuando el core nunca llegó a usarlo; esto evita que una
+limpieza por garbage collection reserve workers innecesariamente.
+
+Verificación: `test_worker_pool_manager.py` pasa **3 tests** y el lifecycle de
+`w3afCore` pasa **22 tests**, incluida la regresión de un core no referenciado
+con un pool activo. Black, Ruff y Mypy pasan en los cuatro archivos
+modificados. El score global continúa en **9.99/10** por las limitaciones de
+cobertura y gates globales documentadas arriba.

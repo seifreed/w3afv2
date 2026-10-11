@@ -98,7 +98,10 @@ NO_MEMORY_MSG = (
 )
 
 
-def _stop_core_resources(output_manager, dns_cache, parser_cache, database):
+def _stop_core_resources(
+    output_manager, dns_cache, parser_cache, database, worker_pool_manager
+):
+    worker_pool_manager.terminate()
     parser_cache.clear()
     dns_cache.clear()
     output_manager.stop()
@@ -166,6 +169,12 @@ class w3afCore:
             db=self._database,
         )
         self._id_generator = NumberGenerator()
+        self._worker_pool_manager = WorkerPoolManager(
+            output,
+            self.WORKER_THREADS,
+            self.WORKER_INQUEUE_MAX_SIZE,
+            self.WORKER_MAX_TASKS,
+        )
         self._output_manager_finalizer = weakref.finalize(
             self,
             _stop_core_resources,
@@ -173,17 +182,11 @@ class w3afCore:
             self._dns_cache,
             self._parser_cache,
             self._database if self._owns_database else None,
+            self._worker_pool_manager,
         )
         self._output = output
         self._output_manager = manager
         self._fingerprint_404: Fingerprint404 | None = None
-        self._worker_pool_manager = WorkerPoolManager(
-            output,
-            self.WORKER_THREADS,
-            self.WORKER_INQUEUE_MAX_SIZE,
-            self.WORKER_MAX_TASKS,
-        )
-
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager
         # object should take a w3afCore object as a parameter in its __init__
