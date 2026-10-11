@@ -4956,6 +4956,16 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: DB obligatoria dentro del builder HTTP
+
+La opcionalidad de la DB queda ahora limitada a `OpenerSettings`, que es el
+punto de composición standalone. `OpenerLifecycle` y `OpenerBuilder` reciben
+una `SQLiteDBMS` ya resuelta y no pueden propagar `None` hacia los handlers.
+
+Verificación: opener settings, proxy y cache pasan **39 tests**; Black, Ruff y
+mypy focales están limpios. El score global continúa en **9.99/10**, con los
+gates globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: colas disk-backed con composición explícita
 
 `CachedQueue` y `OrderedCachedQueue` ya resuelven su DB standalone en la capa

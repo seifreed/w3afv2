@@ -1,12 +1,13 @@
 """Manage the resources created by the HTTP opener builder."""
 
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.url.opener_builder import BuiltOpeners, OpenerBuilder
 
 
 class OpenerLifecycle:
     """Build, expose, close, and clear the opener resources."""
 
-    def __init__(self, configuration, id_generator, db=None) -> None:
+    def __init__(self, configuration, id_generator, db: SQLiteDBMS) -> None:
         self._configuration = configuration
         self._id_generator = id_generator
         self._db = db

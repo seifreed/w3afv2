@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
 from w3af.core.data.url.handlers.blacklist import BlacklistHandler
 from w3af.core.data.url.handlers.cache import CacheHandler
@@ -43,7 +44,7 @@ class OpenerBuilder:
         url_parameter_handler: URLParameterHandler | None,
         ignore_session_cookies: bool,
         id_generator,
-        db=None,
+        db: SQLiteDBMS,
     ):
         self._configuration = configuration
         self._http_log_callback = http_log_callback
