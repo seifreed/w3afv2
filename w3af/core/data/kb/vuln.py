@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import Any
+
 from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
@@ -69,7 +71,7 @@ class Vuln(Info):
         self.set_severity(severity)
 
     @classmethod
-    def from_mutant(cls, name, desc, severity, response_ids, plugin_name, mutant):
+    def from_mutant(cls, name, desc, *args: Any, **kwargs: Any):
         """
         TODO: I wanted to use super(Vuln, cls).from_mutant here but I was
         unable to make it work. Refactoring required to avoid code duplication
@@ -78,10 +80,36 @@ class Vuln(Info):
         :return: A vuln instance with the proper data set based on the values
                  taken from the mutant.
         """
+        configuration = kwargs.pop("configuration", None)
+        if kwargs:
+            severity = kwargs.pop("severity", INFORMATION)
+            response_ids = kwargs.pop("response_ids", None)
+            plugin_name = kwargs.pop("plugin_name", None)
+            mutant = kwargs.pop("mutant", None)
+            if kwargs or args:
+                raise TypeError("Unexpected arguments in from_mutant.")
+        elif len(args) == 3:
+            severity = INFORMATION
+            response_ids, plugin_name, mutant = args
+        elif len(args) == 4 and isinstance(args[2], Mutant):
+            severity = INFORMATION
+            response_ids, plugin_name, mutant, configuration = args
+        elif len(args) == 4:
+            severity, response_ids, plugin_name, mutant = args
+        else:
+            raise TypeError("Invalid arguments in from_mutant.")
+
         if not isinstance(mutant, Mutant):
             raise TypeError("Mutant expected in from_mutant.")
 
-        inst = cls(name, desc, severity, response_ids, plugin_name)
+        inst = cls(
+            name,
+            desc,
+            severity,
+            response_ids,
+            plugin_name,
+            configuration=configuration,
+        )
 
         inst.set_uri(mutant.get_uri())
         inst.set_method(mutant.get_method())
@@ -90,17 +118,44 @@ class Vuln(Info):
         return inst
 
     @classmethod
-    def from_fr(cls, name, desc, severity, response_ids, plugin_name, freq):
+    def from_fr(cls, name, desc, *args: Any, **kwargs: Any):
         """
         :return: A vuln instance with the proper data set based on the values
                  taken from the fuzzable request.
         """
+        configuration = kwargs.pop("configuration", None)
+        if kwargs:
+            severity = kwargs.pop("severity", INFORMATION)
+            response_ids = kwargs.pop("response_ids", None)
+            plugin_name = kwargs.pop("plugin_name", None)
+            freq = kwargs.pop("freq", None)
+            if kwargs or args:
+                raise TypeError("Unexpected arguments in from_fr.")
+        elif len(args) == 3:
+            severity = INFORMATION
+            response_ids, plugin_name, freq = args
+        elif len(args) == 4 and isinstance(args[2], FuzzableRequest):
+            severity = INFORMATION
+            response_ids, plugin_name, freq, configuration = args
+        elif len(args) == 4:
+            severity, response_ids, plugin_name, freq = args
+        else:
+            raise TypeError("Invalid arguments in from_fr.")
+
         if not isinstance(freq, FuzzableRequest):
             raise TypeError("FuzzableRequest expected in from_fr.")
 
         mutant = EmptyMutant(freq)
 
-        return Vuln.from_mutant(name, desc, severity, response_ids, plugin_name, mutant)
+        return cls.from_mutant(
+            name,
+            desc,
+            severity,
+            response_ids,
+            plugin_name,
+            mutant,
+            configuration=configuration,
+        )
 
     @classmethod
     def from_vuln(cls, other_vuln):

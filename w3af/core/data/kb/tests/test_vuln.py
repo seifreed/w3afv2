@@ -99,6 +99,23 @@ class TestVuln(unittest.TestCase):
         self.assertEqual(inst.get_dc(), mutant.get_dc())
         self.assertEqual(inst.get_token_name(), mutant.get_token().get_name())
 
+    def test_factories_accept_info_signature(self):
+        freq = FuzzableRequest(URL("http://moth/?a=1"))
+        mutant = QSMutant(freq)
+
+        from_mutant = Vuln.from_mutant(
+            "TestCase",
+            "desc" * 30,
+            1,
+            "plugin_name",
+            mutant,
+            {},
+        )
+        from_fr = Vuln.from_fr("TestCase", "desc" * 30, 1, "plugin_name", freq, {})
+
+        self.assertEqual(from_mutant.get_severity(), "Information")
+        self.assertEqual(from_fr.get_severity(), "Information")
+
     def test_factories_validate_their_input(self):
         desc = "desc" * 30
 

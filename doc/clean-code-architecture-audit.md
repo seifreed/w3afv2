@@ -5976,3 +5976,14 @@ diccionario como una implementación específica ni cambiar la fábrica runtime.
 Verificación: `mypy --check-untyped-defs`, Ruff y Black pasan en la fábrica;
 las pruebas de opciones pasan **38 tests y 6 subtests**. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: factorías compatibles de vulnerabilidades
+
+Las factorías de `Vuln` conservan su API con severidad y aceptan también la
+forma heredada de `Info`, incluida la configuración opcional. La creación desde
+un `FuzzableRequest` delega en la clase solicitante, evitando fijar el tipo
+concreto a `Vuln` y eliminando la incompatibilidad de firmas detectada por
+Mypy.
+
+Verificación: KB `Info`/`Vuln` pasa **30 tests**; Mypy estricto, Ruff y Black
+pasan en los módulos modificados. El score global continúa en **9.99/10**.
