@@ -20,11 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from itertools import repeat
-
 from w3af.core.controllers.misc.fuzzy_string_cmp import relative_distance
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.threads.threadpool import one_to_many
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -76,11 +73,10 @@ class generic(AuditPlugin):
             configuration=self.get_configuration(),
         )
 
-        original_response_repeat = repeat(original_response)
-        args_iterator = zip(original_response_repeat, mutants)
-        check_mutant = one_to_many(self._check_mutant)
-
-        self.worker_pool.imap_unordered(check_mutant, args_iterator)
+        for mutant in mutants:
+            self.worker_pool.apply_async(
+                self._check_mutant, (original_response, mutant)
+            )
 
     def _check_mutant(self, original_response, mutant):
         # First I check that the current modified parameter in the mutant

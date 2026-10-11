@@ -7073,3 +7073,17 @@ fixtures de tests) queda en **0 hallazgos**, frente a los 8 avisos de asserts
 detectados antes. La prueba de transferencia real sigue dependiendo de que el
 entorno permita completar una descarga local y no se usa como evidencia de esta
 corrección cuando `can_transfer()` falla por infraestructura.
+
+## Actualización verificada: liberación de resultados fire-and-forget
+
+`generic.audit()` enviaba tareas con `imap_unordered()` y descartaba el
+iterador. El pool conserva los resultados de ese iterador en memoria hasta que
+alguien los consume, por lo que una entrada con muchos mutantes podía crecer
+durante todo el scan. El flujo usa ahora `apply_async()` por mutante; el
+resultado se elimina del caché interno cuando termina y conserva la ejecución
+asíncrona que necesita el plugin.
+
+Verificación: la prueba de liberación de 100 tareas termina con el caché vacío;
+la suite del pool y `generic` pasa **35 tests**. Black, Ruff y Mypy pasan en
+los dos archivos modificados, Bandit productivo continúa en cero y no quedan
+procesos de pytest o multiproceso tras la batería.

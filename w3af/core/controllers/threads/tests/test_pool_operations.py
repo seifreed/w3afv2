@@ -99,6 +99,18 @@ class TestPoolOperations(unittest.TestCase):
         self.assertRaises(ValueError, failed.get)
         self.assertEqual(received, [25])
 
+    def test_apply_async_releases_results_without_get(self):
+        pool = self.new_pool(processes=1)
+
+        for number in range(100):
+            pool.apply_async(square, (number,))
+
+        deadline = time.monotonic() + WAIT_TIMEOUT
+        while pool._cache and time.monotonic() < deadline:
+            time.sleep(0.01)
+
+        self.assertEqual(pool._cache, {})
+
     def test_apply_with_return_error(self):
         pool = self.new_pool()
         self.assertEqual(pool.apply(apply_with_return_error, ((square, 3),)), 9)
