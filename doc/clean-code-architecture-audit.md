@@ -4861,3 +4861,15 @@ Verificación: **3 tests** del ciclo de vida de `w3afCore` y **33 tests** de
 composición/plugins pasan; Black, Ruff, mypy y Bandit focales están limpios. El
 score global continúa en **9.99/10**, con los fallbacks standalone y los gates
 globales heredados todavía pendientes.
+
+## Actualización verificada: DB explícita en la API de plugins
+
+La ruta de detalle de plugins ya no depende de un argumento omitido en
+`PluginCatalog.get_quick_instance`. Abre una `database_session` para construir
+plugins que usan SQLite, serializa sus metadatos dentro de esa sesión y libera
+la DB al terminar la respuesta.
+
+Verificación: la suite de plugins de la API pasa **3 tests y 2 subtests**;
+Black, Ruff, mypy de código de producto y Bandit focales están limpios. El
+score global continúa en **9.99/10**; `mypy .` solo conserva los dos errores
+del `venv/bin/activate_this.py` generado.

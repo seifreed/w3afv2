@@ -24,6 +24,7 @@ from typing import Any
 from flask import Response, jsonify
 
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
+from w3af.core.data.db.dbms import database_session
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
@@ -70,17 +71,18 @@ def get_plugin(plugin_type: str, plugin_name: str) -> Response:
     if not plugin_exists(catalog, plugin_type, plugin_name):
         abort(404, "Plugin not found")
 
-    plugin = catalog.get_quick_instance(plugin_type, plugin_name)
+    with database_session() as database:
+        plugin = catalog.get_quick_instance(plugin_type, plugin_name, database)
 
-    return jsonify(
-        {
-            "type": plugin_type,
-            "name": plugin_name,
-            "description": plugin.get_desc(),
-            "long_description": dedent(plugin.get_long_desc()).strip(),
-            "options": [option_to_json(option) for option in plugin.get_options()],
-        }
-    )
+        return jsonify(
+            {
+                "type": plugin_type,
+                "name": plugin_name,
+                "description": plugin.get_desc(),
+                "long_description": dedent(plugin.get_long_desc()).strip(),
+                "options": [option_to_json(option) for option in plugin.get_options()],
+            }
+        )
 
 
 def plugin_type_to_json(catalog: PluginCatalog, plugin_type: str) -> dict[str, Any]:
