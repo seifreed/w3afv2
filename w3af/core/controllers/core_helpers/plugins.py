@@ -151,13 +151,19 @@ class CorePlugins(PluginCatalog):
         return self._plugins_options.get(plugin_type, {}).get(plugin_name, None)
 
     def get_all_plugin_options(self):
-        return self._plugins_options
+        return {
+            plugin_type: dict(plugin_options)
+            for plugin_type, plugin_options in self._plugins_options.items()
+        }
 
     def get_all_enabled_plugins(self):
-        return self._plugins_names_dict
+        return {
+            plugin_type: list(plugin_names)
+            for plugin_type, plugin_names in self._plugins_names_dict.items()
+        }
 
     def get_enabled_plugins(self, plugin_type):
-        return self._plugins_names_dict[plugin_type]
+        return list(self._plugins_names_dict[plugin_type])
 
     def set_plugins(self, plugin_names, plugin_type, raise_on_error=True):
         """

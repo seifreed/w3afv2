@@ -188,6 +188,21 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.assertEqual(enabled_audit, all_enabled["audit"])
         self.assertEqual(enabled_grep, all_enabled["grep"])
 
+    def test_plugin_configuration_snapshots_are_not_mutable(self):
+        self.core.plugins.set_plugins(["sqli"], "audit")
+
+        enabled = self.core.plugins.get_enabled_plugins("audit")
+        all_enabled = self.core.plugins.get_all_enabled_plugins()
+        all_options = self.core.plugins.get_all_plugin_options()
+
+        enabled.append("xss")
+        all_enabled["audit"].clear()
+        all_options["audit"]["xss"] = object()
+
+        self.assertEqual(self.core.plugins.get_enabled_plugins("audit"), ["sqli"])
+        self.assertEqual(self.core.plugins.get_all_enabled_plugins()["audit"], ["sqli"])
+        self.assertNotIn("xss", self.core.plugins.get_all_plugin_options()["audit"])
+
     def test_plugin_options(self):
         plugin_inst = self.core.plugins.get_plugin_inst("crawl", "web_spider")
         options_1 = plugin_inst.get_options()

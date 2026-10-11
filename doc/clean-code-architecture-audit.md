@@ -7654,3 +7654,14 @@ registrados continúa usando la API pública de `CorePlugins`.
 
 Verificación: **2 tests** de rutas de discovery y plugins desconocidos pasan
 tras el cambio; el resto de la batería focalizada había pasado **44 tests**.
+
+## Actualización verificada: snapshots de configuración de plugins
+
+Las consultas de plugins ya no devuelven las listas y diccionarios internos de
+selección. `CorePlugins` entrega copias de nombres y mapas de opciones, de modo
+que las capas de UI, diagnóstico y tests deben usar `set_plugins()` para cambiar
+la configuración y no pueden mutarla accidentalmente por referencia.
+
+Verificación: **35 tests** de plugins pasan; la prueba nueva cubre la
+inmutabilidad observable de los tres getters. Black y Ruff pasan en los
+archivos modificados.
