@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import bisect
 import logging
 import queue
 import uuid
@@ -28,9 +27,49 @@ from collections.abc import Callable
 
 from w3af.core.constants import POISON_PILL
 from w3af.core.data.db.disk_dict import DiskDict
+from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement
 
 LOGGER = logging.getLogger(__name__)
+
+
+class _OrderedQueueIndex:
+    """Keep queue ordering metadata in SQLite instead of process memory."""
+
+    def __init__(self, db):
+        self._db = db
+        self._table_name = f"ordered_queue_{rand_alpha(30)}"
+
+        columns = [("item_hash", "TEXT"), ("unique_id", "TEXT")]
+        self._db.create_table(self._table_name, columns, ["unique_id"])
+        self._db.create_index(self._table_name, ["item_hash", "unique_id"])
+
+    def _query(self, statement):
+        return statement.replace("{table}", self._table_name)
+
+    def add(self, item_hash, unique_id):
+        self._db.execute(
+            self._query("INSERT INTO {table} VALUES (?, ?)"),
+            (item_hash, unique_id),
+        )
+
+    def pop(self):
+        row = self._db.select_one(
+            self._query(
+                "SELECT item_hash, unique_id FROM {table} "
+                "ORDER BY item_hash, unique_id LIMIT 1"
+            )
+        )
+        if row is None:
+            raise IndexError("pop from empty ordered queue")
+
+        self._db.execute(
+            self._query("DELETE FROM {table} WHERE unique_id = ?"), (row[1],)
+        )
+        return row
+
+    def __len__(self):
+        return self._db.select_one(self._query("SELECT count(*) FROM {table}"))[0]
 
 
 class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
@@ -69,7 +108,6 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         QueueSpeedMeasurement.__init__(self)
 
         self.queue_order = None
-        self.hash_to_uuid = None
         self.memory = None
         self.disk = None
 
@@ -89,10 +127,9 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         Initialize the dicts and pointer
         :param maxsize: The max size for the queue
         """
-        self.queue_order = []
-        self.hash_to_uuid = {}
         self.memory = {}
         self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue", db=self._db)
+        self.queue_order = _OrderedQueueIndex(self.disk.db)
 
     def _qsize(self, _len=len):
         return _len(self.memory) + _len(self.disk)
@@ -131,20 +168,12 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
             )
 
         #
-        #   Get the item hash to store it in the queue order list, and insert
-        #   it using bisect.insort() that will keep the order at a low cost
+        #   Store the ordering metadata in SQLite so the queue can grow without
+        #   retaining one hash and UUID entry in process memory per item.
         #
         item_hash = self._get_hash(item)
-        bisect.insort(self.queue_order, item_hash)
-
-        #
-        #   Keep an in-memory dict that allows us to find the fuzzable requests
-        #   in the other dictionaries
-        #
         unique_id = str(uuid.uuid4())
-
-        unique_id_list = self.hash_to_uuid.setdefault(item_hash, [])
-        bisect.insort(unique_id_list, unique_id)
+        self.queue_order.add(item_hash, unique_id)
 
         #
         #   And now we just save the item to memory (if there is space) or
@@ -161,20 +190,7 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         """
         Get an item from the queue
         """
-        item_hash = self.queue_order.pop(0)
-        unique_id_list = self.hash_to_uuid.pop(item_hash)
-        unique_id = unique_id_list.pop(0)
-
-        if unique_id_list:
-            #
-            # There are still items in this unique_id_list, this is most likely
-            # because two items with the same hash were added to the queue, and
-            # only one of those has been read.
-            #
-            # Need to add the other item(s) to the list again
-            #
-            bisect.insort(self.queue_order, item_hash)
-            self.hash_to_uuid[item_hash] = unique_id_list
+        _item_hash, unique_id = self.queue_order.pop()
 
         try:
             item = self.memory.pop(unique_id)

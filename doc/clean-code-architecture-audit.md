@@ -4750,3 +4750,15 @@ intenten instanciar como plugins.
 Verificación: **106 tests** focales pasan; Black, Ruff, mypy y Bandit focales
 pasan. El score global continúa en **9.99/10**, con los gates heredados, el
 fallback standalone y otros módulos grandes todavía pendientes.
+
+## Actualización verificada: índice de cola ordenada fuera de RAM
+
+`OrderedCachedQueue` ya no conserva en listas y diccionarios Python un hash y
+un UUID por cada elemento pendiente. El índice de orden se almacena en una
+tabla SQLite con índice por hash; la cola sigue reteniendo en memoria solo los
+elementos permitidos por `maxsize` y mantiene el mismo orden de extracción.
+
+Verificación: **22 tests** de la cola y `CrawlInfrastructure` pasan; Black,
+Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**, con
+los gates heredados, el fallback standalone y otros módulos grandes todavía
+pendientes.

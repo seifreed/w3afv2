@@ -176,6 +176,17 @@ class TestOrderedCachedQueue(unittest.TestCase):
 
         self.assertEqual(q.qsize(), 0)
 
+    def test_ordering_metadata_is_disk_backed(self):
+        q = OrderedCachedQueue(maxsize=1)
+
+        for i in range(100):
+            q.put(create_simple_fuzzable_request(i))
+
+        self.assertEqual(len(q.queue_order), 100)
+        self.assertTrue(q.disk.db.table_exists(q.queue_order._table_name))
+        self.assertEqual(len(q.memory), 1)
+        self.assertEqual(len(q.disk), 99)
+
     def test_exceptions_no_fail_sync_pointer(self):
         q = OrderedCachedQueue(maxsize=2)
         q.put(create_simple_fuzzable_request(1))
