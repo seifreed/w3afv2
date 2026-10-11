@@ -7386,6 +7386,16 @@ con su causa original.
 Verificación: la suite de catálogo y plugins mantiene sus pruebas de tipo
 desconocido; Black, Ruff y mypy pasan en el módulo modificado.
 
+## Actualización verificada: cierre ordenado de la consola
+
+`ConsoleUI.sh()` publicaba el mensaje final después de cerrar el `LogSink` y
+la cola del `OutputManager`, por lo que una interrupción durante un comando
+terminaba sin mensaje de salida. Ahora drena el mensaje antes del teardown del
+core, manteniendo el cierre de recursos y el manejo de `KeyboardInterrupt`.
+
+Verificación: **61 tests** de interacción de consola pasan; Black, Ruff y
+mypy pasan en el módulo modificado.
+
 ## Actualización verificada: construcción única de plugins
 
 `PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica
