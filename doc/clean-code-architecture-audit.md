@@ -4543,6 +4543,18 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: cierre del fallback DB
+
+`close_default_temp_db_instance()` cierra el executor de la base standalone y
+elimina la referencia global, evitando que el hilo SQLite y sus recursos vivan
+hasta el final del proceso cuando una aplicación o suite termina su sesión.
+`database_session()` sigue siendo la vía preferida para ownership explícito.
+
+Verificación: **42 tests** de DB y diccionarios pasan; Black, Ruff, mypy y
+Bandit focales pasan. El score global continúa en **9.99/10**, con los gates
+heredados, los callers standalone aún no migrados y otros módulos grandes
+todavía pendientes.
+
 ## Actualización verificada: sesión explícita para DB standalone
 
 `database_session()` crea una SQLite temporal, la hace visible a los

@@ -36,6 +36,7 @@ from w3af.core.data.db.dbms import (
     SELECT,
     SQLiteDBMS,
     SQLiteExecutor,
+    close_default_temp_db_instance,
     create_temp_db_instance,
     database_context,
     database_session,
@@ -240,6 +241,9 @@ class TestDBMS(unittest.TestCase):
 
 
 class TestDefaultDB(unittest.TestCase):
+    def tearDown(self):
+        close_default_temp_db_instance()
+
     def test_create_temp_db_instance_is_independent(self):
         first = create_temp_db_instance()
         second = create_temp_db_instance()
@@ -253,6 +257,14 @@ class TestDefaultDB(unittest.TestCase):
         self.assertEqual(
             id(get_default_temp_db_instance()), id(get_default_temp_db_instance())
         )
+
+    def test_close_default_temp_db_instance_releases_database(self):
+        database = get_default_temp_db_instance()
+
+        close_default_temp_db_instance()
+
+        self.assertTrue(database.sql_executor.get_received_poison_pill())
+        self.assertIsNot(database, get_default_temp_db_instance())
 
     def test_database_context_uses_scoped_db(self):
         scoped_db = create_temp_db_instance()

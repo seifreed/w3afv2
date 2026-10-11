@@ -510,6 +510,18 @@ def get_default_temp_db_instance():
     return temp_default_db
 
 
+def close_default_temp_db_instance():
+    """Close and forget the process-level standalone database."""
+    global temp_default_db
+
+    if temp_default_db is None:
+        return
+
+    if not temp_default_db.sql_executor.get_received_poison_pill():
+        temp_default_db.close()
+    temp_default_db = None
+
+
 def get_default_persistent_db_instance():
     """
     At some point I'll want to have persistent DB for storing the KB and other
