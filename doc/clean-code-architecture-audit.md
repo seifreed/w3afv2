@@ -6987,3 +6987,17 @@ Verificación: `test_worker_pool_manager.py` pasa **3 tests** y el lifecycle de
 con un pool activo. Black, Ruff y Mypy pasan en los cuatro archivos
 modificados. El score global continúa en **9.99/10** por las limitaciones de
 cobertura y gates globales documentadas arriba.
+
+## Actualización verificada: alcance de la suite y gates globales
+
+La colección completa de pytest termina correctamente con **4851 tests
+colectados**, sin errores de importación o procesos pendientes. La validación
+global posterior mantiene Black en **1659 archivos**, Ruff sin hallazgos y
+Mypy sin errores en **1620 archivos de `w3af`**. `pip-audit` no encuentra
+vulnerabilidades conocidas; omite únicamente `mitmproxy`, que no está
+publicado en PyPI para poder auditarlo.
+
+La puntuación permanece en **9.99/10**: la colección demuestra alcance, pero no
+sustituye una ejecución completa con cobertura 100%, y `bandit -r .`/`mypy .`
+incluyen artefactos generados, vendor, extras y tests fuera del código de
+producción.
