@@ -24,6 +24,7 @@ from queue import Queue
 
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.output_manager.log_sink import LogSink
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
@@ -79,7 +80,7 @@ class GrepPluginTestCase(unittest.TestCase):
         plugin.set_parser_cache(TEST_PARSER_CACHE)
         output = LogSink(Queue())
         plugin.set_output(output)
-        detector = Fingerprint404(output, cf)
+        detector = Fingerprint404(output, cf, db=get_default_temp_db_instance())
         plugin.set_fingerprint_404(detector)
         self._fingerprint_404_detectors.append(detector)
         return plugin

@@ -25,6 +25,7 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.tests.local_http_server import closed_local_port
 from w3af.core.controllers.tests.recording_output import start_recording_output
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
@@ -56,7 +57,9 @@ class Test404Errors(unittest.TestCase):
         self.plugin = meta_tags()
         self.plugin.set_output(om.out)
         self.plugin.set_configuration(cf)
-        self.fingerprint_404 = Fingerprint404(om.out, cf)
+        self.fingerprint_404 = Fingerprint404(
+            om.out, cf, db=get_default_temp_db_instance()
+        )
         self.plugin.set_fingerprint_404(self.fingerprint_404)
 
     def tearDown(self):

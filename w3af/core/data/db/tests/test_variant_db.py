@@ -59,7 +59,7 @@ class TestVariantDB(unittest.TestCase):
         self.configuration = Config()
         MiscSettings(self.configuration).set_default_values()
         create_temp_dir()
-        self.vdb = VariantDB(self.configuration)
+        self.vdb = VariantDB(self.configuration, db=get_default_temp_db_instance())
 
     def test_db_int(self):
         url_fmt = "http://w3af.org/foo.htm?id=%s"
@@ -73,7 +73,7 @@ class TestVariantDB(unittest.TestCase):
 
     def test_uses_injected_variant_limits(self):
         self.configuration.save("params_max_variants", 1)
-        variant_db = VariantDB(self.configuration)
+        variant_db = VariantDB(self.configuration, db=get_default_temp_db_instance())
         self.addCleanup(variant_db.cleanup)
 
         self.assertTrue(variant_db.append(fr(URL("http://w3af.org/foo.htm?id=1"))))

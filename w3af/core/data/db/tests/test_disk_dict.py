@@ -44,7 +44,7 @@ class TestDiskDict(unittest.TestCase):
         create_temp_dir()
 
     def test_int(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
 
         for i in range(100):
             disk_dict[i] = i
@@ -59,12 +59,12 @@ class TestDiskDict(unittest.TestCase):
         self.assertIn(50, disk_dict)
 
     def test_not_in(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
 
         self.assertRaises(KeyError, disk_dict.__getitem__, "abc")
 
     def test_get(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
 
         disk_dict[0] = "abc"
 
@@ -77,7 +77,7 @@ class TestDiskDict(unittest.TestCase):
         self.assertEqual(two, 2)
 
     def test_keys(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
 
         disk_dict["a"] = "abc"
         disk_dict["b"] = "abc"
@@ -86,20 +86,20 @@ class TestDiskDict(unittest.TestCase):
         self.assertEqual(set(disk_dict.keys()), {"a", "b", "c"})
 
     def test_del(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
         disk_dict["a"] = "abc"
 
         del disk_dict["a"]
         self.assertNotIn("a", disk_dict)
 
     def test_len(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
         disk_dict["a"] = "abc"
 
         self.assertEqual(len(disk_dict), 1)
 
     def test_len_does_not_load_items(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
 
         for i in range(1000):
             disk_dict[i] = UnloadableItem()
@@ -108,14 +108,14 @@ class TestDiskDict(unittest.TestCase):
         self.assertRaises(RuntimeError, disk_dict.__getitem__, 0)
 
     def test_get_without_default(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
 
         self.assertRaises(KeyError, disk_dict.get, "missing")
         self.assertEqual(disk_dict.get("missing", None), None)
         self.assertEqual(disk_dict.get("missing", -456), -456)
 
     def test_pop(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
         disk_dict["a"] = "abc"
 
         self.assertEqual(disk_dict.pop("a"), "abc")
@@ -125,7 +125,7 @@ class TestDiskDict(unittest.TestCase):
         self.assertRaises(KeyError, disk_dict.pop, "a")
 
     def test_len_very_large_dict(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
 
         items_to_add = 1000
         very_large_string = "random_very_large_string" * 321
@@ -136,7 +136,7 @@ class TestDiskDict(unittest.TestCase):
         self.assertEqual(len(disk_dict), items_to_add)
 
     def test_remove_table(self):
-        disk_dict = DiskDict()
+        disk_dict = DiskDict(db=get_default_temp_db_instance())
         table_name = disk_dict.table_name
         db = get_default_temp_db_instance()
 
@@ -148,7 +148,7 @@ class TestDiskDict(unittest.TestCase):
 
     def test_table_with_prefix(self):
         _unittest = "unittest"
-        disk_dict = DiskDict(_unittest)
+        disk_dict = DiskDict(_unittest, db=get_default_temp_db_instance())
 
         self.assertIn(_unittest, disk_dict.table_name)
         db = get_default_temp_db_instance()

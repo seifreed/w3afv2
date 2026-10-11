@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import threading
 
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.db.disk_list import DiskList
 
 
@@ -32,7 +33,9 @@ class DiskSet(DiskList):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, table_prefix=None, db=None):
+    def __init__(self, table_prefix=None, db: SQLiteDBMS | None = None):
+        if db is None:
+            raise ValueError("DiskSet requires a database")
         super().__init__(table_prefix=table_prefix, db=db)
 
         self.lock = threading.RLock()

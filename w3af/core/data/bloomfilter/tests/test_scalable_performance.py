@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_set import DiskSet
 
 
@@ -39,7 +40,8 @@ class TestScalablePerformance(unittest.TestCase):
             self.assertIn(data, f)
 
     def test_disk_set(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
+        self.addCleanup(ds.cleanup)
 
         for i in range(20000):
             data = (i, i)

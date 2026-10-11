@@ -33,6 +33,7 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import (
 )
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
@@ -77,7 +78,9 @@ class Generic404Test(unittest.TestCase):
 
         self.urllib = ExtendedUrllib()
 
-        self.fingerprint_404 = Fingerprint404(om.out, cf)
+        self.fingerprint_404 = Fingerprint404(
+            om.out, cf, db=get_default_temp_db_instance()
+        )
         self.fingerprint_404.set_url_opener(self.urllib)
 
     def tearDown(self):
@@ -573,8 +576,8 @@ class Test404LargeResponsesReuseDiff(Generic404Test):
 class TestFingerprint404Instances(unittest.TestCase):
 
     def test_instances_are_independent(self):
-        first = Fingerprint404(om.out, cf)
-        second = Fingerprint404(om.out, cf)
+        first = Fingerprint404(om.out, cf, db=get_default_temp_db_instance())
+        second = Fingerprint404(om.out, cf, db=get_default_temp_db_instance())
 
         self.addCleanup(first.cleanup)
         self.addCleanup(second.cleanup)
@@ -584,7 +587,7 @@ class TestFingerprint404Instances(unittest.TestCase):
         url = URL("http://w3af.org/missing.html")
         response = HTTPResponse(404, "Not found", Headers(), url, url)
 
-        detector = Fingerprint404(om.out, cf)
+        detector = Fingerprint404(om.out, cf, db=get_default_temp_db_instance())
         self.addCleanup(detector.cleanup)
         self.assertTrue(detector.is_404(response))
 

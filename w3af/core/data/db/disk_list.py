@@ -28,7 +28,7 @@ import os
 import tempfile
 from contextlib import ExitStack
 
-from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
@@ -65,14 +65,22 @@ class DiskList:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, table_prefix=None, dump=None, load=None, db=None):
+    def __init__(
+        self,
+        table_prefix=None,
+        dump=None,
+        load=None,
+        db: SQLiteDBMS | None = None,
+    ):
         """
         :param table_prefix: The DBMS table prefix, mostly for debugging.
         :param dump: The function to use to serialize the object
         :param load: The function to use to deserialize the object
         :param db: The SQLite database that owns this list.
         """
-        self.db = get_default_temp_db_instance() if db is None else db
+        if db is None:
+            raise ValueError("DiskList requires a database")
+        self.db: SQLiteDBMS = db
 
         prefix = "" if table_prefix is None else (f"{table_prefix}_")
         self.table_name = "disk_list_" + prefix + rand_alpha(30)

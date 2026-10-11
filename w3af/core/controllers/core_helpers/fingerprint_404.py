@@ -33,6 +33,7 @@ from w3af.core.controllers.core_helpers.not_found.generate_404 import (
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH, fuzzy_equal
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.url.helpers import is_no_content_response
 from w3af.core.data.url.not_found_response import FourOhFourResponse
@@ -50,7 +51,9 @@ class Fingerprint404:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, output, configuration, db=None):
+    def __init__(self, output, configuration, db: SQLiteDBMS | None = None):
+        if db is None:
+            raise ValueError("Fingerprint404 requires a database")
         #
         #   Set the opener, I need it to perform some tests and gain
         #   the knowledge about the server's 404 response bodies.

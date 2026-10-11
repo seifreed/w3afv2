@@ -29,6 +29,7 @@ from w3af.core.data.db.clean_dc import (
     clean_fuzzable_request,
     clean_fuzzable_request_form,
 )
+from w3af.core.data.db.dbms import SQLiteDBMS
 
 LOGGER = logging.getLogger(__name__)
 
@@ -113,7 +114,9 @@ class VariantDB:
 
     MAX_IN_MEMORY = 50
 
-    def __init__(self, configuration, db=None):
+    def __init__(self, configuration, db: SQLiteDBMS | None = None):
+        if db is None:
+            raise ValueError("VariantDB requires a database")
         self._variants = CachedDiskDict(
             max_in_memory=self.MAX_IN_MEMORY, table_prefix="variant_db", db=db
         )

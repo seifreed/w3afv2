@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from collections import Counter
+from typing import Any
 
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.fuzzer.utils import rand_alpha
 
@@ -38,20 +40,29 @@ class CachedDiskDict:
     of memory.
     """
 
-    def __init__(self, max_in_memory=50, table_prefix=None, db=None):
+    def __init__(
+        self,
+        max_in_memory=50,
+        table_prefix=None,
+        db: SQLiteDBMS | None = None,
+    ):
         """
         :param max_in_memory: The max number of items to keep in memory
         """
         if max_in_memory <= 0:
             raise ValueError("In-memory items must be > 0")
+        if db is None:
+            raise ValueError("CachedDiskDict requires a database")
+
+        self._db: SQLiteDBMS = db
 
         table_prefix = self._get_table_prefix(table_prefix)
 
         self._max_in_memory = max_in_memory
         self._access_count_limit = max_in_memory * 2
-        self._disk_dict = DiskDict(table_prefix=table_prefix, db=db)
-        self._in_memory = {}
-        self._access_count = Counter()
+        self._disk_dict = DiskDict(table_prefix=table_prefix, db=self._db)
+        self._in_memory: dict[Any, Any] = {}
+        self._access_count: Counter[Any] = Counter()
 
     def cleanup(self):
         self._disk_dict.cleanup()

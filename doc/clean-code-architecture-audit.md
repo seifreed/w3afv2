@@ -4955,3 +4955,18 @@ Verificación: DB/cache pasan **46 tests**, XML **32**, HTML e historial **4**, 
 opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
+
+## Actualización verificada: primitives de almacenamiento con DB explícita
+
+`DiskList`, `DiskDict`, `DiskSet` y `CachedDiskDict` ya no crean la SQLite
+singleton cuando reciben `None`: validan la dependencia y fallan en el borde
+con un mensaje claro. `VariantDB` y `Fingerprint404` también exigen su DB;
+`ParserCache` la compone una sola vez para conservar el uso standalone sin
+devolver la ambigüedad al primitive.
+
+Los tests directos pasan ahora la DB temporal explícitamente y limpian las
+tablas creadas por las pruebas de rendimiento. Verificación: estructuras DB
+**108 tests**, fingerprint/plugins **57**, parser y respuestas **76**, y
+primitivas auxiliares **38**; Black, Ruff, mypy y Bandit focales están limpios.
+El score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.

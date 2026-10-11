@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 from w3af.core.data.misc.serialize import loads
@@ -39,8 +39,10 @@ class DiskDict:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, table_prefix=None, db=None):
-        self.db = get_default_temp_db_instance() if db is None else db
+    def __init__(self, table_prefix=None, db: SQLiteDBMS | None = None):
+        if db is None:
+            raise ValueError("DiskDict requires a database")
+        self.db: SQLiteDBMS = db
 
         prefix = "" if table_prefix is None else (f"{table_prefix}_")
         self.table_name = "disk_dict_" + prefix + rand_alpha(30)

@@ -25,6 +25,7 @@ import unittest
 
 import pytest
 
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.factory import dc_from_form_params
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
@@ -345,7 +346,8 @@ class TestFuzzableRequest(unittest.TestCase):
             headers=headers,
         )
 
-        disk_set = DiskSet()
+        disk_set = DiskSet(db=get_default_temp_db_instance())
+        self.addCleanup(disk_set.cleanup)
         disk_set.add(fr)
 
         fr_read = disk_set[0]

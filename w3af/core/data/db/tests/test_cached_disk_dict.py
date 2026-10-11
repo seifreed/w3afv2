@@ -23,11 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 
 
 class TestCachedDiskDict(unittest.TestCase):
     def setUp(self):
-        self.cdd = CachedDiskDict(max_in_memory=3)
+        self.cdd = CachedDiskDict(max_in_memory=3, db=get_default_temp_db_instance())
 
     def tearDown(self):
         self.cdd.cleanup()
@@ -147,7 +148,7 @@ class TestCachedDiskDict(unittest.TestCase):
         self.assertLessEqual(len(self.cdd._access_count), self.cdd._access_count_limit)
 
     def test_table_prefix(self):
-        cdd = CachedDiskDict(table_prefix="variants")
+        cdd = CachedDiskDict(table_prefix="variants", db=get_default_temp_db_instance())
         self.addCleanup(cdd.cleanup)
 
         self.assertIn("cached_disk_dict_variants_", cdd._disk_dict.table_name)

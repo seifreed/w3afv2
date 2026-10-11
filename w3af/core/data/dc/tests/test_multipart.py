@@ -26,6 +26,7 @@ import unittest
 
 import pytest
 
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.multipart_container import MultipartContainer
@@ -252,7 +253,7 @@ class TestMultipartContainer(unittest.TestCase):
 
         dc.set_token(("a", 0))
 
-        disk_set = DiskSet()
+        disk_set = DiskSet(db=get_default_temp_db_instance())
         disk_set.add(dc)
 
         dc_read = disk_set[0]

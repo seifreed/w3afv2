@@ -41,7 +41,7 @@ class TestDiskSet(unittest.TestCase):
 
     @pytest.mark.smoke
     def test_add(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
         ds.add(1)
         ds.add(2)
         ds.add(3)
@@ -52,7 +52,7 @@ class TestDiskSet(unittest.TestCase):
         self.assertEqual(str(ds), "<DiskSet [1, 2, 3]>")
 
     def test_add_urlobject(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
 
         ds.add(URL("http://w3af.org/?id=2"))
         ds.add(URL("http://w3af.org/?id=3"))
@@ -65,7 +65,7 @@ class TestDiskSet(unittest.TestCase):
         self.assertTrue(URL("http://w3af.org/?id=2") in ds)
 
     def test_add_QsRequest(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
 
         uri = URL("http://w3af.org/?id=2")
         hdr = Headers([("Referer", "http://w3af.org/")])
@@ -94,14 +94,14 @@ class TestDiskSet(unittest.TestCase):
         self.assertIn(qsr2, ds)
 
     def test_update(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
         ds.add(1)
         ds.update([2, 3, 1])
 
         self.assertEqual(list(ds), [1, 2, 3])
 
     def test_thread_safe(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
 
         def worker(range_inst):
             for i in range_inst:
@@ -139,7 +139,7 @@ class TestDiskSet(unittest.TestCase):
         self.assertEqual(ds_as_list, list(range(1000)))
 
     def test_remove_table(self):
-        disk_set = DiskSet()
+        disk_set = DiskSet(db=get_default_temp_db_instance())
         disk_set.add(1)
         disk_set.add(2)
 
@@ -163,7 +163,7 @@ class TestDiskSet(unittest.TestCase):
 
         fr = FuzzableRequest.from_form(form)
 
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
         ds.add(fr)
 
         stored_fr = ds[0]
@@ -172,7 +172,7 @@ class TestDiskSet(unittest.TestCase):
         self.assertIsNot(stored_fr, fr)
 
     def test_store_fuzzable_request_two(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
 
         # Add a simple fr, without post-data
         fr = FuzzableRequest(URL("http://example.com/?id=1"))
@@ -198,7 +198,7 @@ class TestDiskSet(unittest.TestCase):
 
     def test_table_name_with_prefix(self):
         _unittest = "unittest"
-        disk_set = DiskSet(_unittest)
+        disk_set = DiskSet(_unittest, db=get_default_temp_db_instance())
 
         self.assertIn(_unittest, disk_set.table_name)
         db = get_default_temp_db_instance()
@@ -210,7 +210,7 @@ class TestDiskSet(unittest.TestCase):
         self.assertFalse(db.table_exists(disk_set.table_name))
 
     def test_list_only_methods_are_rejected(self):
-        ds = DiskSet()
+        ds = DiskSet(db=get_default_temp_db_instance())
 
         self.assertRaises(RuntimeError, ds.extend, [1])
         self.assertRaises(RuntimeError, ds.append, 1)

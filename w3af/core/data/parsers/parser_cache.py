@@ -24,6 +24,7 @@ import logging
 import threading
 from concurrent.futures import TimeoutError
 
+from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.parsers.document_parser import DocumentParser
@@ -54,7 +55,7 @@ class ParserCache(CacheStats):
     MAX_CACHEABLE_BODY_LEN = 1024 * 1024
     DEBUG = is_core_profiling_enabled()
 
-    def __init__(self, mp_parser=None, db=None):
+    def __init__(self, mp_parser=None, db: SQLiteDBMS | None = None):
         """
         :param mp_parser: The MultiProcessingDocumentParser that parses the
                           responses which are not in the cache
@@ -66,8 +67,9 @@ class ParserCache(CacheStats):
         )
         self._cache = SynchronizedLRUDict(self.CACHE_SIZE)
         self._can_parse_cache = SynchronizedLRUDict(self.CACHE_SIZE * 10)
-        self._parser_finished_events = {}
-        self._parser_blacklist = DiskSet(db=db)
+        self._parser_finished_events: dict[str, threading.Event] = {}
+        self._db = get_default_temp_db_instance() if db is None else db
+        self._parser_blacklist = DiskSet(db=self._db)
 
     def clear(self):
         """

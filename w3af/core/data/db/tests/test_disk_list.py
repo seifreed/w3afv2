@@ -63,7 +63,7 @@ class TestDiskList(unittest.TestCase):
 
     @pytest.mark.smoke
     def test_int(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         for i in range(1000):
             _ = dl.append(i)
@@ -77,7 +77,7 @@ class TestDiskList(unittest.TestCase):
             self.assertEqual(r in dl, False)
 
     def test_to_unicode(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
         dl.append(1)
         dl.append(2)
         dl.append(3)
@@ -86,7 +86,7 @@ class TestDiskList(unittest.TestCase):
 
     @pytest.mark.smoke
     def test_string(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         for i in range(1000):
             rnd = "".join(secrets.choice(string.ascii_letters) for i in range(40))
@@ -100,7 +100,7 @@ class TestDiskList(unittest.TestCase):
         self.assertIn(rnd, dl)
 
     def test_unicode(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("à")
         dl.append("המלצת השבוע")
@@ -121,7 +121,7 @@ class TestDiskList(unittest.TestCase):
 
     @pytest.mark.smoke
     def test_urlobject(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append(URL("http://w3af.org/?id=2"))
         dl.append(URL("http://w3af.org/?id=3"))
@@ -132,7 +132,7 @@ class TestDiskList(unittest.TestCase):
         self.assertIn(URL("http://w3af.org/?id=2"), dl)
 
     def test_fuzzable_request(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         uri = URL("http://w3af.org/?id=2")
         qsr1 = FuzzableRequest(
@@ -158,7 +158,7 @@ class TestDiskList(unittest.TestCase):
         self.assertTrue(qsr2 in dl)
 
     def test_len(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         for i in range(100):
             _ = dl.append(i)
@@ -166,7 +166,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(len(dl), 100)
 
     def test_pickle(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("a")
         dl.append(1)
@@ -179,7 +179,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(values[2], [3, 2, 1])
 
     def test_getitem(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("a")
         dl.append(1)
@@ -191,7 +191,7 @@ class TestDiskList(unittest.TestCase):
         self.assertRaises(IndexError, dl.__getitem__, 3)
 
     def test_getitem_negative(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("a")
         dl.append("b")
@@ -203,11 +203,11 @@ class TestDiskList(unittest.TestCase):
         self.assertRaises(IndexError, dl.__getitem__, -4)
 
     def test_not(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
         self.assertFalse(dl)
 
     def test_extend(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("a")
         dl.extend([1, 2, 3])
@@ -219,7 +219,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(dl[3], 3)
 
     def test_clear(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("a")
         dl.append("b")
@@ -231,7 +231,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(len(dl), 0)
 
     def test_sorted(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("abc")
         dl.append("def")
@@ -242,7 +242,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(["aaa", "abc", "def"], sorted_dl)
 
     def test_ordered_iter(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         dl.append("abc")
         dl.append("def")
@@ -253,7 +253,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(["aaa", "abc", "def"], sorted_dl)
 
     def test_ordered_iter_merges_sorted_batches(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
         dl.extend([3, 1, 6, 2, 5, 4])
 
         sorted_dl = list(dl.ordered_iter(batch_size=2))
@@ -261,7 +261,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual([1, 2, 3, 4, 5, 6], sorted_dl)
 
     def test_ordered_iter_accepts_a_sort_key(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
         dl.extend(["four", "a", "three", "bb"])
 
         sorted_dl = list(dl.ordered_iter(batch_size=2, key=len))
@@ -269,13 +269,13 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(["a", "bb", "four", "three"], sorted_dl)
 
     def test_ordered_iter_rejects_invalid_batch_size(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         with self.assertRaises(ValueError):
             list(dl.ordered_iter(batch_size=0))
 
     def test_reverse_iteration(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
         dl.append(1)
         dl.append(2)
         dl.append(3)
@@ -285,7 +285,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(reverse_iter_res, [3, 2, 1])
 
     def test_thread_safe(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         def worker(range_inst):
             for i in range_inst:
@@ -314,7 +314,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(dl_as_list, list(range(1000)))
 
     def test_remove_table(self):
-        disk_list = DiskList()
+        disk_list = DiskList(db=get_default_temp_db_instance())
         table_name = disk_list.table_name
         db = get_default_temp_db_instance()
 
@@ -326,7 +326,7 @@ class TestDiskList(unittest.TestCase):
 
     def test_table_name_with_prefix(self):
         _unittest = "unittest"
-        disk_list = DiskList(_unittest)
+        disk_list = DiskList(_unittest, db=get_default_temp_db_instance())
 
         self.assertIn(_unittest, disk_list.table_name)
         db = get_default_temp_db_instance()
@@ -338,7 +338,7 @@ class TestDiskList(unittest.TestCase):
         self.assertFalse(db.table_exists(disk_list.table_name))
 
     def test_remove_table_then_add(self):
-        disk_list = DiskList()
+        disk_list = DiskList(db=get_default_temp_db_instance())
         disk_list.append(1)
 
         disk_list.cleanup()
@@ -346,7 +346,7 @@ class TestDiskList(unittest.TestCase):
         self.assertRaises(AssertionError, disk_list.append, 1)
 
     def test_islice(self):
-        disk_list = DiskList()
+        disk_list = DiskList(db=get_default_temp_db_instance())
         disk_list.extend("ABCDEFG")
 
         EXPECTED = "CDEFG"
@@ -362,13 +362,13 @@ class TestDiskList(unittest.TestCase):
         amount = 200
 
         for _ in range(amount):
-            disk_list = DiskList()
+            disk_list = DiskList(db=get_default_temp_db_instance())
             all_instances.append(disk_list)
 
         self.assertEqual(len(all_instances), amount)
 
     def test_slice_all(self):
-        disk_list = DiskList()
+        disk_list = DiskList(db=get_default_temp_db_instance())
         disk_list.append("1")
         disk_list.append("2")
 
@@ -377,7 +377,7 @@ class TestDiskList(unittest.TestCase):
         self.assertIn("2", dl_copy)
 
     def test_slice_greater_than_length(self):
-        disk_list = DiskList()
+        disk_list = DiskList(db=get_default_temp_db_instance())
         disk_list.append("1")
         disk_list.append("2")
 
@@ -387,7 +387,7 @@ class TestDiskList(unittest.TestCase):
         self.assertEqual(2, len(dl_copy))
 
     def test_slice_first_N(self):
-        disk_list = DiskList()
+        disk_list = DiskList(db=get_default_temp_db_instance())
         disk_list.append("1")
         disk_list.append("2")
         disk_list.append("3")
@@ -402,7 +402,7 @@ class TestDiskList(unittest.TestCase):
         #   This test runs in ~5.1 seconds on my workstation
         #
         count = 30000
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         for i in range(count):
             i_str = str(i)
@@ -421,7 +421,11 @@ class TestDiskList(unittest.TestCase):
         #   a simple string.
         #
         count = 30000
-        dl = DiskList(load=lambda x: x, dump=lambda x: x)
+        dl = DiskList(
+            load=lambda x: x,
+            dump=lambda x: x,
+            db=get_default_temp_db_instance(),
+        )
 
         for i in range(count):
             i_str = str(i)
@@ -442,7 +446,7 @@ class TestDiskList(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
 
         count = 30000
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         for i in range(count):
             # This tests the serialization
@@ -468,7 +472,11 @@ class TestDiskList(unittest.TestCase):
             return HTTPResponse.from_dict(data)
 
         count = 30000
-        dl = DiskList(dump=dump, load=load)
+        dl = DiskList(
+            dump=dump,
+            load=load,
+            db=get_default_temp_db_instance(),
+        )
 
         for i in range(count):
             # This tests the serialization
@@ -478,11 +486,11 @@ class TestDiskList(unittest.TestCase):
             _ = dl[i]
 
     def test_disk_item_must_define_eq_attrs(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         self.assertRaises(NotImplementedError, dl.append, ItemWithoutEqAttrs())
 
     def test_disk_item_with_complex_attribute(self):
-        dl = DiskList()
+        dl = DiskList(db=get_default_temp_db_instance())
 
         self.assertRaises(TypeError, dl.append, ItemWithComplexAttr())

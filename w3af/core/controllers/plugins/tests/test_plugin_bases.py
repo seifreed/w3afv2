@@ -32,6 +32,7 @@ from w3af.core.controllers.plugins.mangle_plugin import ManglePlugin
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
 from w3af.core.data.options.opt_factory import opt_factory
@@ -189,7 +190,9 @@ class TestCrawlHTTPGetAndParse(unittest.TestCase):
         create_temp_dir()
         self.uri_opener = ExtendedUrllib()
         self.addCleanup(self.uri_opener.end)
-        self.fingerprint_404 = Fingerprint404(om.out, cf)
+        self.fingerprint_404 = Fingerprint404(
+            om.out, cf, db=get_default_temp_db_instance()
+        )
         self.fingerprint_404.set_url_opener(self.uri_opener)
         self.addCleanup(self.fingerprint_404.cleanup)
 
