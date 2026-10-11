@@ -6878,3 +6878,8 @@ Verificación: Black y Ruff pasan en el archivo modificado, la batería focaliza
 pasa **14 tests** y la batería completa de threads pasa **60 tests** sin dejar
 procesos `pytest` o workers de pool activos. El score global continúa en
 **9.99/10**.
+
+El mismo helper de cleanup se aplica también a los casos de operaciones de
+pool que terminaban sin liberar el pool si fallaba una aserción intermedia.
+La cobertura focalizada queda en **31 tests** adicionales, sin procesos
+persistentes al finalizar.

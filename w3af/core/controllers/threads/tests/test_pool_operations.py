@@ -166,7 +166,7 @@ class TestPoolOperations(unittest.TestCase):
         self.assertRaises(RuntimeError, pool.join)
 
     def test_internal_thread_state(self):
-        pool = Pool(1)
+        pool = self.new_pool(1)
         alive = {"worker_handler": True, "task_handler": True, "result_handler": True}
         self.assertEqual(pool.get_internal_thread_state(), alive)
 
@@ -176,7 +176,7 @@ class TestPoolOperations(unittest.TestCase):
         self.assertEqual(pool.get_internal_thread_state(), dead)
 
     def test_terminate_stops_task_generation(self):
-        pool = Pool(1)
+        pool = self.new_pool(1)
         results = pool.imap_unordered(square, slow_items())
         self.assertEqual(next(results), 0)
 
@@ -185,7 +185,7 @@ class TestPoolOperations(unittest.TestCase):
         self.assertFalse(pool.get_internal_thread_state()["task_handler"])
 
     def test_finish_waits_for_queued_tasks(self):
-        pool = Pool(1)
+        pool = self.new_pool(1)
         finished = []
 
         def slow_task(number):
@@ -201,8 +201,7 @@ class TestPoolOperations(unittest.TestCase):
         self.assertEqual(finished, [0, 1, 2])
 
     def test_default_process_count(self):
-        pool = Pool()
-        self.addCleanup(pool.terminate_join)
+        pool = self.new_pool(processes=None)
         self.assertEqual(pool.get_worker_count(), os.cpu_count() or 1)
 
     def test_initializer(self):
