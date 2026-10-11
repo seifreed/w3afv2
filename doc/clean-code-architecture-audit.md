@@ -4442,3 +4442,18 @@ History, cache HTTP y core pasan; Black, Ruff y mypy pasan en los módulos
 modificados. El fallback global sigue limitado a componentes standalone que no
 reciben una DB explícita, por lo que el score global permanece en **9.99/10**
 hasta completar esa migración y cerrar los gates globales.
+
+## Actualización verificada: lectores de History alineados con el core
+
+Los consumidores de tráfico de HTML, XML, grep y la API reciben ahora la DB
+del core. `HistoryItem.find()` y `HistoryItem.read()` conservan esa DB al crear
+objetos derivados, evitando que una lectura vuelva silenciosamente al singleton
+global. Los plugins standalone mantienen el fallback anterior cuando no tienen
+core configurado.
+
+La regresión recorre una petición HTTP real y verifica que el cache handler y
+`HistoryItem.read()` comparten la DB; también cubre el endpoint API de tráfico.
+Verificación: **31 tests** XML, **9 tests** grep, **2 tests** de render HTML y
+**33 tests** API/History pasan. Black, Ruff y mypy pasan en los archivos
+modificados. El score global sigue en **9.99/10**: aún queda el fallback global
+para componentes standalone y la auditoría completa de módulos heredados.

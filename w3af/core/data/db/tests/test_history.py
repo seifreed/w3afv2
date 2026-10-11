@@ -98,6 +98,7 @@ class TestHistoryItem(unittest.TestCase):
         )
 
         self.assertIs(first.find([])[0]._db, first_db)
+        self.assertIs(first.read(1)._db, first_db)
         self.assertEqual(second.find([]), [])
         self.assertIsNot(first._db, second._db)
 

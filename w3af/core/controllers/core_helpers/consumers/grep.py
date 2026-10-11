@@ -172,7 +172,7 @@ class grep(BaseConsumer):
         :param http_response_id: The HTTP response ID
         :return: An HTTP request and response tuple
         """
-        history = HistoryItem()
+        history = HistoryItem(db=self._w3af_core.database)
         request, response = history.load_from_file(http_response_id)
 
         # Create a fuzzable request based on the urllib2 request object

@@ -48,7 +48,7 @@ def get_traffic_details(scan_id, traffic_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    history_db = HistoryItem()
+    history_db = HistoryItem(db=scan_info.w3af_core.database)
 
     try:
         details = history_db.read(traffic_id)

@@ -173,13 +173,14 @@ class TestNoDuplicate(unittest.TestCase):
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
-        HistoryItem().init()
         self.w3af_core = w3afCore(knowledge_base=kb)
+        self.addCleanup(self.w3af_core.quit)
+        HistoryItem(db=self.w3af_core.database).init()
         self.w3af_core.status.start()
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=self.w3af_core.database).clear()
         kb.cleanup()
 
     def test_no_duplicate_vuln_reports(self):
@@ -197,7 +198,7 @@ class TestNoDuplicate(unittest.TestCase):
 
         _id = 1
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=self.w3af_core.database)
         h1.request = request
         res.set_id(_id)
         h1.response = res

@@ -229,8 +229,10 @@ class html_file(OutputPlugin):
         )
 
         jinja2_env.filters["render_markdown"] = render_markdown
-        jinja2_env.filters["request"] = request_dump
-        jinja2_env.filters["response"] = response_dump
+        core = self.get_w3af_core()
+        database = None if core is None else core.database
+        jinja2_env.filters["request"] = functools.partial(request_dump, db=database)
+        jinja2_env.filters["response"] = functools.partial(response_dump, db=database)
         jinja2_env.filters["severity_icon"] = severity_icon
         jinja2_env.filters["severity_text"] = get_severity_text
         jinja2_env.globals["get_current_date"] = get_current_date
@@ -276,12 +278,12 @@ def render_markdown(markdown_text):
     return markdown.markdown(markdown_text)
 
 
-def request_dump(_id):
+def request_dump(_id, db=None):
     """
     :param _id: The ID to query in the database
     :return: The request as unicode
     """
-    _history = HistoryItem()
+    _history = HistoryItem(db=db)
 
     try:
         details = _history.read(_id)
@@ -291,12 +293,12 @@ def request_dump(_id):
     return smart_unicode(details.request.dump().strip())
 
 
-def response_dump(_id):
+def response_dump(_id, db=None):
     """
     :param _id: The ID to query in the database
     :return: The response as unicode
     """
-    _history = HistoryItem()
+    _history = HistoryItem(db=db)
 
     try:
         details = _history.read(_id)

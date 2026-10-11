@@ -335,7 +335,14 @@ class xml_file(OutputPlugin):
         ):
             uniq_id = finding.get_uniq_id()
             processed_uniq_ids.append(uniq_id)
-            node = Finding(self._jinja2_env, finding, self._output).to_string()
+            core = self.get_w3af_core()
+            database = None if core is None else core.database
+            node = Finding(
+                self._jinja2_env,
+                finding,
+                self._output,
+                db=database,
+            ).to_string()
             cache.save_finding_to_cache(uniq_id, node)
 
             new_findings += 1
@@ -588,7 +595,7 @@ class HTTPTransaction(CachedXMLNode):
 
     TEMPLATE = "http_transaction.tpl"
 
-    def __init__(self, jinja2_env, _id):
+    def __init__(self, jinja2_env, _id, db=None):
         """
         :param _id: The HTTP request / response ID from w3af. This is is used to query
                     the history and get the information. In most cases we'll get the
@@ -597,6 +604,7 @@ class HTTPTransaction(CachedXMLNode):
         """
         super().__init__(jinja2_env)
         self._id = _id
+        self._db = db
 
     def get_cache_key(self):
         return f"http-transaction-{self._id}.data"
@@ -639,7 +647,7 @@ class HTTPTransaction(CachedXMLNode):
             return node
 
         # HistoryItem to get requests/responses
-        req_history = HistoryItem()
+        req_history = HistoryItem(db=self._db)
 
         # This might raise a DBException in some cases (which I still
         # need to identify and fix). When an exception is raised here
@@ -780,7 +788,7 @@ class ScanStatus(XMLNode):
 class Finding(XMLNode):
     TEMPLATE = "finding.tpl"
 
-    def __init__(self, jinja2_env, info, output):
+    def __init__(self, jinja2_env, info, output, db=None):
         """
         Represents a finding in the w3af framework, which will be serialized
         as an XML node
@@ -788,6 +796,7 @@ class Finding(XMLNode):
         super().__init__(jinja2_env)
         self._info = info
         self._output = output
+        self._db = db
 
     def to_string(self):
         info = self._info
@@ -819,7 +828,11 @@ class Finding(XMLNode):
         context.http_transactions = []
         for transaction in info.get_id():
             try:
-                xml = HTTPTransaction(self._jinja2_env, transaction).to_string()
+                xml = HTTPTransaction(
+                    self._jinja2_env,
+                    transaction,
+                    db=self._db,
+                ).to_string()
             except (DBException, TraceReadException) as e:
                 msg = (
                     'Failed to retrieve request with id %s from DB: "%s".'

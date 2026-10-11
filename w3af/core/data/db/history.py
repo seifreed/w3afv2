@@ -240,7 +240,7 @@ class HistoryItem:
         """
         Return item by ID
         """
-        result_item = self.__class__()
+        result_item = self.__class__(db=self._db)
         result_item.load(_id)
         return result_item
 
