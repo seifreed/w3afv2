@@ -132,8 +132,9 @@ class TestSpiderman(PluginTest):
 
     def test_spiderman_http(self):
         proxy_port = get_unused_port()
-        site_url = f"http://127.0.0.1:{self.canned_server.port}/"
-        other_domain_url = f"http://localhost:{self.canned_server.port}/"
+        canned_server = self.get_canned_server()
+        site_url = f"http://127.0.0.1:{canned_server.port}/"
+        other_domain_url = f"http://localhost:{canned_server.port}/"
 
         plugins = {
             "crawl": (
@@ -223,6 +224,11 @@ class TestLoggingHandlerUnreachableSite(unittest.TestCase):
 
         handler.handle_request_in_thread(flow)
 
-        self.assertEqual(flow.response.status_code, 500)
-        self.assertIn(b"/unreachable", flow.response.content)
+        response = flow.response
+        if response is None:
+            raise AssertionError("Logging handler did not set a response")
+        self.assertEqual(response.status_code, 500)
+        if response.content is None:
+            raise AssertionError("Logging handler response has no content")
+        self.assertIn(b"/unreachable", response.content)
         self.assertEqual(plugin.output_queue.qsize(), 1)

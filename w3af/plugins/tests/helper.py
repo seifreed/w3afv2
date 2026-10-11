@@ -121,6 +121,11 @@ class PluginTest(unittest.TestCase):
             raise RuntimeError("The canned server has not been started")
         return list(self.canned_server.requests)
 
+    def get_canned_server(self) -> CannedHTTPServer:
+        if self.canned_server is None:
+            raise RuntimeError("The canned server has not been started")
+        return self.canned_server
+
     def tearDown(self):
         try:
             self.assert_all_get_desc_work()

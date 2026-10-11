@@ -6690,3 +6690,14 @@ tokens negociados por cliente y servidor NTLM se validan antes de pasarlos a
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **23 tests**
 de xurllib API pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: servidor canned y respuesta mitmproxy
+
+`PluginTest.get_canned_server()` centraliza el estrechamiento del servidor
+HTTP local usado por `spider_man`. Su handler valida tanto la respuesta como su
+contenido antes de consultar status y bytes, evitando accesos opcionales
+dispersos.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; `test_spider_man`
+pasa **4 tests**. Pytest muestra dos warnings deprecados de `ldap3`. El score
+global continúa en **9.99/10**.
