@@ -24,44 +24,38 @@ import socket
 import unittest
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.misc import dns_cache
-from w3af.core.controllers.misc.dns_cache import disable_dns_cache, enable_dns_cache
+from w3af.core.controllers.misc.dns_cache import DNSCache
 
 
 class TestDNSCache(unittest.TestCase):
     def setUp(self):
-        self.addCleanup(disable_dns_cache)
+        self.cache = DNSCache(om.out)
+        self.addCleanup(self.cache.clear)
 
-    def test_enable_replaces_getaddrinfo(self):
-        enable_dns_cache(om.out)
-        enable_dns_cache(om.out)
-
-        self.assertIs(socket.getaddrinfo.func, dns_cache._caching_getaddrinfo)
-
-    def test_disable_restores_getaddrinfo(self):
+    def test_cache_does_not_replace_process_resolver(self):
         original = socket.getaddrinfo
 
-        enable_dns_cache(om.out)
-        disable_dns_cache()
+        self.cache.getaddrinfo("localhost", 80)
 
         self.assertIs(socket.getaddrinfo, original)
 
     def test_second_query_is_served_from_cache(self):
-        enable_dns_cache(om.out)
-
-        first = socket.getaddrinfo("localhost", 80)
-        second = socket.getaddrinfo("localhost", 80)
+        first = self.cache.getaddrinfo("localhost", 80)
+        second = self.cache.getaddrinfo("localhost", 80)
 
         self.assertIs(first, second)
-        self.assertIn(
-            (("localhost", 80), frozenset()), list(dns_cache._dns_cache.keys())
-        )
+        self.assertEqual(len(self.cache._cache), 1)
 
     def test_keyword_arguments_are_part_of_the_key(self):
-        enable_dns_cache(om.out)
-
-        tcp = socket.getaddrinfo("localhost", 80, type=socket.SOCK_STREAM)
-        udp = socket.getaddrinfo("localhost", 80, type=socket.SOCK_DGRAM)
+        tcp = self.cache.getaddrinfo("localhost", 80, type=socket.SOCK_STREAM)
+        udp = self.cache.getaddrinfo("localhost", 80, type=socket.SOCK_DGRAM)
 
         self.assertTrue(all(info[1] == socket.SOCK_STREAM for info in tcp))
         self.assertTrue(all(info[1] == socket.SOCK_DGRAM for info in udp))
+
+    def test_clear_releases_cached_responses(self):
+        self.cache.getaddrinfo("localhost", 80)
+
+        self.cache.clear()
+
+        self.assertEqual(len(self.cache._cache), 0)

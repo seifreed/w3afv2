@@ -73,8 +73,9 @@ class URLTimeoutError(urllib.error.URLError):
 
 class KeepAliveHandler:
 
-    def __init__(self, configuration=None):
+    def __init__(self, configuration=None, resolver=None):
         self._configuration = configuration
+        self._resolver = resolver
         # Create the connection pool instance
         #
         # Note: In the initial code this connection manager was created at
@@ -371,8 +372,8 @@ class KeepAliveHandler:
 
 
 class HTTPHandler(KeepAliveHandler, urllib.request.HTTPHandler):
-    def __init__(self, configuration=None):
-        KeepAliveHandler.__init__(self, configuration)
+    def __init__(self, configuration=None, resolver=None):
+        KeepAliveHandler.__init__(self, configuration, resolver)
         urllib.request.HTTPHandler.__init__(self, debuglevel=0)
 
     def http_open(self, req):
@@ -383,12 +384,13 @@ class HTTPHandler(KeepAliveHandler, urllib.request.HTTPHandler):
             request.host,
             timeout=request.get_timeout(),
             configuration=self._configuration,
+            resolver=self._resolver,
         )
 
 
 class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
-    def __init__(self, proxy, configuration=None):
-        KeepAliveHandler.__init__(self, configuration)
+    def __init__(self, proxy, configuration=None, resolver=None):
+        KeepAliveHandler.__init__(self, configuration, resolver)
         urllib.request.HTTPSHandler.__init__(self, debuglevel=0)
 
         self._proxy = proxy
@@ -416,10 +418,12 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
                 proxy_port,
                 timeout=request.get_timeout(),
                 configuration=self._configuration,
+                resolver=self._resolver,
             )
         else:
             return HTTPSConnection(
                 request.host,
                 timeout=request.get_timeout(),
                 configuration=self._configuration,
+                resolver=self._resolver,
             )

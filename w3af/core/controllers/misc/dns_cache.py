@@ -21,56 +21,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import socket
-from functools import partial
 
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 
-_resolve = socket.getaddrinfo
-_dns_cache = SynchronizedLRUDict(200)
 
+class DNSCache:
+    """Cache DNS responses without changing process-global socket behavior."""
 
-def _caching_getaddrinfo(output, *args, **kwargs):
-    query = (args, frozenset(kwargs.items()))
+    CACHE_SIZE = 200
 
-    try:
-        return _dns_cache[query]
-    except KeyError:
-        res = _resolve(*args, **kwargs)
-        _dns_cache[query] = res
-        output.debug(f"DNS response from DNS server for domain: {args[0]}")
-        return res
+    def __init__(self, output, resolver=socket.getaddrinfo):
+        self._output = output
+        self._resolver = resolver
+        self._cache = SynchronizedLRUDict(self.CACHE_SIZE)
 
+    def getaddrinfo(self, *args, **kwargs):
+        query = (args, frozenset(kwargs.items()))
 
-def enable_dns_cache(output):
-    """
-    DNS cache trick
+        try:
+            return self._cache[query]
+        except KeyError:
+            result = self._resolver(*args, **kwargs)
+            self._cache[query] = result
+            self._output.debug(f"DNS response from DNS server for domain: {args[0]}")
+            return result
 
-    This will speed up all the test! Before this dns cache voodoo magic every
-    request to the HTTP server required a DNS query, this is slow on some
-    networks so I added this feature.
-
-    This method was taken from:
-    # $Id: download.py,v 1.30 2004/05/13 09:55:30 torh Exp $
-    That is part of :
-    swup-0.0.20040519/
-
-    Developed by:
-    #  Copyright 2001 - 2003 Trustix AS - <http://www.trustix.com>
-    #  Copyright 2003 - 2004 Tor Hveem - <tor@bash.no>
-    #  Copyright 2004 Omar Kilani for tinysofa - <http://www.tinysofa.org>
-    """
-    global _resolve
-
-    if getattr(socket.getaddrinfo, "func", None) is not _caching_getaddrinfo:
-        _resolve = socket.getaddrinfo
-
-    output.debug("Enabling _dns_cache()")
-    socket.getaddrinfo = partial(_caching_getaddrinfo, output)
-    return disable_dns_cache
-
-
-def disable_dns_cache():
-    """Restore the resolver and release cached DNS responses."""
-    if getattr(socket.getaddrinfo, "func", None) is _caching_getaddrinfo:
-        socket.getaddrinfo = _resolve
-    _dns_cache.clear()
+    def clear(self):
+        """Release cached DNS responses."""
+        self._cache.clear()

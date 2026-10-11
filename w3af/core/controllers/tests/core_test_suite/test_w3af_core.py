@@ -34,7 +34,6 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
     prepare_home_directory,
     prepare_tmp_directory,
 )
-from w3af.core.controllers.misc.dns_cache import enable_dns_cache
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
@@ -110,10 +109,9 @@ class TestW3afCore(unittest.TestCase):
 
         self.assertFalse(manager.is_alive())
 
-    def test_unreferenced_core_restores_dns_resolver(self):
+    def test_unreferenced_core_does_not_mutate_dns_resolver(self):
         original = socket.getaddrinfo
         core = w3afCore()
-        core._dns_cache_cleanup[0] = enable_dns_cache(core.output)
 
         del core
         gc.collect()

@@ -34,6 +34,7 @@ class OpenerBuilder:
         configuration,
         http_log_callback,
         proxy_url,
+        resolver,
         proxy_handler,
         basic_auth_handler,
         ntlm_auth_handler,
@@ -45,6 +46,7 @@ class OpenerBuilder:
         self._configuration = configuration
         self._http_log_callback = http_log_callback
         self._proxy_url = proxy_url
+        self._resolver = resolver
         self._proxy_handler = proxy_handler
         self._basic_auth_handler = basic_auth_handler
         self._ntlm_auth_handler = ntlm_auth_handler
@@ -54,8 +56,10 @@ class OpenerBuilder:
         self._ignore_session_cookies = ignore_session_cookies
 
     def build(self) -> BuiltOpeners:
-        http_handler = HTTPHandler(self._configuration)
-        https_handler = HTTPSHandler(self._proxy_url, self._configuration)
+        http_handler = HTTPHandler(self._configuration, self._resolver)
+        https_handler = HTTPSHandler(
+            self._proxy_url, self._configuration, self._resolver
+        )
         cache_handler = CacheHandler()
         handlers = self._build_handlers(
             http_handler,

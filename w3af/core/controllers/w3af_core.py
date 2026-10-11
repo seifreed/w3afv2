@@ -61,7 +61,7 @@ from w3af.core.controllers.core_helpers.target import CoreTarget
 from w3af.core.controllers.core_helpers.worker_pool_manager import (
     WorkerPoolManager,
 )
-from w3af.core.controllers.misc.dns_cache import enable_dns_cache
+from w3af.core.controllers.misc.dns_cache import DNSCache
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.output_manager import (
@@ -95,12 +95,9 @@ NO_MEMORY_MSG = (
 )
 
 
-def _stop_core_resources(output_manager, dns_cache_cleanup):
+def _stop_core_resources(output_manager, dns_cache):
     output_manager.stop()
-    cleanup = dns_cache_cleanup[0]
-    if cleanup is not None:
-        cleanup()
-        dns_cache_cleanup[0] = None
+    dns_cache.clear()
 
 
 class w3afCore:
@@ -145,9 +142,9 @@ class w3afCore:
         manager, output = create_output_manager()
         configure_data_logging(output)
         register_parser_multiprocessing(manager)
-        self._dns_cache_cleanup = [None]
+        self._dns_cache = DNSCache(output)
         self._output_manager_finalizer = weakref.finalize(
-            self, _stop_core_resources, manager, self._dns_cache_cleanup
+            self, _stop_core_resources, manager, self._dns_cache
         )
         self._output = output
         self._output_manager = manager
@@ -204,7 +201,9 @@ class w3afCore:
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(
-            output.log_http, configuration=self._configuration
+            output.log_http,
+            configuration=self._configuration,
+            resolver=self._dns_cache.getaddrinfo,
         )
         self.uri_opener.set_worker_pool_provider(
             lambda: self.worker_pool,
@@ -246,8 +245,6 @@ class w3afCore:
             # widely used
             prepare_home_directory()
             prepare_tmp_directory()
-
-        self._dns_cache_cleanup[0] = enable_dns_cache(self._output)
 
         # Now that we know we're going to run a new scan, overwrite the old
         # strategy which might still have data stored in it and create a new
@@ -446,9 +443,7 @@ class w3afCore:
             self._fingerprint_404.cleanup()
             self._fingerprint_404 = None
 
-        if self._dns_cache_cleanup[0] is not None:
-            self._dns_cache_cleanup[0]()
-            self._dns_cache_cleanup[0] = None
+        self._dns_cache.clear()
 
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #
@@ -488,6 +483,7 @@ class w3afCore:
         """
         self.stop()
         self.uri_opener.end()
+        self._dns_cache.clear()
 
         remove_data_logging(self._output)
         self._output_manager_finalizer()

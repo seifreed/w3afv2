@@ -462,6 +462,23 @@ class TestConnections(unittest.TestCase):
             with sock:
                 self.assertEqual(sock.getsockname()[0], LOCALHOST)
 
+    def test_create_connection_uses_the_injected_resolver(self):
+        resolver_calls = []
+
+        def resolver(host, port, family, socktype):
+            resolver_calls.append((host, port, family, socktype))
+            return socket.getaddrinfo(host, port, family, socktype)
+
+        with RouteServer({"/": Response()}) as server:
+            sock = create_connection(
+                (LOCALHOST, server.port), timeout=5, resolver=resolver
+            )
+            sock.close()
+
+        self.assertEqual(
+            resolver_calls, [(LOCALHOST, server.port, 0, socket.SOCK_STREAM)]
+        )
+
     def test_create_connection_failure(self):
         self.assertRaises(
             ConnectionRefusedError, create_connection, (LOCALHOST, closed_port())

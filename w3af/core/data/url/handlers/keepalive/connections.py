@@ -69,10 +69,12 @@ class _HTTPConnection(http.client.HTTPConnection, UniqueID):
         port=None,
         timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         configuration=None,
+        resolver=None,
     ):
         UniqueID.__init__(self)
         http.client.HTTPConnection.__init__(self, host, port, timeout=timeout)
         self._configuration = configuration
+        self._resolver = socket.getaddrinfo if resolver is None else resolver
         self.is_fresh = True
         self.host_port = f"{self.host}:{self.port}"
 
@@ -87,12 +89,18 @@ class _HTTPConnection(http.client.HTTPConnection, UniqueID):
         intensive software.
         """
         self.sock = create_connection(
-            (self.host, self.port), self.timeout, self.source_address
+            (self.host, self.port),
+            self.timeout,
+            self.source_address,
+            resolver=self._resolver,
         )
 
 
 def create_connection(
-    address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None
+    address,
+    timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+    source_address=None,
+    resolver=None,
 ):
     """
     Extends socket.create_connection with the socket options to apply before
@@ -100,8 +108,9 @@ def create_connection(
     """
 
     host, port = address
+    resolver = socket.getaddrinfo if resolver is None else resolver
     err = OSError("getaddrinfo returns an empty list")
-    for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
+    for res in resolver(host, port, 0, socket.SOCK_STREAM):
         af, socktype, proto, _canonname, sa = res
         sock = None
         try:
@@ -139,9 +148,15 @@ class ProxyHTTPConnection(_HTTPConnection):
         port=None,
         timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         configuration=None,
+        resolver=None,
     ):
         _HTTPConnection.__init__(
-            self, host, port, timeout=timeout, configuration=configuration
+            self,
+            host,
+            port,
+            timeout=timeout,
+            configuration=configuration,
+            resolver=resolver,
         )
         self._real_host = None
         self._real_port = None
@@ -215,10 +230,11 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
         https://gist.github.com/flandr/74be22d1c3d7c1dfefdd
     """
 
-    def __init__(self, *args, configuration=None, **kwargs):
+    def __init__(self, *args, configuration=None, resolver=None, **kwargs):
         UniqueID.__init__(self)
         http.client.HTTPSConnection.__init__(self, *args, **kwargs)
         self._configuration = configuration
+        self._resolver = socket.getaddrinfo if resolver is None else resolver
         self.host_port = f"{self.host}:{self.port}"
 
     def connect(self):
@@ -239,7 +255,9 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
         """
         :return: fresh TCP/IP connection
         """
-        return create_connection((self.host, self.port), self.timeout)
+        return create_connection(
+            (self.host, self.port), self.timeout, resolver=self._resolver
+        )
 
     def make_ssl_aware(self, sock, protocol):
         """
@@ -298,10 +316,16 @@ class ProxyHTTPSConnection(ProxyHTTPConnection, SSLNegotiatorConnection):
         cert_file=None,
         timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         configuration=None,
+        resolver=None,
     ):
         UniqueID.__init__(self)
         ProxyHTTPConnection.__init__(
-            self, host, port, timeout=timeout, configuration=configuration
+            self,
+            host,
+            port,
+            timeout=timeout,
+            configuration=configuration,
+            resolver=resolver,
         )
         self.response_class = partial(self.response_class, configuration=configuration)
         self.key_file = key_file
@@ -331,6 +355,7 @@ class HTTPConnection(_HTTPConnection):
         port=None,
         timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         configuration=None,
+        resolver=None,
     ):
         _HTTPConnection.__init__(
             self,
@@ -338,6 +363,7 @@ class HTTPConnection(_HTTPConnection):
             port=port,
             timeout=timeout,
             configuration=configuration,
+            resolver=resolver,
         )
         self.response_class = partial(self.response_class, configuration=configuration)
         self.current_request_start = None
@@ -353,9 +379,15 @@ class HTTPSConnection(SSLNegotiatorConnection):
         port=None,
         timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         configuration=None,
+        resolver=None,
     ):
         SSLNegotiatorConnection.__init__(
-            self, host, port, timeout=timeout, configuration=configuration
+            self,
+            host,
+            port,
+            timeout=timeout,
+            configuration=configuration,
+            resolver=resolver,
         )
         self.response_class = partial(self.response_class, configuration=configuration)
         self.is_fresh = True

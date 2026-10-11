@@ -80,10 +80,18 @@ class ExtendedUrllib:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, http_log_callback=None, sleep=time.sleep, configuration=None):
+    def __init__(
+        self,
+        http_log_callback=None,
+        sleep=time.sleep,
+        configuration=None,
+        resolver=None,
+    ):
         self._configuration = Config() if configuration is None else configuration
         self.settings = opener_settings.OpenerSettings(
-            http_log_callback, configuration=self._configuration
+            http_log_callback,
+            configuration=self._configuration,
+            resolver=resolver,
         )
         self._sleep = sleep
         self._average_rtt_mutant = GetAverageRTTForMutant(self)

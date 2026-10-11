@@ -45,9 +45,10 @@ class OpenerSettings(Configurable):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, http_log_callback=None, configuration=None):
+    def __init__(self, http_log_callback=None, configuration=None, resolver=None):
 
         self._configuration = Config() if configuration is None else configuration
+        self._resolver = resolver
         cfg = self._configuration
 
         # Set the openers to None
@@ -223,6 +224,7 @@ class OpenerSettings(Configurable):
         self._lifecycle.build(
             self._http_log_callback,
             self.get_proxy(),
+            self._resolver,
             self._proxy_handler,
             self._basic_auth_handler,
             self._ntlm_auth_handler,
