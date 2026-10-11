@@ -7764,3 +7764,15 @@ histórico después de finalizar un scan.
 
 Verificación: la suite completa de `w3afCore` pasa **24 tests**; Black, Ruff y
 mypy pasan en los módulos modificados.
+
+## Actualización verificada: transporte HTTP separado del facade
+
+La apertura de conexiones, la aplicación de evasiones y la clasificación de
+errores de transporte salieron de `ExtendedUrllib.send()` y pasaron a
+`RequestSender`. `ExtendedUrllib` conserva la API pública y los aliases privados
+que necesita `UrlOpenerProxy`, mientras la frontera de red depende de callbacks
+explícitos para preparación, handlers y reintentos.
+
+Verificación: **65 tests** de urllib, errores y proxy pasan; Black, Ruff y
+Bandit dirigido pasan, y `RequestSender` pasa mypy. Persisten únicamente dos
+warnings de deprecación en dependencias `ldap3/pyasn1`.

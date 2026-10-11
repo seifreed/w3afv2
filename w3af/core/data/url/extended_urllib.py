@@ -21,16 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import functools
-import http.client
-import importlib
 import logging
 import threading
 import time
-import urllib.error
-import urllib.request
 import uuid
-from http.client import BadStatusLine
-from typing import Any, Protocol, cast
 
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.config import Config
@@ -41,11 +35,9 @@ from w3af.core.data.url.constants import (
     MAX_ERROR_COUNT,
     TIMEOUT_ADJUST_LIMIT,
 )
-from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
 from w3af.core.data.url.failed_response_recorder import FailedResponseRecorder
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.grep_dispatcher import GrepDispatcher
-from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
 from w3af.core.data.url.rate_limiter import RateLimiter
@@ -54,6 +46,7 @@ from w3af.core.data.url.request_error_handler import RequestErrorHandler
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
 from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.request_retry_handler import RequestRetryHandler
+from w3af.core.data.url.request_sender import RequestSender
 from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
@@ -72,11 +65,6 @@ from w3af.core.exceptions import (
 from . import opener_settings
 
 LOGGER = logging.getLogger(__name__)
-openssl: Any = importlib.import_module("OpenSSL")
-
-
-class _HTTPErrorWithId(Protocol):
-    id: int
 
 
 class ExtendedUrllib:
@@ -205,6 +193,16 @@ class ExtendedUrllib:
             lambda: self.set_exploit_mode(False),
             self.clear_timeout,
             self._rtt_sum_debugging_id.clear,
+        )
+        self._request_sender = RequestSender(
+            self._before_send_hook,
+            self.assert_allowed_proto,
+            lambda: self._opener,
+            self._evasion,
+            self._id_generator,
+            self._handle_send_socket_error,
+            self._handle_send_urllib_error,
+            self._handle_send_success,
         )
 
     @property
@@ -677,58 +675,8 @@ class ExtendedUrllib:
         self._request_preparer.assert_allowed_proto(req)
 
     def send(self, req, grep=True):
-        """
-        Actually send the request object.
-
-        :param req: The HTTPRequest object that represents the request.
-        :param grep: Should grep the HTTP request / response
-        :return: An HTTPResponse object.
-        """
-        # This is the place where pause and stop are implemented
-        self._before_send_hook(req)
-
-        # Sanitize the URL
-        self.assert_allowed_proto(req)
-
-        original_url = req._original_url
-        original_url_inst = req._original_url_object
-        req = self._evasion(req)
-        req._original_url = original_url
-        req._original_url_object = original_url_inst
-
-        try:
-            res = self._opener.open(req)
-        except urllib.error.HTTPError as e:
-            # Raised by the handlers, for example when NTLM authentication
-            # fails. Those errors are raised before the cache handler numbers
-            # the response
-            error = cast(_HTTPErrorWithId, e)
-            if not hasattr(error, "id"):
-                error.id = self._id_generator.inc()
-
-            return self._handle_send_success(
-                req, e, grep, original_url, original_url_inst
-            )
-
-        except (
-            OSError,
-            URLTimeoutError,
-            ConnectionPoolException,
-            openssl.SSL.Error,
-            openssl.SSL.SysCallError,
-            openssl.SSL.ZeroReturnError,
-            BadStatusLine,
-        ) as e:
-            return self._handle_send_socket_error(req, e, grep, original_url)
-
-        except (http.client.HTTPException, HTTPRequestException) as e:
-            # URLError is an OSError and is handled above
-            return self._handle_send_urllib_error(req, e, grep, original_url)
-
-        else:
-            return self._handle_send_success(
-                req, res, grep, original_url, original_url_inst
-            )
+        """Actually send the request through the transport boundary."""
+        return self._request_sender.send(req, grep)
 
     def _handle_send_socket_error(self, req, exception, grep, original_url):
         return self._error_handler.handle_socket_error(
