@@ -21,11 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
-import queue
-from multiprocessing import TimeoutError
 
-from w3af.core.constants import POISON_PILL
-from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
+from w3af.core.controllers.core_helpers.fuzzable_request_router import (
+    FuzzableRequestRouter,
+)
 from w3af.core.controllers.core_helpers.strategy_consumer_runtime import (
     StrategyConsumerRuntime,
 )
@@ -64,6 +63,12 @@ class CoreStrategy:
         self._consumer_runtime = StrategyConsumerRuntime(
             self._w3af_core,
             self._knowledge_base,
+            self._output,
+            self._configuration,
+        )
+        self._request_router = FuzzableRequestRouter(
+            self._w3af_core,
+            self._consumer_runtime,
             self._output,
             self._configuration,
         )
@@ -212,188 +217,8 @@ class CoreStrategy:
                     consumer.add_observer(observer)
 
     def _fuzzable_request_router(self):
-        """
-        This is one of the most important methods, it will take things from the
-        discovery Queue and store them in one or more Queues (audit, bruteforce,
-        etc).
-
-        Also keep in mind that is one of the only methods that will be run in
-        the "main thread" and lives during the whole scan process.
-        """
-        _input = [
-            self._consumer_runtime.get_seed_producer(),
-            self.get_discovery_consumer(),
-            self.get_bruteforce_consumer(),
-        ]
-        _input = [_f for _f in _input if _f]
-
-        output = [
-            self.get_audit_consumer(),
-            self.get_discovery_consumer(),
-            self.get_bruteforce_consumer(),
-        ]
-        output = [_f for _f in output if _f]
-
-        # Only check if these have exceptions and bring them to the main
-        # thread in order to be handled by the ExceptionHandler and the
-        # w3afCore
-        _other = [
-            self.get_audit_consumer(),
-            self._consumer_runtime.get_auth_consumer(),
-            self.get_grep_consumer(),
-        ]
-        _other = [_f for _f in _other if _f]
-
-        finished: set[object] = set()
-        consumer_forced_end: set[object] = set()
-
-        while True:
-            # Get results and handle exceptions
-            self._handle_all_consumer_exceptions(_other)
-
-            # Route fuzzable requests
-            route_result = self._route_one_fuzzable_request_batch(
-                _input, output, finished, consumer_forced_end
-            )
-
-            if route_result is None:
-                self._output.debug(
-                    "The fuzzable request router loop will break."
-                    " The scan will stop after all consumers complete"
-                    " their teardown() process."
-                )
-                break
-
-            finished, consumer_forced_end = route_result
-
-            #
-            # Handle the case where the scan reached the max time
-            #
-            if self._scan_reached_max_time():
-                msg = (
-                    "The scan has reached the maximum scan time of %s minutes."
-                    " The scan will end and some vulnerabilities might not be"
-                    " identified."
-                )
-                args = (self._configuration.get("max_scan_time"),)
-                self._output.information(msg % args)
-
-                self._w3af_core.stop()
-                break
-
-    def _scan_reached_max_time(self):
-        """
-        Check the user-configured setting and return True if we're 5 minutes
-        before the deadline.
-
-        Return True 5 minutes before the `max_scan_time` to give the scan threads
-        time to finish and "guarantee" that the scan will be stopped before
-        `max_scan_time`.
-
-        :return: True if the scan has reached the `max_scan_time` - 5m.
-        """
-        # in minutes
-        max_scan_time = self._configuration.get("max_scan_time")
-
-        # The default is 0: no limit.
-        if max_scan_time == 0:
-            return False
-
-        # Get the scan time and compare with the max
-        scan_time = self._w3af_core.status.get_run_time()
-        return scan_time > max_scan_time
-
-    def _route_one_fuzzable_request_batch(
-        self, _input, output, finished, consumer_forced_end
-    ):
-        """
-        Loop once through all input consumers and route their results.
-
-        :return: (finished, consumer_forced_end) or None if we shouldn't call
-                 this method anymore.
-        """
-        for url_producer in _input:
-
-            if len(_input) == len(finished | consumer_forced_end):
-                return
-
-            # No more results in the output queue, and had no pending work on
-            # the previous loop.
-            if url_producer in finished:
-                continue
-
-            # Did the producer send a POISON_PILL?
-            if url_producer in consumer_forced_end:
-                continue
-
-            try:
-                result_item = url_producer.get_result(timeout=0.1)
-            except (TimeoutError, queue.Empty) as _:
-                if not url_producer.has_pending_work():
-                    # This consumer is saying that it doesn't have any
-                    # pending or in progress work
-                    finished.add(url_producer)
-                    self._output.debug(
-                        f"Producer {url_producer.get_name()} has finished (empty queue)"
-                    )
-            else:
-                if result_item == POISON_PILL:
-                    # This consumer is saying that it has finished, so we
-                    # remove it from the list.
-                    consumer_forced_end.add(url_producer)
-
-                    msg = "Producer %s has finished (poison pill received, queue size: %s)"
-                    args = (url_producer.get_name(), url_producer.out_queue.qsize())
-                    self._output.debug(msg % args)
-
-                elif isinstance(result_item, ExceptionData):
-                    self._handle_consumer_exception(result_item)
-                else:
-                    *_unused, fuzzable_request_inst = result_item
-
-                    for url_consumer in output:
-                        url_consumer.in_queue_put(fuzzable_request_inst)
-
-                    # This is rather complex to digest... so pay attention :)
-                    #
-                    # A consumer might be 100% idle (no tasks in input or
-                    # output queues, no in progress work) and we still need
-                    # to keep it alive, because output from another producer
-                    # will be sent to that consumer and make it work again
-                    #
-                    # So, when one producer returns something, we set the
-                    # finished list to empty in order to make them work again
-                    finished = set()
-
-        return finished, consumer_forced_end
-
-    def _handle_all_consumer_exceptions(self, _other):
-        """
-        Get the exceptions raised by the consumers that do not return any
-        data under normal circumstances, for example: grep and auth and handle
-        them properly.
-        """
-        for other_consumer in _other:
-            while True:
-                try:
-                    result_item = other_consumer.get_result_nowait()
-                except queue.Empty:
-                    break
-                else:
-                    if isinstance(result_item, ExceptionData):
-                        self._handle_consumer_exception(result_item)
-
-    def _handle_consumer_exception(self, exception_data):
-        """
-        Give proper handling to an exception that was raised by one of the
-        consumers. Usually this means calling the ExceptionHandler which
-        will decide what to do with it.
-
-        Please note that ExtendedUrllib can raise a ScanMustStopByUserRequest
-        which should get through this piece of code and be re-raised in order to
-        reach the try/except clause in w3afCore's start.
-        """
-        self._w3af_core.exception_handler.handle_exception_data(exception_data)
+        """Route scan results through the consumer runtime."""
+        self._request_router.route()
 
     def _setup_crawl_infrastructure(self):
         self._consumer_runtime.setup_crawl_infrastructure()

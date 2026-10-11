@@ -7742,3 +7742,14 @@ Verificación: **55 tests** de urllib y **45 tests** de plugins/discovery pasan;
 el RSS máximo de la batería HTTP fue **129777664 bytes**. Black, Ruff y mypy
 dirigido pasan en los módulos nuevos; el análisis transitivo de mypy mantiene
 únicamente el import sin stubs de `defusedxml`.
+
+## Actualización verificada: router de resultados separado de la estrategia
+
+El enrutamiento de resultados de consumidores, el drenaje de excepciones y el
+límite de tiempo salieron de `CoreStrategy` y viven en
+`FuzzableRequestRouter`. `CoreStrategy` conserva su método privado de fachada,
+por lo que las subclases existentes mantienen el punto de extensión mientras
+la política de routing queda aislada y depende de Protocols explícitos.
+
+Verificación: **14 tests**, **7 subtests** y la comprobación de capas pasan;
+Black, Ruff, mypy y Bandit dirigido pasan en los módulos modificados.
