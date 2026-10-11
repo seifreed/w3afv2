@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import secrets
 import string
 import unittest
+from typing import Any, ClassVar
 
 from w3af.core.controllers.tests.decorator import only_if_subclass
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -31,9 +32,9 @@ from w3af.core.data.parsers.doc.url import URL
 
 class GenericFilterTest(unittest.TestCase):
 
-    CAPACITY: int | None = None
-    ERROR_RATE: float | None = None
-    filter = None
+    CAPACITY: ClassVar[int] = 0
+    ERROR_RATE: ClassVar[float] = 0.0
+    filter: Any = None
 
     def setUp(self):
         pass
@@ -84,8 +85,8 @@ class GenericFilterTest(unittest.TestCase):
 
         self.assertIn(url_num, self.filter)
 
-        for i in string.ascii_letters:
-            url_char = URL(f"http://moth/index{i}.html")
+        for char in string.ascii_letters:
+            url_char = URL(f"http://moth/index{char}.html")
             self.assertNotIn(url_char, self.filter)
 
         for i in range(self.CAPACITY, self.CAPACITY * 2):

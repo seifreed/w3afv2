@@ -6425,3 +6425,14 @@ fallos porque el entorno no resuelve `php_moth-fallback`; SSL mantiene 4
 fallos porque su fixture histórico no configura `self._output` antes de
 invocar el plugin. Ninguno procede de este cambio. El score global continúa
 en **9.99/10**.
+
+## Actualización verificada: fixture genérica de BloomFilter
+
+La fixture compartida declara sus parámetros de clase con valores por defecto
+válidos y mantiene el filtro como colaborador dinámico de las implementaciones
+concretas. El índice de URLs usa un nombre distinto al contador entero, lo que
+elimina una colisión de tipos sin cambiar los casos probados.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
+los filtros escalables y de fichero pasan **40 tests**. El score global
+continúa en **9.99/10**.
