@@ -4529,3 +4529,16 @@ que dos scans consecutivos conservan IDs distintos. Verificación: **19 tests**
 y **17 subtests** de API pasan; Black, Ruff y mypy focales pasan. El score
 global continúa en **9.99/10**, con los gates heredados, el fallback standalone
 y los módulos grandes aún pendientes.
+
+## Actualización verificada: caché XML separada del plugin
+
+Las primitivas de almacenamiento comprimido (`FindingsCache`, `XMLNode` y
+`CachedXMLNode`) viven ahora en `w3af/plugins/output/xml_nodes.py`. El plugin
+`xml_file` conserva la orquestación del reporte y reexporta esos nombres para
+mantener el contrato existente. La dependencia de filesystem temporal y LZ4
+queda confinada al módulo de caché, reduciendo el acoplamiento del generador
+XML con su infraestructura de persistencia.
+
+Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
+El score global continúa en **9.99/10**, con los gates heredados, el fallback
+standalone y otros módulos grandes todavía pendientes.

@@ -28,7 +28,6 @@ from functools import wraps
 from tempfile import NamedTemporaryFile
 from unicodedata import category
 
-import lz4.frame
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from w3af import ROOT_PATH
@@ -44,7 +43,7 @@ from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import OUTPUT_FILE
-from w3af.core.filesystem import get_temp_dir
+from w3af.plugins.output.xml_nodes import CachedXMLNode, FindingsCache, XMLNode
 
 TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
 
@@ -490,105 +489,6 @@ class xml_file(OutputPlugin):
         should handle these tags and show the real character to the user, encoded
         as expected in the final format. 
         """
-
-
-class FindingsCache:
-
-    COMPRESSION_LEVEL = 2
-
-    @staticmethod
-    def create_cache_path():
-        cache_path = FindingsCache.get_cache_path()
-
-        if not os.path.exists(cache_path):
-            os.makedirs(cache_path)
-
-    @staticmethod
-    def get_cache_path():
-        return os.path.join(get_temp_dir(), "xml_file", "findings")
-
-    def get_filename_from_uniq_id(self, uniq_id):
-        return os.path.join(FindingsCache.get_cache_path(), uniq_id)
-
-    def get_node_from_cache(self, uniq_id):
-        filename = self.get_filename_from_uniq_id(uniq_id)
-
-        try:
-            with open(filename, "rb") as cache_fh:
-                node = lz4.frame.decompress(cache_fh.read())
-        except (OSError, RuntimeError):
-            return None
-
-        return node.decode("utf-8")
-
-    def save_finding_to_cache(self, uniq_id, node):
-        filename = self.get_filename_from_uniq_id(uniq_id)
-        node = node.encode("utf-8")
-        with open(filename, "wb") as cache_fh:
-            cache_fh.write(lz4.frame.compress(node))
-
-    def evict_from_cache(self, uniq_id):
-        filename = self.get_filename_from_uniq_id(uniq_id)
-
-        if os.path.exists(filename):
-            os.remove(filename)
-
-    def list(self):
-        return os.listdir(FindingsCache.get_cache_path())
-
-
-class XMLNode:
-
-    TEMPLATE: str | None = None
-    TEMPLATE_INST = None
-
-    def __init__(self, jinja2_env):
-        """
-        :param jinja2_env: The jinja2 environment to use for rendering
-        """
-        self._jinja2_env = jinja2_env
-
-    def get_template(self, template_name):
-        return self._jinja2_env.get_template(template_name)
-
-
-class CachedXMLNode(XMLNode):
-
-    COMPRESSION_LEVEL = 2
-
-    @staticmethod
-    def create_cache_path():
-        cache_path = CachedXMLNode.get_cache_path()
-
-        if not os.path.exists(cache_path):
-            os.makedirs(cache_path)
-
-    @staticmethod
-    def get_cache_path():
-        return os.path.join(get_temp_dir(), "xml_file")
-
-    def get_cache_key(self):
-        raise NotImplementedError
-
-    def get_filename(self):
-        return os.path.join(CachedXMLNode.get_cache_path(), self.get_cache_key())
-
-    def get_node_from_cache(self):
-        filename = self.get_filename()
-
-        try:
-            with open(filename, "rb") as cache_fh:
-                node = lz4.frame.decompress(cache_fh.read())
-        except (OSError, RuntimeError):
-            return None
-
-        return node.decode("utf-8")
-
-    def save_node_to_cache(self, node):
-        filename = self.get_filename()
-        node = node.encode("utf-8")
-        with open(filename, "wb") as cache_fh:
-            cache_fh.write(lz4.frame.compress(node))
 
 
 class HTTPTransaction(CachedXMLNode):
