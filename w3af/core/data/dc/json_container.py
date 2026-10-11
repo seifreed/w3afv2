@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 from types import MappingProxyType
+from typing import Any
 
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.generic.data_container import DataContainer
@@ -61,12 +62,13 @@ class JSONContainer(DataContainer):
         if headers is not None and not isinstance(headers, dict):
             raise TypeError(ERR_MSG % headers)
 
-        self._json = None
+        self._json: Any = None
         self._raw_json = None
 
-        self._headers = headers
-        if self._headers is None:
+        if headers is None:
             self._headers = dict(JSONContainer.DEFAULT_HEADERS)
+        else:
+            self._headers = headers
 
         self.parse_json(json_post_data)
 

@@ -4956,6 +4956,16 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contratos dinámicos de parsers tipados
+
+Los puntos donde JSON, resultados de buscadores y parámetros repetidos cambian
+de forma ahora declaran sus contratos reales. Esto elimina errores de tipado sin
+añadir conversiones ni cambiar la representación de los datos.
+
+Verificación: las suites afectadas pasan **161 tests** con un skip esperado;
+mypy focal, Ruff y Black están limpios. El score global continúa en **9.99/10**,
+con los gates globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: contrato del request mixin
 
 `RequestMixIn` declara mediante un protocolo privado los métodos que aportan

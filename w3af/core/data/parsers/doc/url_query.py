@@ -38,7 +38,7 @@ def parse_qs(qstr, encoding=DEFAULT_ENCODING):
         raise TypeError("parse_qs requires a basestring as input.")
 
     query_string = QueryString(encoding=encoding)
-    values_by_name = OrderedDict()
+    values_by_name: OrderedDict[str, list[str]] = OrderedDict()
     for name, value in parse_qsl(qstr, encoding=encoding):
         values_by_name.setdefault(name, []).append(value)
 

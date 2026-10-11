@@ -97,7 +97,7 @@ class XmlRpcReadHandler(ContentHandler):
                  process an XML before accessing this method, else the result
                  will be empty.
         """
-        init_val = OrderedDict()
+        init_val: OrderedDict[str, list[str]] = OrderedDict()
 
         for name, value in self.fuzzable_parameters:
             value_list = init_val.setdefault(name, [])

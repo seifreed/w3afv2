@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
+from typing import Any
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.exceptions import BaseFrameworkException
@@ -53,7 +54,7 @@ class SearchEngine:
         Return a list of URLs ; that represent the result to all the search.
         """
         start = 0
-        result = set()
+        result: set[Any] = set()
 
         while True:
             try:
