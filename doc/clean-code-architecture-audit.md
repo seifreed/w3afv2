@@ -6552,3 +6552,13 @@ conserva una referencia local para construir el menú con una instancia real.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; la fixture pasa
 **16 tests**. Pytest muestra los mismos nueve warnings de dependencias
 deprecadas. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contrato de yappi en profiling
+
+La fixture de CPU profiling expresa mediante un `Protocol` las tres funciones
+de yappi que usa (`stop`, `clear_stats` e `is_running`). El cast queda confinado
+a la frontera de la dependencia, evitando accesos dinámicos repetidos y
+manteniendo el test sobre yappi real.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **2 tests**
+de CPU profiling pasan. El score global continúa en **9.99/10**.
