@@ -3,7 +3,6 @@
 from importlib import import_module
 
 from w3af.core.controllers.misc.factory import factory
-from w3af.core.data.db.dbms import database_context
 
 
 class PluginInstanceFactory:
@@ -21,8 +20,7 @@ class PluginInstanceFactory:
         if getattr(plugin_class, "uses_database", False):
             plugin_instance = factory(module_name, self._w3af_core.database)
         else:
-            with database_context(self._w3af_core.database):
-                plugin_instance = factory(module_name)
+            plugin_instance = factory(module_name)
         plugin_instance.set_url_opener(self._w3af_core.uri_opener)
         plugin_instance.set_worker_pool(self._w3af_core.worker_pool)
         plugin_instance.set_w3af_core(self._w3af_core)

@@ -4812,3 +4812,17 @@ Verificación: `test_plugins.py` pasa **32 tests** y los tests funcionales
 afectados pasan **47 tests**; Black, Ruff, mypy y Bandit focales pasan. El score
 global continúa en **9.99/10**, con el fallback standalone y los gates globales
 heredados todavía pendientes.
+
+## Actualización verificada: composición sin `database_context` implícito
+
+`PluginInstanceFactory`, `PluginCatalog` y `OutputManager` ya no envuelven la
+creación de plugins en un contexto SQLite oculto. El catálogo rápido inspecciona
+`uses_database` y recibe la DB explícitamente, mientras que los plugins sin
+estado persistente se construyen sin acceso accidental a otra base. Esto hace
+visible la dirección de la dependencia en el composition root y elimina una
+fuente de contaminación entre instancias.
+
+Verificación: `test_plugins.py` pasa **32 tests** y la suite de
+`OutputManager` pasa **37 tests**; Black, Ruff y mypy focales pasan. El score
+global continúa en **9.99/10**, con los fallbacks standalone y los gates
+globales heredados todavía pendientes.

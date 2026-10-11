@@ -2,6 +2,7 @@
 
 import os
 import sys
+from importlib import import_module
 from typing import ClassVar
 
 from w3af import ROOT_PATH
@@ -48,5 +49,12 @@ class PluginCatalog:
             if plugin_name not in self.SUPPORT_MODULES.get(plugin_type, set())
         ]
 
-    def get_quick_instance(self, plugin_type, plugin_name):
-        return factory(f"w3af.plugins.{plugin_type}.{plugin_name}")
+    def get_quick_instance(self, plugin_type, plugin_name, db):
+        module_name = f"w3af.plugins.{plugin_type}.{plugin_name}"
+        plugin_module = import_module(module_name)
+        plugin_class = getattr(plugin_module, plugin_name)
+
+        if getattr(plugin_class, "uses_database", False):
+            return factory(module_name, db)
+
+        return factory(module_name)

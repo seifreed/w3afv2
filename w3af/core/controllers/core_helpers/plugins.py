@@ -28,7 +28,6 @@ from w3af.core.controllers.core_helpers.plugin_instance_factory import (
     PluginInstanceFactory,
 )
 from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
-from w3af.core.data.db.dbms import database_context
 
 
 class CorePlugins(PluginCatalog):
@@ -186,8 +185,9 @@ class CorePlugins(PluginCatalog):
 
     def get_quick_instance(self, plugin_type, plugin_name):
         """Create dependency metadata instances on this core's database."""
-        with database_context(self._w3af_core.database):
-            return super().get_quick_instance(plugin_type, plugin_name)
+        return super().get_quick_instance(
+            plugin_type, plugin_name, self._w3af_core.database
+        )
 
     def expand_all(self):
         self._plugin_selection.expand_all()

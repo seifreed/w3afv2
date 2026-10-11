@@ -41,7 +41,6 @@ from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.db.dbms import (
     SQLiteDBMS,
     create_temp_db_instance,
-    database_context,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -593,8 +592,7 @@ class OutputManager(Process):
                     f"w3af.plugins.output.{plugin_name}", w3af_core.database
                 )
             else:
-                with database_context(w3af_core.database):
-                    plugin = factory(f"w3af.plugins.output.{plugin_name}")
+                plugin = factory(f"w3af.plugins.output.{plugin_name}")
         plugin.set_w3af_core(proxy(w3af_core) if w3af_core is not None else None)
         plugin.set_output(self._output)
         if w3af_core is not None:
