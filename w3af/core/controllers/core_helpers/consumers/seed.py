@@ -52,7 +52,7 @@ class seed(Process):
         self._output = output
 
         # See documentation in the property below
-        self._out_queue = Queue()
+        self._out_queue: Queue[object] = Queue()
 
     def get_name(self):
         return "Seed"
@@ -63,8 +63,8 @@ class seed(Process):
     def has_pending_work(self):
         return self._out_queue.qsize() != 0
 
-    def join(self):
-        return
+    def join(self, timeout: float | None = None) -> None:
+        return None
 
     @property
     def out_queue(self):

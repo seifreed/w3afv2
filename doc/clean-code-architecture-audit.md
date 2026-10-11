@@ -5830,3 +5830,14 @@ Verificación: las suites disponibles de KB, URLs y requests fuzzables pasan
 **3 tests**; mypy global queda en **634 errores en 261 archivos**, y Black,
 Ruff y Bandit de los cinco módulos pasan sin hallazgos. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: contrato de cola del consumidor Seed
+
+El consumidor `seed` declara la cola de salida como `Queue[object]` y conserva
+la firma compatible de `Thread.join(timeout)`. Esto hace explícito que la cola
+transporta resultados heterogéneos del pipeline y evita que el consumidor
+rompa el contrato de ciclo de vida de los threads.
+
+Verificación: `test_seed.py` pasa **5 tests**; mypy global baja a **633 errores
+en 261 archivos** desde 634, y Black, Ruff y Bandit del consumidor pasan sin
+hallazgos. El score global continúa en **9.99/10**.
