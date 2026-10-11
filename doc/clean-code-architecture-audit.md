@@ -60,9 +60,9 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Calidad y verificabilidad
 
-- Black global pasa: **1659 archivos** sin cambios requeridos.
+- Black global pasa: **1665 archivos** sin cambios requeridos.
 - Ruff global pasa sin hallazgos.
-- `mypy --check-untyped-defs w3af` pasa en **1620 archivos**; el comando
+- `mypy --check-untyped-defs w3af` pasa en **1625 archivos**; el comando
   literal `mypy .` todavía inspecciona `venv/bin/activate_this.py` y falla en
   dos líneas generadas fuera del código fuente.
 - Bandit global no queda limpio porque `bandit -r .` recorre `venv`, vendor,
