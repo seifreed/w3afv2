@@ -7494,3 +7494,14 @@ consumen directamente.
 
 Verificación: **58 tests** de crawling e infraestructura pasan; Black, Ruff y
 mypy pasan en el fixture modificado.
+
+## Actualización verificada: output explícito en `find_vhosts`
+
+El test standalone de `find_vhosts` ejercitaba el camino de conexión rechazada
+sin configurar el sink de output, aunque el plugin registra ese diagnóstico
+como parte de su manejo normal de errores. Ahora inyecta `om.out` y conserva el
+opener directo necesario para probar la excepción real, sin convertirla en el
+204 del proxy de plugins.
+
+Verificación: la suite de `find_vhosts` pasa **6 tests**; Black, Ruff y mypy
+pasan en los dos fixtures modificados.

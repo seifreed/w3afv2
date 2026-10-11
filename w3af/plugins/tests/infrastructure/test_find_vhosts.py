@@ -23,6 +23,7 @@ import re
 import unittest
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -124,8 +125,10 @@ class TestFindVhostsUnparseableDocument(FindVhostsTest):
 class TestFindVhostsUnits(unittest.TestCase):
     def test_non_existent_vhost_requests_fail(self):
         plugin = find_vhosts()
-        plugin._uri_opener = ExtendedUrllib()
-        self.addCleanup(plugin._uri_opener.end)
+        uri_opener = ExtendedUrllib()
+        plugin._uri_opener = uri_opener
+        plugin.set_output(om.out)
+        self.addCleanup(uri_opener.end)
 
         self.assertEqual(plugin._get_non_exist(FuzzableRequest(closed_port_url())), [])
 
