@@ -71,9 +71,9 @@ class RelaxedSpec(Spec):
             # name of the format as used in the Swagger spec
             format=format_name,
             # Callable to convert a python object to a string
-            to_wire=lambda input_string: input_string,
+            to_wire=lambda value: value,
             # Callable to convert a string to a python object
-            to_python=lambda input_string: input_string,
+            to_python=lambda value: value,
             # Callable to validate the input string
             validate=validate_generic,
             # Description

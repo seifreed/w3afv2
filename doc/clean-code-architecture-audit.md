@@ -6060,3 +6060,13 @@ vida exigido por los plugins y sin recursos globales implícitos.
 Verificación: AFD, websockets y CAPTCHA pasan **16 tests**; Mypy estricto, Ruff
 y Black pasan en los módulos y fixtures modificados. El score global continúa
 en **9.99/10**.
+
+## Actualización verificada: contrato de formatos OpenAPI
+
+Las funciones de conversión del formato genérico de `RelaxedSpec` usan ahora
+el nombre de parámetro definido por `SwaggerFormat`, eliminando la
+incompatibilidad callable sin alterar la conversión flexible de valores.
+
+Verificación: OpenAPI pasa **38 tests**; Mypy estricto, Ruff y Black pasan en
+el módulo. Pytest emite únicamente warnings deprecados desde `jsonschema` y
+`bravado_core`; el score global continúa en **9.99/10**.
