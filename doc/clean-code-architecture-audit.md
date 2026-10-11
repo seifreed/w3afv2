@@ -6080,3 +6080,15 @@ output real, evitando errores por estado implícito.
 
 Verificación: auth/audit pasan **31 tests**; Mypy estricto, Ruff y Black pasan
 en los módulos y fixtures modificados. El score global continúa en **9.99/10**.
+
+## Actualización verificada: estado explícito en infraestructura
+
+`finger_google` declara sus colecciones y estado opcional, y valida el cliente
+Google y el dominio antes de usarlos. `allowed_methods` tipa sus colecciones y
+reduce las ramas de respuestas de red nulas sin cambiar la detección de
+métodos. Sus tests directos configuran parser cache y output reales, igual que
+el flujo de producción.
+
+Verificación: fingerprint Google y allowed methods pasan **15 tests**;
+Mypy con cuerpos no tipados, Ruff y Black pasan en los módulos y fixtures
+modificados. El score global continúa en **9.99/10**.

@@ -25,6 +25,7 @@ from typing import ClassVar
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -226,6 +227,7 @@ class TestEnd(unittest.TestCase):
         self.addCleanup(kb.cleanup)
         self.plugin = allowed_methods()
         self.plugin.set_knowledge_base(kb)
+        self.plugin.set_output(om.out)
 
     def test_reports_dav_methods_grouped_by_url(self):
         self.plugin._analyze_methods(URL(DAV_ROOT), ["GET", "PROPFIND"], [1])

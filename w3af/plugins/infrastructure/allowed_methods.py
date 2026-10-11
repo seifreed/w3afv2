@@ -191,8 +191,8 @@ class allowed_methods(InfrastructurePlugin):
         Find out what methods are allowed using OPTIONS
         :param url: Where to check.
         """
-        _allowed_methods = []
-        id_list = []
+        _allowed_methods: list[str] = []
+        id_list: list[int] = []
 
         try:
             res = self._uri_opener.OPTIONS(url, error_handling=False)
@@ -232,16 +232,12 @@ class allowed_methods(InfrastructurePlugin):
             pass
 
         # Most likely we're getting network errors
-        if arg_response is None and get_response is None:
-            return False
+        if arg_response is None:
+            # ARGENTINA failed while GET worked, so brute-force is useful.
+            return get_response is not None
 
-        # ARGENTINA response triggered an error (connection close most likely)
-        # and the GET response worked
-        if arg_response is None and get_response is not None:
-            return True
-
-        # Network errors in GET response will break detection at this point
         if get_response is None:
+            # Network errors in GET response prevent detection.
             return False
 
         # Now check if the two responses are equal

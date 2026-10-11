@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.infrastructure.finger_google import finger_google
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -67,6 +68,8 @@ class TestFingerGoogle(PluginTest):
         plugin = finger_google()
         plugin.set_url_opener(self.w3afcore.uri_opener)
         plugin.set_worker_pool(self.w3afcore.worker_pool)
+        plugin.set_output(om.out)
+        plugin.set_parser_cache(self.w3afcore.parser_cache)
         plugin.set_knowledge_base(self.kb)
 
         options = plugin.get_options()

@@ -42,11 +42,11 @@ class finger_google(InfrastructurePlugin):
         InfrastructurePlugin.__init__(self)
 
         # Internal variables
-        self._accounts = set()
+        self._accounts: set[str] = set()
         self._accounts_lock = threading.Lock()
-        self._google = None
-        self._domain = None
-        self._domain_root = None
+        self._google: google | None = None
+        self._domain: str | None = None
+        self._domain_root: str | None = None
 
         # User configured
         self._result_limit = 300
@@ -84,8 +84,10 @@ class finger_google(InfrastructurePlugin):
         """
         Only search for mail addresses in the google result page.
         """
-        search_string = "@" + self._domain_root
-        result_page_objects = self._google.get_n_result_pages(
+        domain_root = self._require_domain_root()
+        google_client = self._require_google()
+        search_string = "@" + domain_root
+        result_page_objects = google_client.get_n_result_pages(
             search_string, self._result_limit
         )
 
@@ -96,9 +98,21 @@ class finger_google(InfrastructurePlugin):
         """
         Performs a complete search for email addresses.
         """
-        search_string = "@" + self._domain_root
-        google_results = self._google.get_n_results(search_string, self._result_limit)
+        domain_root = self._require_domain_root()
+        google_client = self._require_google()
+        search_string = "@" + domain_root
+        google_results = google_client.get_n_results(search_string, self._result_limit)
         self.worker_pool.map(self._find_accounts, google_results)
+
+    def _require_google(self) -> google:
+        if self._google is None:
+            raise RuntimeError("Google client is not initialized")
+        return self._google
+
+    def _require_domain_root(self) -> str:
+        if self._domain_root is None:
+            raise RuntimeError("Target domain is not initialized")
+        return self._domain_root
 
     def _find_accounts(self, google_result):
         """
@@ -129,7 +143,7 @@ class finger_google(InfrastructurePlugin):
         #
         # Search for email addresses
         #
-        for mail in document_parser.get_emails(self._domain_root):
+        for mail in document_parser.get_emails(self._require_domain_root()):
             if self._register_account(mail):
                 desc = 'The mail account: "%s" was found at: "%s".'
                 desc %= (mail, response.get_uri())
