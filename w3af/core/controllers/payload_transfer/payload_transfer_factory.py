@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
+from w3af.core.controllers.payload_transfer.base_payload_transfer import (
+    BasePayloadTransfer,
+)
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
     ClientlessReverseHTTP,
 )
@@ -67,6 +70,7 @@ class payload_transfer_factory:
                  user in order to upload files.
         """
         os = os_detection_exec(self._exec_method, self._output)
+        echo_transfer: BasePayloadTransfer
         if os == "windows":
             echo_transfer = EchoWindows(self._exec_method, os, self._output)
         elif os == "linux":
@@ -74,7 +78,7 @@ class payload_transfer_factory:
         else:
             echo_transfer = EchoLinux(self._exec_method, os, self._output)
 
-        to_test = [echo_transfer]
+        to_test: list[BasePayloadTransfer] = [echo_transfer]
         try:
             if not inbound_port:
                 inbound_port = self._es.get_inbound_port()

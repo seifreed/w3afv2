@@ -5954,3 +5954,15 @@ de mypy.
 Verificación: URL y mangle pasan **33 tests**; Ruff y Black pasan en ambos
 módulos. El análisis estricto deja únicamente los errores preexistentes de
 `opt_factory` y `history`; el score global continúa en **9.99/10**.
+
+## Actualización verificada: contrato común de transferencias de payload
+
+La fábrica de transferencias y el escáner de extrusión declaran ahora
+`BasePayloadTransfer` como contrato común para los métodos Echo, FTP y HTTP.
+Esto elimina la inferencia incorrecta de listas heterogéneas como listas de
+`EchoWindows`, sin cambiar la selección, el orden por velocidad ni el flujo de
+transferencia.
+
+Verificación: las suites reales de shell y transferencia pasan **25 tests**;
+Ruff y Black pasan en ambos módulos. El análisis estricto ya no reporta errores
+propios en la fábrica ni en el escáner; el score global continúa en **9.99/10**.

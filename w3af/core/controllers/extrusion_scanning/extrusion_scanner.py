@@ -34,6 +34,9 @@ from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
     os_detection_exec,
 )
+from w3af.core.controllers.payload_transfer.base_payload_transfer import (
+    BasePayloadTransfer,
+)
 from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
 from w3af.core.controllers.payload_transfer.echo_windows import EchoWindows
 from w3af.core.exceptions import BaseFrameworkException
@@ -74,6 +77,7 @@ class extrusionScanner:
         self._udp_port_list = udpPortList
 
         os = os_detection_exec(exec_method, self._output)
+        self._transferHandler: BasePayloadTransfer
         if os == "windows":
             self._transferHandler = EchoWindows(exec_method, os, output)
         elif os == "linux":
