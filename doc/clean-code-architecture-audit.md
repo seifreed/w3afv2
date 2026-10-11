@@ -4969,6 +4969,18 @@ la suite XML **32 tests**, sin avisos de `LogSink`; Black, Ruff, mypy y Bandit
 focal están limpios. El score global continúa en **9.99/10**, con los gates
 heredados y la cobertura global todavía pendientes.
 
+## Actualización verificada: contrato tipado del sink
+
+`LogSink.METHODS` ya no parte de un valor de clase `None`: se inicializa como el
+diccionario callable que realmente consume `__getattr__`. Esto elimina el
+`Optional` artificial detectado por `mypy --check-untyped-defs` en el código del
+sink, sin introducir supresiones de tipos.
+
+Verificación: lifecycle y logging pasan **32 tests**, Ruff y Black están limpios
+y el módulo deja de producir ese error directo de tipo. El modo estricto aún
+reporta errores transitivos históricos en otros módulos, por lo que el score
+global continúa en **9.99/10**.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos

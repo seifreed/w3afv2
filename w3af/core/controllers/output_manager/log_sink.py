@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import functools
+from collections.abc import Callable
 
 
 class LogSink:
@@ -42,13 +43,11 @@ class LogSink:
         }
     )
 
-    METHODS = None
-
     def __init__(self, om_queue):
         super().__init__()
         self.om_queue = om_queue
         self._closed = False
-        self.METHODS = {
+        self.METHODS: dict[str, Callable[..., None]] = {
             method: functools.partial(self._add_to_queue, method)
             for method in self.ALLOWED_METHODS
         }
