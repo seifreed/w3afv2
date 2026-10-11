@@ -31,6 +31,7 @@ from w3af.core.controllers.tests.local_http_server import (
 )
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -102,9 +103,11 @@ class TestPlugin(unittest.TestCase):
         self.assertRaises(NotImplementedError, Plugin().get_long_desc)
 
     def test_equal_plugins_share_set_membership(self):
-        disabled = {web_spider()}
+        database = create_temp_db_instance()
+        self.addCleanup(database.close)
+        disabled = {web_spider(db=database)}
 
-        self.assertIn(web_spider(), disabled)
+        self.assertIn(web_spider(db=database), disabled)
         self.assertNotIn(find_dvcs(), disabled)
 
     def test_defaults(self):

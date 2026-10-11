@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import queue
-import sys
 import threading
 from itertools import repeat
 
@@ -224,7 +223,10 @@ class Plugin(Configurable):
         )
 
         if added_to_kb:
-            self._output.report_finding(info)
+            output = self._output
+            if output is None:
+                raise RuntimeError("Plugin output has not been configured")
+            output.report_finding(info)
 
         return added_to_kb
 
@@ -238,14 +240,20 @@ class Plugin(Configurable):
         )
 
         if created:
-            self._output.report_finding(info_set.first_info)
+            output = self._output
+            if output is None:
+                raise RuntimeError("Plugin output has not been configured")
+            output.report_finding(info_set.first_info)
 
     def kb_append(self, location_a, location_b, info):
         """
         kb.kb.append a vulnerability to the KB
         """
         self._kb_append(location_a, location_b, info)
-        self._output.report_finding(info)
+        output = self._output
+        if output is None:
+            raise RuntimeError("Plugin output has not been configured")
+        output.report_finding(info)
 
     def _kb_append(self, location_a, location_b, value):
         """Store a KB value while applying scan configuration to findings."""
@@ -290,7 +298,14 @@ class Plugin(Configurable):
         :param iterable: A list with the mutants
         :param callback: A callable to invoke after each mutant is sent
         """
-        imap_unordered = self.worker_pool.imap_unordered
+        worker_pool = self.worker_pool
+        if worker_pool is None:
+            raise RuntimeError("Plugin worker pool has not been configured")
+        output = self._output
+        if output is None:
+            raise RuntimeError("Plugin output has not been configured")
+
+        imap_unordered = worker_pool.imap_unordered
         awre = apply_with_return_error
 
         try:
@@ -302,8 +317,8 @@ class Plugin(Configurable):
         else:
             debugging_id = kwds.get("debugging_id", "unknown")
             msg = "send_mutants_in_threads will send %s HTTP requests (did:%s)"
-            args = (num_tasks, debugging_id)
-            self._output.debug(msg % args)
+            debug_args = (num_tasks, debugging_id)
+            output.debug(msg % debug_args)
 
         # You can use this code to debug issues that happen in threads, by
         # simply not using them:
@@ -314,9 +329,9 @@ class Plugin(Configurable):
         #
         # Now the real code:
         func = return_args(func, **kwds)
-        args = list(zip(repeat(func), iterable))
+        task_args = list(zip(repeat(func), iterable))
 
-        for result in imap_unordered(awre, args):
+        for result in imap_unordered(awre, task_args):
             # re-raise the thread exception in the main thread with this method
             # so we get a nice traceback instead of things like the ones we see
             # in https://github.com/andresriancho/w3af/issues/7286
@@ -351,8 +366,11 @@ class Plugin(Configurable):
             ' Exception: "%s".'
             ' Generated 204 "No Content" response (id:%s)'
         )
-        args = (self.get_name(), uri, http_exception, no_content_resp.id)
-        self._output.error(msg % args)
+        output = self._output
+        if output is None:
+            raise RuntimeError("Plugin output has not been configured")
+        error_args = (self.get_name(), uri, http_exception, no_content_resp.id)
+        output.error(msg % error_args)
 
         return False, no_content_resp
 
@@ -423,8 +441,7 @@ class UrlOpenerProxy:
                 # By default we do NOT re-raise, we just return a 204-no content
                 # response and hope for the best.
                 if re_raise:
-                    exc_info = sys.exc_info()
-                    raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
+                    raise
 
                 return result
 

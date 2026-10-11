@@ -5049,6 +5049,19 @@ limpios y desaparece el error directo de anotación de la cola en mypy estricto.
 El score global continúa en **9.99/10** por la deuda transitiva restante y la
 cobertura global no demostrada.
 
+## Actualización verificada: precondiciones del plugin y callers DB
+
+Los métodos de `Plugin` validan ahora que output y worker pool hayan sido
+inyectados antes de usarlos; también conservan los argumentos de logging y
+relanzan la excepción activa con `raise`, sin reconstruirla desde `sys.exc_info`.
+Los tests directos de `web_spider` pasan una DB temporal explícita y la cierran
+en teardown, alineándose con el contrato de las estructuras disk-backed.
+
+Verificación: plugin y web spider pasan **51 tests**, mypy estricto focal queda
+sin errores en `plugin.py`, Ruff y Black están limpios. El score global continúa
+en **9.99/10**, con deuda transitiva fuera de este bloque y cobertura global no
+demostrada.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos

@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from w3af import ROOT_PATH
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import EXCLUDE
@@ -274,15 +275,21 @@ class TestWebSpiderFilters(WebSpiderTest):
 
 
 class TestWebSpiderWithoutTargets:
+    def setup_method(self):
+        self.database = create_temp_db_instance()
+
+    def teardown_method(self):
+        self.database.close()
+
     def test_end_without_core_is_safe(self):
-        spider = web_spider()
+        spider = web_spider(db=self.database)
         spider.end()
 
     def test_first_run_without_targets(self):
         previous = cf.get("targets")
         cf.save("targets", [])
         try:
-            spider = web_spider()
+            spider = web_spider(db=self.database)
             spider.set_configuration(cf)
             spider._handle_first_run()
         finally:
@@ -294,7 +301,7 @@ class TestWebSpiderWithoutTargets:
             raise AssertionError
 
     def test_long_desc(self):
-        if "only_forward" not in web_spider().get_long_desc():
+        if "only_forward" not in web_spider(db=self.database).get_long_desc():
             raise AssertionError
 
 
