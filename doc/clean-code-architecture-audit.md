@@ -6179,3 +6179,14 @@ dependencias opcionales antes de usarlas.
 Verificación: los cuatro plugins pasan **31 tests**; Mypy con cuerpos no
 tipados, Ruff y Black pasan en producción, tests y dependencias de ciclo de
 vida modificadas. El score global continúa en **9.99/10**.
+
+## Actualización verificada: factoría de transferencia en shells
+
+La clase puente de shells declara el colaborador dinámico de transferencia que
+se inyecta por instancia y que `ExecShell` expone estáticamente. Se elimina el
+conflicto de tipos entre `partial` y la factoría sin cambiar el wiring ni el
+contrato de la capa de datos.
+
+Verificación: shells y `ExecShell` pasan **25 tests**; Mypy con cuerpos no
+tipados, Ruff y Black pasan en el módulo. El score global continúa en
+**9.99/10**.

@@ -38,6 +38,7 @@ class Shell(_Shell):
 
     _payload_handler = payload_handler
     _output: Any = None
+    _payload_transfer_factory: Any = None
 
     def set_output(self, output):
         self._output = output
