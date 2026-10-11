@@ -13,7 +13,7 @@ from w3af.core.controllers.output_manager.logging_bridge import (
 class TestOutputManagerLoggingBridge(unittest.TestCase):
     def test_http_logger_uses_the_current_output_sink(self):
         previous_output = om.out
-        messages = queue.Queue()
+        messages: queue.Queue[object] = queue.Queue()
         om.out = om.log_sink_factory(messages)
 
         try:
@@ -30,7 +30,7 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
         previous_level = logger.level
         previous_propagate = logger.propagate
         previous_output = om.out
-        messages = queue.Queue()
+        messages: queue.Queue[object] = queue.Queue()
         om.out = om.log_sink_factory(messages)
 
         try:
@@ -67,8 +67,8 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
         previous_level = logger.level
         previous_propagate = logger.propagate
         previous_output = om.out
-        first_messages = queue.Queue()
-        second_messages = queue.Queue()
+        first_messages: queue.Queue[object] = queue.Queue()
+        second_messages: queue.Queue[object] = queue.Queue()
 
         try:
             configure_data_logging(om.log_sink_factory(first_messages))
@@ -93,8 +93,8 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
         previous_level = logger.level
         previous_propagate = logger.propagate
         previous_output = om.out
-        first_messages = queue.Queue()
-        second_messages = queue.Queue()
+        first_messages: queue.Queue[object] = queue.Queue()
+        second_messages: queue.Queue[object] = queue.Queue()
         first = om.log_sink_factory(first_messages)
         second = om.log_sink_factory(second_messages)
 
@@ -105,7 +105,10 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
 
             handlers = logger.handlers
             self.assertEqual(len(handlers), 1)
-            self.assertIs(handlers[0]._output, second)
+            handler = handlers[0]
+            if not isinstance(handler, OutputManagerLogHandler):
+                raise TypeError(f"Unexpected handler type: {type(handler)!r}")
+            self.assertIs(handler._output, second)
         finally:
             logger.handlers[:] = previous_handlers
             logger.setLevel(previous_level)

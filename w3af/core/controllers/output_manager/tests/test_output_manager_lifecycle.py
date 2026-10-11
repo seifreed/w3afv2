@@ -152,7 +152,10 @@ class TestOutputManagerRun(unittest.TestCase):
 
     def test_closed_queue_writer_stops_the_manager(self):
         manager = OutputManager()
-        manager.in_queue._writer.close()
+        writer = getattr(manager.in_queue, "_writer", None)
+        if writer is None:
+            raise AssertionError("Output queue has no writer")
+        writer.close()
 
         manager.start()
         manager.join(WAIT_SECONDS)
@@ -161,7 +164,10 @@ class TestOutputManagerRun(unittest.TestCase):
 
     def test_closed_queue_reader_stops_the_manager(self):
         manager = OutputManager()
-        manager.in_queue._reader.close()
+        reader = getattr(manager.in_queue, "_reader", None)
+        if reader is None:
+            raise AssertionError("Output queue has no reader")
+        reader.close()
 
         manager.start()
         manager.join(WAIT_SECONDS)
@@ -205,8 +211,11 @@ class TestOutputManagerFlush(unittest.TestCase):
         manager.set_output_plugin_inst(failing)
 
         manager.flush_plugin_output()
-        manager._worker_pool.close()
-        manager._worker_pool.join()
+        worker_pool = manager.get_worker_pool()
+        if worker_pool is None:
+            raise RuntimeError("OutputManager did not create its worker pool")
+        worker_pool.close()
+        worker_pool.join()
 
         self.assertTrue(failing.flushed.is_set())
         self.assertFalse(failing.is_running_flush)
@@ -383,7 +392,10 @@ print(
         stop(fresh)
 
         self.assertFalse(running.is_alive())
-        self.assertTrue(running._worker_pool.is_closed())
+        worker_pool = running.get_worker_pool()
+        if worker_pool is None:
+            raise AssertionError("OutputManager has no worker pool")
+        self.assertTrue(worker_pool.is_closed())
         self.assertIsNot(fresh, running)
         self.assertIs(om.manager, fresh)
 
@@ -409,7 +421,9 @@ print(
 
 class TestLogSink(unittest.TestCase):
     def test_report_finding_sends_a_vulnerability_message(self):
-        messages = queue.Queue()
+        messages: queue.Queue[tuple[tuple[object, ...], dict[str, object]]] = (
+            queue.Queue()
+        )
         sink = LogSink(messages)
         finding = Info("Name", "Finding description", 1, "plugin_name")
 
@@ -420,7 +434,9 @@ class TestLogSink(unittest.TestCase):
         self.assertEqual(kwargs, {"severity": finding.get_severity()})
 
     def test_closed_sink_discards_messages_without_touching_the_queue(self):
-        messages = queue.Queue()
+        messages: queue.Queue[tuple[tuple[object, ...], dict[str, object]]] = (
+            queue.Queue()
+        )
         sink = LogSink(messages)
 
         sink.close()

@@ -19,10 +19,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import atexit
+from typing import TYPE_CHECKING
 
 from .log_sink import LogSink
 from .logging_bridge import remove_data_logging
 from .manager import OutputManager
+
+if TYPE_CHECKING:
+    manager: OutputManager
+    out: LogSink
 
 
 def create_output_manager() -> tuple[OutputManager, LogSink]:

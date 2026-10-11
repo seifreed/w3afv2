@@ -6458,3 +6458,14 @@ que evita reservar gigabytes durante las pruebas.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en las dos
 fixtures; el parser multiproceso pasa **38 tests** y el parser base **18**. El
 score global continúa en **9.99/10**.
+
+## Actualización verificada: contrato lazy del output manager
+
+El paquete `output_manager` declara `manager` y `out` para el análisis estático
+sin materializarlos en la importación, preservando la inicialización diferida.
+Las fixtures tipan sus colas, estrechan pools opcionales y validan los extremos
+de las colas IPC antes de cerrarlos.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en producción y
+tests; manager pasa **8 tests**, ciclo de vida **28** y logging **4**. El score
+global continúa en **9.99/10**.
