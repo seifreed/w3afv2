@@ -4895,3 +4895,15 @@ reconociendo implementaciones intermedias como `AuthSessionPlugin`.
 Verificación: `test_basic.py` pasa **9 tests**; Black, Ruff, mypy y Bandit
 focales están limpios. El score global continúa en **9.99/10**, con los gates
 heredados del entorno todavía pendientes.
+
+## Actualización verificada: cierre del output manager global
+
+El proveedor lazy de `output_manager` expone ahora
+`close_default_output_manager()`, que detiene y olvida la instancia global y
+su cola, incluyendo managers asignados explícitamente por callers legacy. Se
+registra en `atexit` para que una ejecución fuera de `w3afCore` no deje hilos
+de `multiprocessing` vivos al terminar.
+
+Verificación: la suite del ciclo de vida del output manager pasa **26 tests**;
+Black, Ruff, mypy y Bandit focales están limpios. El score global continúa en
+**9.99/10**, con los gates heredados del entorno todavía pendientes.

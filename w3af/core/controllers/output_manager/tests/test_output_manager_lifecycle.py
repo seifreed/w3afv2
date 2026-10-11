@@ -34,6 +34,7 @@ import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.output_manager import (
+    close_default_output_manager,
     create_output_manager,
     fresh_output_manager_inst,
 )
@@ -324,6 +325,18 @@ class TestOutputManagerPlugins(unittest.TestCase):
 
 
 class TestOutputManagerModule(unittest.TestCase):
+    def test_close_default_manager_releases_global_resources(self):
+        manager = OutputManager()
+        manager.start()
+        om.manager = manager
+        om.out = LogSink(manager.get_in_queue())
+
+        close_default_output_manager()
+
+        self.assertFalse(manager.is_alive())
+        self.assertIsNone(om.__dict__.get("_manager"))
+        self.assertIsNone(om.__dict__.get("_out"))
+
     def test_import_does_not_create_default_resources(self):
         code = """
 import w3af.core.controllers.output_manager as output_manager

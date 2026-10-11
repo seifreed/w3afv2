@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import atexit
+
 from .log_sink import LogSink
 from .manager import OutputManager
 
@@ -77,6 +79,18 @@ def _get_default_output() -> LogSink:
     return _out
 
 
+def close_default_output_manager() -> None:
+    """Stop and forget the process-level output manager, if any."""
+    global _manager, _out
+
+    manager = globals().pop("manager", None) or _manager
+    if manager is not None:
+        manager.stop()
+
+    _manager = None
+    _out = None
+
+
 def __getattr__(name):
     if name == "manager":
         return _get_default_manager()
@@ -87,6 +101,7 @@ def __getattr__(name):
 
 _manager: OutputManager | None = None
 _out: LogSink | None = None
+atexit.register(close_default_output_manager)
 
 # The import machinery exposes the child module as ``manager`` on this package.
 # Remove that name so module attribute access reaches the lazy provider above.
