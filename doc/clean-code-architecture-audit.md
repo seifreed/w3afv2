@@ -6910,3 +6910,13 @@ colección y evita retener colas cerradas entre casos.
 
 Verificación adicional: lifecycle seguido de output manager pasa **36 tests**
 en una sola invocación.
+
+## Actualización verificada: contratos completos de fixtures de shells
+
+Las fixtures de consola implementan ahora también la creación y descripción de
+payloads exigidas por `PayloadHandler`. La prueba de transferencia verifica la
+fábrica configurada por instancia, en lugar de asumir un colaborador mutable en
+la clase, y deja el dominio sin estado de infraestructura compartido.
+
+Verificación: Black, Ruff y Mypy pasan globalmente (`1620` archivos); la
+batería focalizada pasa **15 tests**.

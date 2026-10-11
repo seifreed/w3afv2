@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from functools import partial
 
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
@@ -29,6 +30,7 @@ from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
 from w3af.core.data.kb.exec_shell import ExecShell as DataExecShell
 from w3af.core.data.kb.read_shell import ReadShell as DataReadShell
 from w3af.core.data.kb.shell import Shell as DataShell
+from w3af.core.data.kb.vuln import Vuln
 from w3af.plugins.attack.payloads import payload_handler
 from w3af.plugins.attack.payloads.shells import ExecShell, ReadShell, Shell
 
@@ -48,14 +50,25 @@ class TestWiredShells(unittest.TestCase):
 
     def test_exec_shell_remote_collaborators_are_injected(self):
         self.assertIs(ExecShell._os_detector, os_detection_exec)
-        self.assertIs(ExecShell._payload_transfer_factory, payload_transfer_factory)
+        self.assertIsNone(ExecShell._payload_transfer_factory)
+
+        shell = ExecShell(
+            Vuln("OS commanding", "Injectable cmd parameter.", "High", [1], "os"),
+            None,
+            None,
+        )
+        shell.set_output(None)
+
+        transfer_factory = shell._payload_transfer_factory
+        assert isinstance(transfer_factory, partial)
+        self.assertIs(transfer_factory.func, payload_transfer_factory)
 
     def test_data_layer_shells_have_no_collaborators(self):
         # The data-layer base classes must stay free of the outer-layer
         # collaborators; only the plugins-layer wiring provides them.
         self.assertIsNone(DataShell._payload_handler)
         self.assertIsNone(DataExecShell._os_detector)
-        self.assertIsNone(DataExecShell._payload_transfer_factory)
+        self.assertNotIn("_payload_transfer_factory", vars(DataExecShell))
 
 
 if __name__ == "__main__":
