@@ -155,6 +155,15 @@ class TestW3afCore(unittest.TestCase):
         self.assertIs(core.database, knowledge_base.db)
         self.assertIs(core.parser_cache._parser_blacklist.db, core.database)
 
+    def test_core_quit_keeps_external_database_open(self):
+        knowledge_base = DBKnowledgeBase()
+        core = w3afCore(knowledge_base=knowledge_base)
+
+        core.quit()
+
+        knowledge_base.raw_write("test", "value", "still open")
+        self.addCleanup(knowledge_base.cleanup)
+
     def test_unreferenced_core_does_not_mutate_dns_resolver(self):
         original = socket.getaddrinfo
         core = w3afCore()
