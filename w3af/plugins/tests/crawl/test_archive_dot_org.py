@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
@@ -90,6 +91,9 @@ class TestArchiveDotOrg(PluginTest):
         plugin = archive_dot_org()
         plugin.set_url_opener(self.w3afcore.uri_opener)
         plugin.set_worker_pool(self.w3afcore.worker_pool)
+        plugin.set_w3af_core(self.w3afcore)
+        plugin.set_configuration(self.w3afcore.configuration)
+        plugin.set_output(om.out)
         return plugin
 
     def test_found_urls(self):
@@ -156,10 +160,10 @@ class TestArchiveDotOrg(PluginTest):
 
     def test_raise_on_local_domain(self):
         fuzzable_request = FuzzableRequest(URL("http://127.0.0.1/"))
+        plugin = archive_dot_org()
+        plugin.set_output(om.out)
 
-        self.assertRaises(
-            RunOnce, archive_dot_org().crawl, fuzzable_request, "debugging-id"
-        )
+        self.assertRaises(RunOnce, plugin.crawl, fuzzable_request, "debugging-id")
 
     def test_long_description(self):
         self.assertIn("time machine", archive_dot_org().get_long_desc())

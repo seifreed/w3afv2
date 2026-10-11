@@ -125,7 +125,7 @@ class archive_dot_org(CrawlPlugin):
         :param max_depth: The max link depth that we have to follow.
         :param domain: The domain name we are checking
         """
-        res = []
+        res: list[URL] = []
 
         def spider_worker(url, max_depth, domain):
             if url in self._already_crawled:
@@ -166,6 +166,9 @@ class archive_dot_org(CrawlPlugin):
         :return: The archived URL, http://host/ in the example above
         """
         match = self.ARCHIVED_URL_RE.search(snapshot_url.url_string)
+        if match is None:
+            raise ValueError(f"Invalid archive snapshot URL: {snapshot_url}")
+
         scheme, archived_path = match.groups()
         return URL(f"{scheme}://{archived_path}")
 

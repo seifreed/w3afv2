@@ -5919,6 +5919,17 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: URLs archivadas tipadas
+
+`archive_dot_org` declara la acumulación de URLs y valida que una snapshot de
+Wayback coincida antes de extraer sus grupos. Los tests directos configuran
+core, configuración y output reales para cubrir el flujo completo de
+verificación.
+
+Verificación: archive dot org pasa **7 tests**; Mypy con cuerpos no tipados,
+Ruff y Black pasan en producción y fixture. El score global continúa en
+**9.99/10**.
+
 ## Actualización verificada: cola tipada de content negotiation
 
 `content_negotiation` declara que su cola interna contiene URLs, haciendo
