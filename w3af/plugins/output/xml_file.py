@@ -25,7 +25,6 @@ import shutil
 import time
 from functools import wraps
 from tempfile import NamedTemporaryFile
-from unicodedata import category
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
@@ -36,10 +35,18 @@ from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.db.url_tree import URLTree
 from w3af.core.data.misc.dotdict import dotdict
-from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import OUTPUT_FILE
+from w3af.plugins.output.xml_filters import (
+    ATTR_VALUE_ESCAPES,
+    ATTR_VALUE_ESCAPES_IGNORE,
+    TEXT_VALUE_ESCAPES,
+    TEXT_VALUE_ESCAPES_IGNORE,
+    is_unicode_escape,
+    jinja2_attr_value_escape_filter,
+    jinja2_text_value_escape_filter,
+)
 from w3af.plugins.output.xml_models import (
     Finding,
     HTTPTransaction,
@@ -50,7 +57,9 @@ from w3af.plugins.output.xml_nodes import CachedXMLNode, FindingsCache, XMLNode
 
 __all__ = [
     "ATTR_VALUE_ESCAPES",
+    "ATTR_VALUE_ESCAPES_IGNORE",
     "TEXT_VALUE_ESCAPES",
+    "TEXT_VALUE_ESCAPES_IGNORE",
     "CachedXMLNode",
     "Finding",
     "FindingsCache",
@@ -58,6 +67,7 @@ __all__ = [
     "ScanInfo",
     "ScanStatus",
     "XMLNode",
+    "is_unicode_escape",
     "jinja2_attr_value_escape_filter",
     "jinja2_text_value_escape_filter",
     "took",
@@ -508,145 +518,3 @@ class xml_file(OutputPlugin):
         should handle these tags and show the real character to the user, encoded
         as expected in the final format. 
         """
-
-
-def is_unicode_escape(i):
-    return category(chr(i)).startswith("C")
-
-
-ATTR_VALUE_ESCAPES = {
-    '"': "&quot;",
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    # Note that here we replace tabs with 4-spaces, like in python ;-)
-    # but it makes sense for easy parsing and showing to users
-    "\t": "    ",
-}
-
-ATTR_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
-
-
-class _PreEscaped(str):
-    """
-    A string that was already escaped by one of the filters below. Jinja2's
-    autoescape honors the ``__html__`` protocol and emits it untouched, which
-    avoids double escaping without wrapping a variable in ``Markup``.
-    """
-
-    def __html__(self):
-        return self
-
-
-def jinja2_attr_value_escape_filter(value):
-    """
-    This method is used to escape attribute values:
-
-        <tag attribute="value">
-
-    The objective is to escape all the special characters which can not be
-    printed in that context.
-
-    We also implement something very specific for special characters. We're
-    replacing the XML invalid characters with:
-
-        <character code="%04x"/>
-
-    The parser should handle that and replace these tags with the real char
-    (if it can be handled by the reader).
-
-    Something to note is that when escaping special characters we print the
-    HTML-encoded (< replaced by &lt; and so on) version of the `character`
-    tag. We do that because it is invalid to print < inside the attribute
-    value.
-
-    :param value: The value to escape
-    :return: The escaped string
-    """
-    if not isinstance(value, str):
-        return value
-
-    # Fix some encoding errors which are triggered when the value is not an
-    # unicode string
-    value = smart_unicode(value)
-    retval = []
-
-    for letter in value:
-        if letter in ATTR_VALUE_ESCAPES_IGNORE:
-            retval.append(letter)
-            continue
-
-        escape = _get_escape(
-            letter,
-            ATTR_VALUE_ESCAPES,
-            "&lt;character code=&quot;%04x&quot;/&gt;",
-        )
-        if escape is not None:
-            retval.append(escape)
-        else:
-            retval.append(letter)
-
-    return _PreEscaped("".join(retval))
-
-
-TEXT_VALUE_ESCAPES = {
-    '"': "&quot;",
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    # Note that here we replace tabs with 4-spaces, like in python ;-)
-    # but it makes sense for easy parsing and showing to users
-    "\t": "    ",
-}
-
-TEXT_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
-
-
-def _get_escape(letter, escapes, unicode_escape_template):
-    codepoint = ord(letter)
-    if is_unicode_escape(codepoint):
-        return unicode_escape_template % codepoint
-    return escapes.get(letter)
-
-
-def jinja2_text_value_escape_filter(value):
-    """
-    This method is used to escape text values:
-
-        <tag>text</tag>
-
-    The objective is to escape all the special characters which can not be
-    printed in that context, and the special characters which might be in
-    the input and we want to escape to avoid "xml injection".
-
-    We also implement something very specific for special characters. We're
-    replacing the XML invalid characters with:
-
-        <character code="%04x"/>
-
-    The parser should handle that and replace these tags with the real char
-    (if it can be handled by the reader).
-
-    :param value: The value to escape
-    :return: The escaped string
-    """
-    if not isinstance(value, str):
-        return value
-
-    # Fix some encoding errors which are triggered when the value is not an
-    # unicode string
-    value = smart_unicode(value)
-    retval = []
-
-    for letter in value:
-        if letter in TEXT_VALUE_ESCAPES_IGNORE:
-            retval.append(letter)
-            continue
-
-        escape = _get_escape(letter, TEXT_VALUE_ESCAPES, '<character code="%04x"/>')
-        if escape is not None:
-            retval.append(escape)
-        else:
-            retval.append(letter)
-
-    return _PreEscaped("".join(retval))

@@ -4543,6 +4543,17 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: política de escape XML separada
+
+Las funciones puras `escape_attr` y `escape_text`, sus tablas de reemplazo y la
+marca de salida pre-escapada viven ahora en `xml_filters.py`. `xml_file.py`
+conserva las exportaciones públicas mediante `__all__`, pero queda centrado en
+la configuración y el ciclo de vida del plugin.
+
+Verificación: **32 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
+El score global continúa en **9.99/10**, con los gates heredados, el fallback
+standalone y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: parseo de query strings sin lista intermedia
 
 `parse_qsl()` procesa ahora cada segmento `&` y `;` directamente, eliminando
