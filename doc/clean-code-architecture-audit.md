@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: lectura keepalive compatible con stdlib
+
+La respuesta keepalive mantiene el override de `fileno` y las rutas de lectura
+chunked/segura que requiere el runtime, pero declara esas APIs privadas de
+`http.client` como una frontera externa explícita. No se duplican cuerpos ni
+se altera el cierre que devuelve la conexión al pool.
+
+Verificación: la suite keepalive pasa **56 tests**; mypy focal, Ruff y Black
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: estadísticas del pool keepalive
 
 El logging del gestor de conexiones separa la lista de fragmentos de

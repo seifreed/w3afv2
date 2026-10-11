@@ -1,4 +1,5 @@
 import http.client
+from typing import Any, cast
 
 from w3af.core.data.constants.response_codes import NO_CONTENT
 
@@ -17,7 +18,7 @@ class HTTPResponse(http.client.HTTPResponse):
     def __init__(self, sock, debuglevel=0, method=None, configuration=None):
         http.client.HTTPResponse.__init__(self, sock, debuglevel, method=method)
         self._configuration = configuration
-        self.fileno = sock.fileno
+        cast(Any, self).fileno = sock.fileno
         self.code = None
         self._handler = None  # inserted by the handler later
         self._host = None  # (same)
@@ -70,12 +71,12 @@ class HTTPResponse(http.client.HTTPResponse):
             return b""
 
         if self.chunked:
-            return self._read_chunked(None)
+            return cast(Any, self)._read_chunked(None)
 
         if self.length is None:
             s = self.fp.read()
         else:
-            s = self._safe_read(self.length)
+            s = cast(Any, self)._safe_read(self.length)
             self.length = 0
         self.close()  # we read everything
         return s
