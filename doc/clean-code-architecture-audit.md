@@ -5724,3 +5724,16 @@ Verificación: las comprobaciones focales de estos módulos quedan limpias en
 Black, Ruff, mypy y Bandit; la suite completa de parsers sigue pendiente. El
 score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
+
+## Actualización verificada: puertos dinámicos de plugins
+
+`Plugin` declara explícitamente como `Any` los tres puntos de integración que
+reciben implementaciones runtime heterogéneas: el abridor de URLs, la salida
+y el pool de workers. La decisión queda confinada a la frontera de
+infraestructura en lugar de propagarse como `None | Any` por los plugins, y se
+anota también el acumulador del test de formularios.
+
+Verificación: mypy global baja a **681 errores en 268 archivos** desde 1248;
+las comprobaciones focales de los archivos modificados quedan limpias. El
+score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.

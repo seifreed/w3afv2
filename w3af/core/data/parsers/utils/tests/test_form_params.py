@@ -539,7 +539,7 @@ def get_grouped_data(form_data):
          'sex': ['M', 'F'], ...}
 
     """
-    res = {}
+    res: dict[str, list[str]] = {}
 
     for elem_data in form_data:
         values = res.setdefault(elem_data["name"], [])

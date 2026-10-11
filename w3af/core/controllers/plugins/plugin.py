@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 import threading
 from itertools import repeat
+from typing import Any
 
 from tblib.decorators import Error
 
@@ -58,15 +59,15 @@ class Plugin(Configurable):
         """
         Create some generic attributes that are going to be used by most plugins
         """
-        self._uri_opener = None
+        self._uri_opener: Any = None
         self._w3af_core = None
         self._configuration = None
         self._knowledge_base = None
         self._parser_cache = None
         self._id_generator = NumberGenerator()
         self._fingerprint_404 = None
-        self._output = None
-        self.worker_pool = None
+        self._output: Any = None
+        self.worker_pool: Any = None
 
         self.output_queue: queue.Queue[FuzzableRequest] = queue.Queue()
         self._plugin_lock = threading.RLock()
