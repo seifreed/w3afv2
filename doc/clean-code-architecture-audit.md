@@ -4543,6 +4543,18 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: decodificación HTTP idempotente bajo lock
+
+`HTTPResponse.get_body()` y `get_charset()` comparten ahora `_decode_body()`.
+La comprobación del estado ocurre dentro del mismo lock que realiza la
+decodificación, evitando que dos hebras creen dos cuerpos decodificados para
+la misma respuesta. Se conserva la liberación del cuerpo raw cuando la
+respuesta no es binaria.
+
+Verificación: **92 tests** de HTTPResponse y ExtendedUrllib pasan; Black, Ruff
+y mypy focales pasan. El score global continúa en **9.99/10**, con los gates
+heredados, el fallback standalone y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: escape XML lineal para entradas grandes
 
 Los filtros `escape_attr` y `escape_text` acumulaban cada carácter con `+=`.

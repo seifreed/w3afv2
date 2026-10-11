@@ -401,14 +401,9 @@ class HTTPResponse(DiskItem):
         if self._body is not None:
             return self._body
 
-        with self._body_lock:
-            self._body, self._charset = self._charset_handling()
+        self._decode_body()
 
-            # The user wants the raw body, without any modifications / decoding?
-            if not self._binary_response:
-                self._raw_body = None
-
-            return self._body
+        return self._body
 
     def set_body(self, body):
         """
@@ -488,12 +483,7 @@ class HTTPResponse(DiskItem):
         if self._charset:
             return self._charset
 
-        with self._body_lock:
-            self._body, self._charset = self._charset_handling()
-
-            # The user wants the raw body, without any modifications / decoding?
-            if not self._binary_response:
-                self._raw_body = None
+        self._decode_body()
 
         return self._charset
 
@@ -651,6 +641,17 @@ class HTTPResponse(DiskItem):
 
     def get_msg(self):
         return self._msg
+
+    def _decode_body(self):
+        with self._body_lock:
+            if self._body is not None and self._charset is not None:
+                return
+
+            self._body, self._charset = self._charset_handling()
+
+            # The user wants the raw body, without any modifications / decoding?
+            if not self._binary_response:
+                self._raw_body = None
 
     def _charset_handling(self):
         decoder = ResponseBodyDecoder(
