@@ -59,5 +59,18 @@ def enable_dns_cache(output):
     #  Copyright 2003 - 2004 Tor Hveem - <tor@bash.no>
     #  Copyright 2004 Omar Kilani for tinysofa - <http://www.tinysofa.org>
     """
+    global _resolve
+
+    if getattr(socket.getaddrinfo, "func", None) is not _caching_getaddrinfo:
+        _resolve = socket.getaddrinfo
+
     output.debug("Enabling _dns_cache()")
     socket.getaddrinfo = partial(_caching_getaddrinfo, output)
+    return disable_dns_cache
+
+
+def disable_dns_cache():
+    """Restore the resolver and release cached DNS responses."""
+    if getattr(socket.getaddrinfo, "func", None) is _caching_getaddrinfo:
+        socket.getaddrinfo = _resolve
+    _dns_cache.clear()

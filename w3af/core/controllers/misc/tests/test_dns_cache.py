@@ -25,15 +25,26 @@ import unittest
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc import dns_cache
-from w3af.core.controllers.misc.dns_cache import enable_dns_cache
+from w3af.core.controllers.misc.dns_cache import disable_dns_cache, enable_dns_cache
 
 
 class TestDNSCache(unittest.TestCase):
+    def setUp(self):
+        self.addCleanup(disable_dns_cache)
+
     def test_enable_replaces_getaddrinfo(self):
         enable_dns_cache(om.out)
         enable_dns_cache(om.out)
 
         self.assertIs(socket.getaddrinfo.func, dns_cache._caching_getaddrinfo)
+
+    def test_disable_restores_getaddrinfo(self):
+        original = socket.getaddrinfo
+
+        enable_dns_cache(om.out)
+        disable_dns_cache()
+
+        self.assertIs(socket.getaddrinfo, original)
 
     def test_second_query_is_served_from_cache(self):
         enable_dns_cache(om.out)

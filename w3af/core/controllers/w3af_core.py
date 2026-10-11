@@ -96,6 +96,14 @@ NO_MEMORY_MSG = (
 )
 
 
+def _stop_core_resources(output_manager, dns_cache_cleanup):
+    output_manager.stop()
+    cleanup = dns_cache_cleanup[0]
+    if cleanup is not None:
+        cleanup()
+        dns_cache_cleanup[0] = None
+
+
 class w3afCore:
     """
     This is the core of the framework, it calls all plugins, handles exceptions,
@@ -138,7 +146,10 @@ class w3afCore:
         manager, output = create_output_manager()
         configure_data_logging(output)
         register_parser_multiprocessing(manager)
-        self._output_manager_finalizer = weakref.finalize(self, manager.stop)
+        self._dns_cache_cleanup = [None]
+        self._output_manager_finalizer = weakref.finalize(
+            self, _stop_core_resources, manager, self._dns_cache_cleanup
+        )
         self._output = output
         self._output_manager = manager
         self._fingerprint_404 = None
@@ -237,7 +248,7 @@ class w3afCore:
             prepare_home_directory()
             prepare_tmp_directory()
 
-            enable_dns_cache(self._output)
+        self._dns_cache_cleanup[0] = enable_dns_cache(self._output)
 
         # Reset global sequence number generator
         consecutive_number_generator.reset()
@@ -438,6 +449,10 @@ class w3afCore:
         if self._fingerprint_404 is not None:
             self._fingerprint_404.cleanup()
             self._fingerprint_404 = None
+
+        if self._dns_cache_cleanup[0] is not None:
+            self._dns_cache_cleanup[0]()
+            self._dns_cache_cleanup[0] = None
 
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #
