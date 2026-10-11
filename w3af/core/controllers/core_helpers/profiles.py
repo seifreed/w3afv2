@@ -20,20 +20,68 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from typing import Protocol
+from typing import Any, Protocol
 
+from w3af.core.controllers.core_helpers.profile_repository import ProfileRepository
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc_settings import MiscSettings
-from w3af.core.controllers.core_helpers.profile_repository import ProfileRepository
 from w3af.core.exceptions import BaseFrameworkException
+
+
+class ProfilePlugins(Protocol):
+    """Plugin operations required while loading or saving a profile."""
+
+    def get_plugin_types(self) -> list[str]: ...
+
+    def get_enabled_plugins(self, plugin_type: str) -> list[str]: ...
+
+    def get_plugin_options(self, plugin_type: str, plugin_name: str) -> Any: ...
+
+    def zero_enabled_plugins(self) -> None: ...
+
+    def set_plugins(
+        self, plugin_names: list[str], plugin_type: str, raise_on_error: bool
+    ) -> list[str]: ...
+
+    def get_quick_instance(self, plugin_type: str, plugin_name: str) -> Any: ...
+
+    def set_plugin_options(
+        self, plugin_type: str, plugin_name: str, plugin_options: Any
+    ) -> None: ...
+
+
+class ProfileTarget(Protocol):
+    """Target operations required while applying a profile."""
+
+    def clear(self) -> None: ...
+
+    def get_options(self) -> Any: ...
+
+    def set_options(self, options: Any) -> None: ...
+
+
+class ProfileHttpSettings(Protocol):
+    """HTTP settings operations required while applying a profile."""
+
+    def get_options(self) -> Any: ...
+
+    def set_default_values(self) -> None: ...
+
+    def set_options(self, options: Any) -> None: ...
+
+
+class ProfileUriOpener(Protocol):
+    """URI opener boundary used by profile persistence."""
+
+    settings: ProfileHttpSettings
 
 
 class ProfileRuntimeContext(Protocol):
     """Runtime services required while applying a profile."""
 
-    plugins: object
-    target: object
-    uri_opener: object
+    plugins: ProfilePlugins
+    target: ProfileTarget
+    uri_opener: ProfileUriOpener
 
 
 class CoreProfiles:
@@ -44,6 +92,15 @@ class CoreProfiles:
         self._runtime_context = runtime_context
         self._configuration = configuration
         self._profile_repository = ProfileRepository()
+
+    @property
+    def _runtime(self) -> ProfileRuntimeContext:
+        if self._runtime_context is None:
+            raise RuntimeError(
+                "A runtime context is required for profile configuration operations."
+            )
+
+        return self._runtime_context
 
     def save_current_to_new_profile(
         self, profile_name, profile_desc="", self_contained=False
@@ -93,7 +150,7 @@ class CoreProfiles:
 
     def _save_plugin_configuration(self, profile_inst, self_contained):
         """Save enabled plugins and their configured options."""
-        plugins = self._runtime_context.plugins
+        plugins = self._runtime.plugins
 
         for plugin_type in plugins.get_plugin_types():
             enabled_plugins = list(plugins.get_enabled_plugins(plugin_type))
@@ -120,9 +177,7 @@ class CoreProfiles:
         """Save misc and HTTP settings to a profile."""
         misc_settings = MiscSettings(self._configuration)
         profile_inst.set_misc_settings(misc_settings.get_options())
-        profile_inst.set_http_settings(
-            self._runtime_context.uri_opener.settings.get_options()
-        )
+        profile_inst.set_http_settings(self._runtime.uri_opener.settings.get_options())
 
     def use_profile(self, profile_name, workdir=None):
         """
@@ -158,17 +213,15 @@ class CoreProfiles:
 
     def _reset_configuration(self):
         """Clear the current profile values before loading a new profile."""
-        self._runtime_context.plugins.zero_enabled_plugins()
+        self._runtime.plugins.zero_enabled_plugins()
         MiscSettings(self._configuration).set_default_values()
-        self._runtime_context.uri_opener.settings.set_default_values()
+        self._runtime.uri_opener.settings.set_default_values()
 
     def _load_target(self, profile_inst):
         """Apply the target stored in a profile to the core."""
-        self._runtime_context.target.clear()
-        target_options = profile_inst.get_target(
-            self._runtime_context.target.get_options()
-        )
-        self._runtime_context.target.set_options(target_options)
+        self._runtime.target.clear()
+        target_options = profile_inst.get_target(self._runtime.target.get_options())
+        self._runtime.target.set_options(target_options)
 
     def _load_settings(self, profile_inst, error_messages):
         """Apply framework and HTTP settings, collecting profile errors."""
@@ -198,11 +251,11 @@ class CoreProfiles:
             )
             error_messages.append(msg % exception)
         else:
-            self._runtime_context.uri_opener.settings.set_options(http_settings)
+            self._runtime.uri_opener.settings.set_options(http_settings)
 
     def _load_plugin_options(self, profile_inst, error_messages):
         """Apply each plugin's saved options and collect stale settings."""
-        plugins = self._runtime_context.plugins
+        plugins = self._runtime.plugins
 
         for plugin_type in plugins.get_plugin_types():
             plugin_names = profile_inst.get_enabled_plugins(plugin_type)

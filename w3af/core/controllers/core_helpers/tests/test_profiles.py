@@ -30,6 +30,7 @@ from configparser import ConfigParser
 import pytest
 
 from w3af import ROOT_PATH
+from w3af.core.controllers.core_helpers.profiles import CoreProfiles
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.profile.profile import profile
 from w3af.core.exceptions import BaseFrameworkException
@@ -71,6 +72,12 @@ class TestCoreProfiles(unittest.TestCase):
 
         actual_target = self.core.target.get_options()["target"].get_value()
         self.assertEqual(expected_target, actual_target)
+
+    def test_profile_configuration_requires_runtime_context(self):
+        profiles = CoreProfiles(None, self.core.configuration)
+
+        with self.assertRaisesRegex(RuntimeError, "runtime context is required"):
+            profiles.use_profile(None)
 
     def test_save_current_to_new_profile(self):
         self.core.profiles.use_profile("OWASP_TOP10", workdir=".")

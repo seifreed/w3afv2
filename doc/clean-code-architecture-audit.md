@@ -21,7 +21,7 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.6/10 | Alta |
+| Clean Code | 9.7/10 | Alta |
 | Clean Architecture | 9.8/10 | Alta |
 | Global | 9.7/10 | Alta |
 
@@ -8105,3 +8105,17 @@ del factory y la prueba de capas pasan. Black, Ruff, mypy y Bandit dirigidos
 están limpios en el factory; el score sube a **9.7/10 global**. Sigue pendiente
 aislar la composición del pipeline HTTP de `ExtendedUrllib` y cerrar la
 evidencia de cobertura y gates globales.
+
+## Actualización verificada: contratos de perfiles explícitos
+
+`ProfileRuntimeContext` ya no expone colaboradores como `object`: plugins,
+target y settings HTTP tienen Protocols mínimos con las operaciones que
+`CoreProfiles` realmente usa. Las operaciones que modifican configuración
+requieren ahora un runtime explícito y producen un error claro cuando se usa
+`CoreProfiles(None)`; el listado de perfiles sigue siendo independiente del
+core.
+
+Verificación: la suite de perfiles pasa **13 tests**; mypy con
+`--check-untyped-defs`, Ruff, Black y Bandit dirigidos pasan en los módulos
+modificados. Clean Code sube a **9.7/10**; todavía queda pendiente la
+composición del pipeline HTTP y la cobertura/gates globales.
