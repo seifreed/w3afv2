@@ -102,6 +102,7 @@ class TestW3afCore(unittest.TestCase):
     def test_quit_is_idempotent(self):
         self.core.quit()
         self.core.quit()
+        self.core._resource_lifecycle.stop()
 
         self.assertFalse(self.core._output_manager.is_alive())
 

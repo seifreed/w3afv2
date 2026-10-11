@@ -7342,6 +7342,9 @@ orden de teardown y hace la operación idempotente, por lo que el finalizer y
 Verificación: **23 tests** de la suite completa de `w3afCore` pasan; Black,
 Ruff y mypy pasan en los módulos modificados.
 
+La prueba focalizada del nuevo lifecycle exige además **100% de cobertura**
+del módulo (`18/18` líneas), incluida la rama de teardown repetido.
+
 La medición de seguridad del estado actual mantiene **25 avisos Bandit**,
 todos `B404`/`B603` sobre subprocesses explícitos de tests y scripts Docker;
 `pip-audit` no encuentra vulnerabilidades conocidas y sólo omite la
