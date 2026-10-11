@@ -75,7 +75,7 @@ class TestXUrllib(unittest.TestCase):
         self.ssl_server = RouteServer.serve_for(self, routes, use_tls=True)
 
     def test_evasion_plugins_are_sorted_by_priority(self):
-        evasion_plugins = [rnd_case(), rnd_path()]
+        evasion_plugins = [rnd_path(), rnd_case()]
 
         self.uri_opener.set_evasion_plugins(evasion_plugins)
 
@@ -83,6 +83,21 @@ class TestXUrllib(unittest.TestCase):
             plugin.get_priority() for plugin in self.uri_opener._evasion_plugins
         ]
         self.assertEqual(priorities, [0, 25])
+        self.assertEqual(
+            [plugin.get_priority() for plugin in evasion_plugins],
+            [0, 25],
+        )
+
+    def test_evasion_plugins_are_returned_as_a_snapshot(self):
+        self.uri_opener.set_evasion_plugins([rnd_case()])
+
+        plugins = self.uri_opener._evasion_plugins
+        plugins.clear()
+
+        self.assertEqual(
+            [plugin.get_priority() for plugin in self.uri_opener._evasion_plugins],
+            [25],
+        )
 
     def test_basic(self):
         http_response = self.uri_opener.GET(URL(self.server.url()), cache=False)

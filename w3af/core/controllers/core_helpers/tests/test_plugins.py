@@ -28,6 +28,7 @@ import pytest
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
+from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.db.disk_list import CLOSED
 from w3af.core.exceptions import BaseFrameworkException
@@ -69,6 +70,16 @@ class TestPluginRegistryStructure(unittest.TestCase):
         selected["crawl"].append("custom_crawl")
 
         self.assertEqual(core_plugins.get_enabled_plugins("crawl"), [])
+
+    def test_plugin_instance_snapshots_are_not_mutable(self):
+        core_plugins = CorePlugins(None, om.out, om.manager)
+        plugin = Plugin()
+        core_plugins.set_plugin_instances("crawl", [plugin])
+
+        instances = core_plugins.get_plugin_instances("crawl")
+        instances.clear()
+
+        self.assertEqual(core_plugins.get_plugin_instances("crawl"), [plugin])
 
 
 @pytest.mark.smoke

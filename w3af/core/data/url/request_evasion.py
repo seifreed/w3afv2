@@ -15,11 +15,10 @@ class RequestEvasionPipeline:
 
     @property
     def plugins(self):
-        return self._plugins
+        return list(self._plugins)
 
     def set_plugins(self, plugins) -> None:
-        plugins.sort(key=lambda plugin: plugin.get_priority())
-        self._plugins = plugins
+        self._plugins = sorted(plugins, key=lambda plugin: plugin.get_priority())
 
     def apply(self, request):
         for plugin in self._plugins:

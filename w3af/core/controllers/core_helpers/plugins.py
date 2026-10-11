@@ -72,7 +72,7 @@ class CorePlugins(PluginCatalog):
 
     def get_plugin_instances(self, plugin_type: str) -> list[Plugin]:
         """Return the active instances for a plugin type."""
-        return self._plugins[plugin_type]
+        return list(self._plugins[plugin_type])
 
     def set_plugin_instances(self, plugin_type: str, plugins: list[Plugin]) -> None:
         """Replace the active instances for a plugin type."""

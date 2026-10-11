@@ -119,7 +119,10 @@ class CrawlConsumerTest(unittest.TestCase):
     def start_consumer(self, plugins, max_discovery_time=NEVER, observer=None):
         for plugin in plugins:
             plugin.set_output(om.out)
-            self.core.plugins.get_plugin_instances(plugin.get_type()).append(plugin)
+            plugin_type = plugin.get_type()
+            registered_plugins = self.core.plugins.get_plugin_instances(plugin_type)
+            registered_plugins.append(plugin)
+            self.core.plugins.set_plugin_instances(plugin_type, registered_plugins)
 
         consumer = CrawlInfrastructure(
             plugins,

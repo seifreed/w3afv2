@@ -7730,3 +7730,15 @@ validar el entorno, preservando el comportamiento ante errores de validación.
 
 Verificación: la regresión de profiling, core y estrategia pasan; Black, Ruff y
 mypy dirigido pasan en los módulos modificados.
+
+## Actualización verificada: snapshots de instancias y evasiones
+
+`CorePlugins.get_plugin_instances()` entrega ahora un snapshot, y
+`RequestEvasionPipeline` ordena una copia y expone otra copia al consultar.
+Así, los consumidores no pueden mutar el registro compartido ni cambiar la
+selección de evasiones por referencia durante un scan.
+
+Verificación: **55 tests** de urllib y **45 tests** de plugins/discovery pasan;
+el RSS máximo de la batería HTTP fue **129777664 bytes**. Black, Ruff y mypy
+dirigido pasan en los módulos nuevos; el análisis transitivo de mypy mantiene
+únicamente el import sin stubs de `defusedxml`.
