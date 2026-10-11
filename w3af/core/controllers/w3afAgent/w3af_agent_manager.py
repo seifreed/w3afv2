@@ -231,18 +231,18 @@ class w3afAgentManager(Process):
         """
         return get_python3_client(self._exec, CLIENT_PATH)
 
-    def _is_locally_available(self, port):
+    @staticmethod
+    def _is_locally_available(port):
         """
         :return: True if the current user can bind to the specified port.
         """
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        try:
-            s.bind((ALL_INTERFACES, port))
-        except OSError:
-            #    socket.error: [Errno 13] Permission denied
-            #    Or some similar error
-            return False
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+            try:
+                server_socket.bind((ALL_INTERFACES, port))
+            except OSError:
+                #    socket.error: [Errno 13] Permission denied
+                #    Or some similar error
+                return False
 
         return True
 

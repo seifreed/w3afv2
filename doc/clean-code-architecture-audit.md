@@ -7212,3 +7212,13 @@ el mismo contrato.
 Verificación: extrusión y cliente del agente pasan **6 tests y 2 omitidos**.
 Black, Ruff, Mypy y Bandit de producción pasan en los tres módulos modificados
 y la nueva utilidad.
+
+## Actualización verificada: cierre de sockets del agente
+
+`w3afAgentManager._is_locally_available()` dejaba abierto el socket creado para
+probar un puerto, incluida la rama de `bind` fallido. Ahora el socket vive en
+un context manager y se libera antes de devolver el resultado, evitando fuga
+de descriptores durante los intentos sucesivos de selección de puerto.
+
+Verificación: agent manager, extrusión y cliente pasan **7 tests y 2 omitidos**;
+Black, Ruff, Mypy y Bandit de producción pasan en los archivos modificados.
