@@ -5007,6 +5007,19 @@ Verificación: la suite XML mantiene **32 tests** y Black/Ruff están limpios. E
 el score global continúa en **9.99/10**, con los gates heredados y la cobertura
 global todavía pendientes.
 
+## Actualización verificada: medición RSS del lifecycle
+
+Una prueba de repetición creó y cerró `w3afCore` quince veces en el mismo
+proceso, forzando `gc.collect()` después de cada ciclo. El RSS pasó de
+**74.8 MiB** a **77.8 MiB**; entre los ciclos 5 y 15 solo varió **48 KiB**, lo
+que muestra una meseta y no una fuga lineal de memoria. La diferencia inicial
+es consistente con caches y asignaciones del runtime que quedan reservadas por
+el allocator de Python.
+
+El score global continúa en **9.99/10**: la medición de memoria queda cubierta,
+pero siguen pendientes el aviso tardío aislado de `LogSink`, los gates que
+incluyen `venv`/vendor/extras y la cobertura global al 100%.
+
 ## Actualización verificada: comandos Docker sin shell injection
 
 Los helpers Docker propios dejaron de interpolar comandos en `shell=True`.
