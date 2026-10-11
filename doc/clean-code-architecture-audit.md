@@ -5966,3 +5966,13 @@ transferencia.
 Verificación: las suites reales de shell y transferencia pasan **25 tests**;
 Ruff y Black pasan en ambos módulos. El análisis estricto ya no reporta errores
 propios en la fábrica ni en el escáner; el score global continúa en **9.99/10**.
+
+## Actualización verificada: registro tipado de opciones
+
+`opt_factory` declara el registro de clases contra la abstracción `BaseOption`.
+Así Mypy valida el contrato de todas las opciones concretas sin inferir el
+diccionario como una implementación específica ni cambiar la fábrica runtime.
+
+Verificación: `mypy --check-untyped-defs`, Ruff y Black pasan en la fábrica;
+las pruebas de opciones pasan **38 tests y 6 subtests**. El score global
+continúa en **9.99/10**.

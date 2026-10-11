@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.bool_option import BoolOption
 from w3af.core.data.options.combo_option import ComboOption
 from w3af.core.data.options.float_option import FloatOption
@@ -65,7 +66,7 @@ def opt_factory(name, default_value, desc, _type, help="", tabid=""):
     A factory function which will generate one of the Option objects based
     on the _type passed as parameter.
     """
-    option_klasses = {
+    option_klasses: dict[str, type[BaseOption]] = {
         BOOL: BoolOption,
         INT: IntegerOption,
         POSITIVE_INT: PositiveIntegerOption,
