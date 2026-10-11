@@ -4543,6 +4543,17 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: parser de query strings separado de `URL`
+
+`parse_qsl()` y `parse_qs()` viven ahora en `url_query.py`, donde solo dependen
+de `QueryString` y de la librería estándar. `url.py` reexporta explícitamente
+esas funciones junto con `URL` e `InvalidURLError`, manteniendo los imports de
+plugins y opciones mientras reduce responsabilidades del objeto de dominio.
+
+Verificación: **141 tests** de URL y evasión pasan, con 1 omitido; Black, Ruff y
+mypy focales pasan. El score global continúa en **9.99/10**, con los gates
+heredados, el fallback standalone y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: política de escape XML separada
 
 Las funciones puras `escape_attr` y `escape_text`, sus tablas de reemplazo y la

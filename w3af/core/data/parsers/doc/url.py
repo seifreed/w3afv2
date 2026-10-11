@@ -24,7 +24,6 @@ import copy
 import re
 import socket
 import urllib.parse
-from collections import OrderedDict
 from functools import lru_cache, wraps
 
 from tldextract import TLDExtract
@@ -38,6 +37,9 @@ from w3af.core.data.misc.encoding import (
     smart_unicode,
 )
 from w3af.core.data.misc.ip_address import is_ip_address
+from w3af.core.data.parsers.doc.url_query import parse_qs, parse_qsl
+
+__all__ = ["URL", "InvalidURLError", "parse_qs", "parse_qsl"]
 
 
 @lru_cache(maxsize=1)
@@ -77,74 +79,6 @@ def memoized(meth):
             return value
 
     return cache_wrapper
-
-
-def parse_qsl(qs, encoding=DEFAULT_ENCODING):
-    """This was a slightly modified version of the function with the same name
-    that is defined in urlparse.py . I modified it, and then reverted the patch
-    to have different handling of '+':
-
-    -        name = unquote(nv[0].replace('+', ' '))
-    -        value = unquote(nv[1].replace('+', ' '))
-    +        name = unquote(nv[0])
-    +        value = unquote(nv[1])
-
-    Due to this [0] bug: "Proxy (and maybe others) affected by querystring +
-    not being decoded by URL class #9139", I reverted my changes to the function
-    but kept it here for better docs.
-
-    [0] https://github.com/andresriancho/w3af/issues/9139
-
-    Arguments:
-
-    qs: percent-encoded query string to be parsed
-
-    Blank values are kept as blank strings, a control-name without an equal
-    sign gets a blank value, and empty pairs are ignored.
-
-    encoding: Character encoding used to decode percent-encoded octets.
-
-    Returns a list, as G-d intended.
-    """
-    r = []
-    for ampersand_pair in qs.split("&"):
-        for name_value in ampersand_pair.split(";"):
-            if not name_value:
-                continue
-            nv = name_value.split("=", 1)
-            if len(nv) != 2:
-                # Handle case of a control-name with no equal sign
-                nv.append("")
-            name = urllib.parse.unquote(
-                nv[0].replace("+", " "), encoding=encoding, errors="ignore"
-            )
-            value = urllib.parse.unquote(
-                nv[1].replace("+", " "), encoding=encoding, errors="ignore"
-            )
-            r.append((name, value))
-
-    return r
-
-
-def parse_qs(qstr, encoding=DEFAULT_ENCODING):
-    """
-    Parse a url encoded string (a=b&c=d) into a QueryString object.
-
-    :param qstr: The string to parse
-    :return: A QueryString object (a dict wrapper).
-    """
-    if not isinstance(qstr, str):
-        raise TypeError("parse_qs requires a basestring as input.")
-
-    qs = QueryString(encoding=encoding)
-
-    odict = OrderedDict()
-    for name, value in parse_qsl(qstr, encoding=encoding):
-        odict.setdefault(name, []).append(value)
-
-    qs.update(odict.items())
-
-    return qs
 
 
 class InvalidURLError(ValueError):
