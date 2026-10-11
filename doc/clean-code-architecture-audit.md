@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contratos numéricos y estado de observadores
+
+Los observadores de estrategia inicializan sus relojes como `float`, validan
+que el hilo inspeccionado exista antes de consultar su estado y separan las
+líneas de trazado de la cadena final. También se tipó el estado de apoyo del
+test, eliminando errores estrictos sin cambiar el comportamiento observable.
+
+Verificación: la suite de observadores pasa **18 tests**, y mypy estricto,
+Ruff y Black están limpios. El score global continúa en **9.99/10**, con los
+gates globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: recorders de salida aislados entre tests
 
 `start_recording_output()` retiraba los `recording_output` anteriores del

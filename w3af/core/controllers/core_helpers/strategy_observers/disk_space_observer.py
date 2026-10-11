@@ -55,7 +55,7 @@ class DiskSpaceObserver(StrategyObserver):
 
     def __init__(self):
         super().__init__()
-        self.last_call = 0
+        self.last_call = 0.0
 
     def analyze_disk_space(self, *args):
         # Don't measure disk usage each time we get called, in some platforms

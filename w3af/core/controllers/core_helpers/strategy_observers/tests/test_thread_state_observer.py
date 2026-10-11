@@ -74,7 +74,7 @@ def alive_threads_named(name):
 
 
 def worker_state(**overrides):
-    state = {
+    state: dict[str, object] = {
         "func_name": "audit_plugin",
         "args": (),
         "kwargs": {},

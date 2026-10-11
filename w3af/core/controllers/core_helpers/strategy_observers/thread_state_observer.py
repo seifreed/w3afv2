@@ -171,7 +171,7 @@ class ThreadStateObserver(StrategyObserver):
         for thread_id, frame in list(sys._current_frames().items()):
             thread = threads_by_id.get(thread_id)
 
-            if not hasattr(thread, "get_state"):
+            if thread is None or not hasattr(thread, "get_state"):
                 continue
 
             worker_id = thread.get_state()["worker_id"]
@@ -179,11 +179,11 @@ class ThreadStateObserver(StrategyObserver):
             if worker_id not in workers_to_inspect:
                 continue
 
-            trace = [
+            trace_lines = [
                 f"{filename}:{lineno} @ {name}()"
                 for filename, lineno, name, _ in traceback.extract_stack(frame)
             ]
-            trace = ", ".join(trace[-10:])
+            trace = ", ".join(trace_lines[-10:])
 
             for worker_state in inspect_data:
                 if worker_state["worker_id"] == worker_id:

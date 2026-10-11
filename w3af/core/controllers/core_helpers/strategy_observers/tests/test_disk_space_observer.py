@@ -78,8 +78,8 @@ class TestDiskSpaceObserver(unittest.TestCase):
         observer.MIN_FREE_BYTES = (2**52) * 1024 * 1024
 
         for hook in (observer.crawl, observer.audit, observer.bruteforce):
-            observer.last_call = 0
+            observer.last_call = 0.0
             self.assertRaises(OSError, hook, None, None)
 
-        observer.last_call = 0
+        observer.last_call = 0.0
         self.assertRaises(OSError, observer.grep, None, None, None)

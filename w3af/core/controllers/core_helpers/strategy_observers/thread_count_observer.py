@@ -39,7 +39,7 @@ class ThreadCountObserver(StrategyObserver):
     def __init__(self, output):
         super().__init__()
         self._output = output
-        self.last_call = 0
+        self.last_call = 0.0
 
     def log_thread_count(self, *args):
         # Don't measure threads each time we get called
