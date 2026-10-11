@@ -7920,3 +7920,14 @@ visible en el código.
 Verificación: **86 tests** de plugins, urllib y core pasan; la prueba de capas,
 Black y Ruff globales pasan, y mypy/Bandit dirigidos no encuentran errores en
 los módulos modificados.
+
+## Actualización verificada: preflight HTTP aislado
+
+La política que debe ejecutarse antes de enviar una petición salió de
+`ExtendedUrllib._before_send_hook` y pasó a `RequestPreflight`: stop/pausa,
+espera del rate-limit, ajuste de timeout, métricas e identificador de
+depuración mantienen el mismo orden observable. La fachada HTTP conserva el
+flujo de transporte y ahora solo coordina esta frontera explícita.
+
+Verificación: **67 tests** HTTP pasan; `RequestPreflight` tiene **100% de
+cobertura (22 statements)**; Black, Ruff y mypy dirigidos pasan.
