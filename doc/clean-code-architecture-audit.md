@@ -8259,3 +8259,8 @@ tests** antes de encontrar esta regresión. Durante la ejecución larga el RSS
 tuvo un pico puntual cercano a 631 MiB en tests de integración y no mostró un
 crecimiento continuo posterior; queda pendiente repetir la medición completa
 tras esta corrección.
+
+La suite completa de la API, sin cobertura, pasa **71 tests** y **40 subtests**
+con un RSS máximo de **129 MiB**. La diferencia frente al pico de la suite
+global instrumentada queda registrada como coste de cobertura/carga acumulada,
+no como una fuga reproducida del ciclo de vida de scans.
