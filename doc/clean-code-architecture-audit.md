@@ -6681,3 +6681,12 @@ como `Protocol`, y `SSLServer` valida el tipo TLS antes del handshake.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los tres
 helpers; sus **2 tests** pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contrato NTLM y helpers de xurllib
+
+La helper de tamaño de pool deja de sobrescribir `unittest.TestCase.fail`. Los
+tokens negociados por cliente y servidor NTLM se validan antes de pasarlos a
+`base64`, reflejando que la API de spnego puede devolver `None`.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **23 tests**
+de xurllib API pasan. El score global continúa en **9.99/10**.

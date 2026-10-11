@@ -259,7 +259,7 @@ class TestWorkerPoolSize(unittest.TestCase):
         self.worker_pool = self.w3af_core.worker_pool
         self.addCleanup(self.worker_pool.terminate_join)
 
-    def fail(self, times):
+    def fail_requests(self, times):
         for _ in range(times):
             try:
                 self.uri_opener.GET(URL(self.server.url("/fail")))
@@ -285,7 +285,7 @@ class TestWorkerPoolSize(unittest.TestCase):
         start = self.worker_pool.get_worker_count()
 
         # These errors happen before the core is set, no adjustments yet
-        self.fail(3)
+        self.fail_requests(3)
         self.configure_worker_pool()
 
         with self.assertLogs(LOGGER_NAME, "DEBUG") as logs:
@@ -306,7 +306,7 @@ class TestWorkerPoolSize(unittest.TestCase):
     def test_no_change_on_some_errors(self):
         start = self.worker_pool.get_worker_count()
 
-        self.fail(2)
+        self.fail_requests(2)
         self.configure_worker_pool()
 
         with self.assertLogs(LOGGER_NAME, "DEBUG") as logs:
@@ -347,9 +347,13 @@ class TestHandlerErrors(unittest.TestCase):
 
     def test_ntlm_handler_gives_up(self):
         negotiate = spnego.client("DOMAIN\\user", "pass", protocol="ntlm").step()
+        if negotiate is None:
+            raise AssertionError("NTLM client did not produce a negotiate token")
 
         def always_challenge(request):
             challenge = spnego.server(protocol="ntlm").step(negotiate)
+            if challenge is None:
+                raise AssertionError("NTLM server did not produce a challenge token")
             token = base64.b64encode(challenge).decode("ascii")
             return Response(401, "", headers=[("WWW-Authenticate", f"NTLM {token}")])
 
