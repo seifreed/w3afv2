@@ -28,7 +28,6 @@ from typing import Self
 
 from w3af.core.data.kb.config import Config
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.opener_settings import OpenerSettings
 from w3af.core.filesystem import create_temp_dir
 
 DROP_CONNECTION = object()
@@ -98,17 +97,15 @@ class FixtureProxy:
         """
         create_temp_dir()
 
-        settings = OpenerSettings()
+        uri_opener = ExtendedUrllib(configuration=cf)
         self._previous_proxy = [
             (name, cf.get(name)) for name in ("proxy_address", "proxy_port")
         ]
-        options = settings.get_options()
+        options = uri_opener.settings.get_options()
         options["proxy_address"].set_value("127.0.0.1")
         options["proxy_port"].set_value(self._server.server_address[1])
-        settings.set_options(options)
+        uri_opener.settings.set_options(options)
 
-        uri_opener = ExtendedUrllib()
-        uri_opener.settings = settings
         return uri_opener
 
 

@@ -25,9 +25,9 @@ import pytest
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.opener_settings import OpenerSettings
 from w3af.core.data.url.tests.helpers.raw_handlers import closed_port
 from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer, echo
 
@@ -38,9 +38,6 @@ INDEX = "<title>local test application</title>"
 class TestExtendedUrllibProxy(unittest.TestCase):
 
     def setUp(self):
-        self.uri_opener = ExtendedUrllib()
-        self.addCleanup(self.uri_opener.end)
-
         routes = {"/": Response(200, INDEX), "/echo": echo}
         self.server = RouteServer.serve_for(self, routes)
         self.ssl_server = RouteServer.serve_for(self, routes, use_tls=True)
@@ -54,14 +51,16 @@ class TestExtendedUrllibProxy(unittest.TestCase):
         self.addCleanup(self._proxy.stop)
 
         # Configure the proxy
-        settings = OpenerSettings()
+        configuration = Config()
+        self.uri_opener = ExtendedUrllib(configuration=configuration)
+        self.addCleanup(self.uri_opener.end)
+        settings = self.uri_opener.settings
         self.addCleanup(settings.set_default_values)
         options = settings.get_options()
         options["proxy_address"].set_value("127.0.0.1")
         options["proxy_port"].set_value(self._proxy.get_port())
 
         settings.set_options(options)
-        self.uri_opener.settings = settings
 
     def test_http_port_specification_via_proxy(self):
         self.assertEqual(self._proxy.total_handled_requests, 0)

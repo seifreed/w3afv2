@@ -8231,3 +8231,16 @@ La revisión de cobertura detectó además un método privado sin callers en
 `CorePlugins`; se eliminó en lugar de mantener una ruta muerta. Los módulos
 `CorePlugins` y `PluginConfiguration` quedan con **100% de cobertura** en sus
 40 pruebas focalizadas.
+
+## Regresión corregida: fixtures HTTP con settings reemplazadas
+
+La suite con cobertura detectó que los fixtures de Bing y del proxy sustituían
+`ExtendedUrllib.settings` después de construir el pipeline. Desde la extracción
+de `RequestComponentFactory`, los componentes conservaban la instancia antigua
+y las pruebas podían salir a Bing real o ignorar el proxy local. Los fixtures
+ahora configuran las settings que ya pertenecen al opener, manteniendo una
+única identidad para el handler y el pipeline.
+
+Verificación: **7 tests** de Bing y **4 tests** del proxy HTTP pasan con tráfico
+local; Black, Ruff y mypy focales pasan. La suite larga alcanzó **2.800 tests**
+antes de detectar esta regresión y se detuvo correctamente con `--maxfail=1`.
