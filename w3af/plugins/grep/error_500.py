@@ -50,11 +50,12 @@ class error_500(GrepPlugin):
         "<h1>Bad Request (Invalid URL)</h1>",
         "<title>406 Not Acceptable</title>",
     )
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         GrepPlugin.__init__(self)
 
-        self._error_500_responses = DiskSet(table_prefix="error_500")
+        self._error_500_responses = DiskSet(table_prefix="error_500", db=db)
 
     def grep(self, request, response):
         """

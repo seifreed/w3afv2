@@ -46,6 +46,7 @@ class open_api(CrawlPlugin):
     """
 
     FILENAMES: ClassVar = ["swagger.json", "openapi.json", "openapi.yaml"]
+    uses_database = True
 
     DIRECTORIES: ClassVar = [
         "/",
@@ -62,12 +63,12 @@ class open_api(CrawlPlugin):
         "/api/1.1/",
     ]
 
-    def __init__(self):
+    def __init__(self, db=None):
         CrawlPlugin.__init__(self)
 
         # Internal variables
         self._first_run = True
-        self._already_analyzed = DiskSet(table_prefix="open_api")
+        self._already_analyzed = DiskSet(table_prefix="open_api", db=db)
 
         # User configured variables
         self._query_string_auth = QueryString()

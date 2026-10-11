@@ -41,12 +41,13 @@ class dot_ds_store(CrawlPlugin):
     """
 
     DS_STORE = ".DS_Store"
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         CrawlPlugin.__init__(self)
 
         # Internal variables
-        self._analyzed_dirs = DiskSet()
+        self._analyzed_dirs = DiskSet(db=db)
 
     def crawl(self, fuzzable_request, debugging_id):
         """

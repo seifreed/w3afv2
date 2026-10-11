@@ -23,6 +23,7 @@ import os
 import tempfile
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.crawl.dir_file_bruter import dir_file_bruter
@@ -156,6 +157,7 @@ class TestDirFileBruter(PluginTest):
         self.addCleanup(os.remove, wordlist.name)
 
         plugin = dir_file_bruter()
+        plugin.set_output(om.out)
         generated = list(
             plugin._read_db_file_gen_url(URL(SITE_URL), wordlist.name, True)
         )

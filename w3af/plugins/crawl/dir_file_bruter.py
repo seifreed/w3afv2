@@ -43,8 +43,9 @@ class dir_file_bruter(CrawlPlugin):
     """
 
     BASE_PATH = os.path.join(ROOT_PATH, "plugins", "crawl", "dir_file_bruter")
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         CrawlPlugin.__init__(self)
 
         # User configured parameters
@@ -57,7 +58,7 @@ class dir_file_bruter(CrawlPlugin):
 
         # Internal variables
         self._exec = True
-        self._already_tested = DiskSet(table_prefix="dir_file_bruter")
+        self._already_tested = DiskSet(table_prefix="dir_file_bruter", db=db)
 
     def crawl(self, fuzzable_request, debugging_id):
         """

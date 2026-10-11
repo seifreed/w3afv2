@@ -39,14 +39,15 @@ class click_jacking(GrepPlugin):
 
     MAX_SAMPLES = 25
     DO_NOT_FRAME: ClassVar = {301, 302, 303, 307, 400, 403, 404, 500}
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         GrepPlugin.__init__(self)
 
         self._total_http_request_count = 0
         self._vuln_count = 0
-        self._vuln_urls = DiskSet(table_prefix="click_jacking")
-        self._vuln_ids = DiskSet(table_prefix="click_jacking")
+        self._vuln_urls = DiskSet(table_prefix="click_jacking", db=db)
+        self._vuln_ids = DiskSet(table_prefix="click_jacking", db=db)
 
     def grep(self, request, response):
         """

@@ -103,6 +103,22 @@ class TestW3afCorePlugins(unittest.TestCase):
         output_plugin = self.core._output_manager.get_output_plugin_inst()[0]
         self.assertIs(output_plugin._errors.db, self.core.database)
 
+    def test_all_disk_backed_plugins_use_core_database(self):
+        database_plugins = (
+            ("crawl", "dir_file_bruter", "_already_tested"),
+            ("crawl", "dot_ds_store", "_analyzed_dirs"),
+            ("crawl", "dwsync_xml", "_analyzed_dirs"),
+            ("crawl", "find_captchas", "_captchas_found"),
+            ("crawl", "open_api", "_already_analyzed"),
+            ("crawl", "web_spider", "_broken_links"),
+            ("grep", "click_jacking", "_vuln_urls"),
+            ("grep", "error_500", "_error_500_responses"),
+        )
+
+        for plugin_type, plugin_name, state_attribute in database_plugins:
+            plugin = self.core.plugins.get_plugin_inst(plugin_type, plugin_name)
+            self.assertIs(getattr(plugin, state_attribute).db, self.core.database)
+
     def test_database_backed_plugins_use_core_database(self):
         database_plugins = (
             ("audit", "generic", "_potential_vulns"),

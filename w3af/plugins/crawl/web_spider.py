@@ -50,14 +50,15 @@ class web_spider(CrawlPlugin):
     """
 
     UNAUTH_FORBID: ClassVar = {http_constants.UNAUTHORIZED, http_constants.FORBIDDEN}
+    uses_database = True
 
-    def __init__(self):
+    def __init__(self, db=None):
         CrawlPlugin.__init__(self)
 
         # Internal variables
         self._compiled_ignore_re = None
         self._compiled_follow_re = None
-        self._broken_links = DiskSet(table_prefix="web_spider")
+        self._broken_links = DiskSet(table_prefix="web_spider", db=db)
         self._first_run = True
         self._target_urls = []
         self._target_domain = None

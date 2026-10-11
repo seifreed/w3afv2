@@ -4798,3 +4798,17 @@ Verificación: **5 tests** de las rutas API y del helper de streaming pasan;
 Black, Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**,
 con los gates heredados, el fallback standalone y otros módulos grandes todavía
 pendientes.
+
+## Actualización verificada: DB explícita en crawl y grep
+
+Los plugins `dir_file_bruter`, `dot_ds_store`, `dwsync_xml`, `find_captchas`,
+`open_api`, `web_spider`, `click_jacking` y `error_500` declaran ahora su uso
+de SQLite y reciben la base de datos del core desde `PluginInstanceFactory`.
+Sus `DiskSet` ya no dependen del `database_context` implícito en el camino de
+ejecución de un scan. También se corrigieron dos tests directos que omitían el
+sink de salida requerido por el contrato de `Plugin`.
+
+Verificación: `test_plugins.py` pasa **32 tests** y los tests funcionales
+afectados pasan **47 tests**; Black, Ruff, mypy y Bandit focales pasan. El score
+global continúa en **9.99/10**, con el fallback standalone y los gates globales
+heredados todavía pendientes.

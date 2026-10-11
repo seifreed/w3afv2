@@ -39,10 +39,12 @@ class find_captchas(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self):
+    uses_database = True
+
+    def __init__(self, db=None):
         CrawlPlugin.__init__(self)
 
-        self._captchas_found = DiskSet(table_prefix="find_captchas")
+        self._captchas_found = DiskSet(table_prefix="find_captchas", db=db)
 
     def crawl(self, fuzzable_request, debugging_id):
         """

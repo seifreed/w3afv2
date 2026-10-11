@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -36,6 +37,7 @@ class TestError500(unittest.TestCase):
         create_temp_dir()
         kb.cleanup()
         self.plugin = error_500()
+        self.plugin.set_output(om.out)
         self.plugin.set_knowledge_base(kb)
         self.url = URL("http://www.w3af.com/500.py?id=1")
         self.request = FuzzableRequest(self.url)
