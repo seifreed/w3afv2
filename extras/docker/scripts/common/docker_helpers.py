@@ -142,8 +142,13 @@ def restore_file_ownership():
     try:
         # These two are set by sudo, which is the most common way our users
         # will run w3af inside docker: sudo w3af_console_docker
-        uid = int(os.getenv("SUDO_UID"))
-        gid = int(os.getenv("SUDO_GID"))
+        sudo_uid = os.getenv("SUDO_UID")
+        sudo_gid = os.getenv("SUDO_GID")
+        if sudo_uid is None or sudo_gid is None:
+            return False
+
+        uid = int(sudo_uid)
+        gid = int(sudo_gid)
     except (TypeError, ValueError):
         # TODO: More things to be implemented here
         return False

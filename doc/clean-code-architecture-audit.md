@@ -6372,6 +6372,20 @@ completa histórica de XXE mantiene **4 fallos y 2 tests pasados** de detección
 con la implementación anterior y con la actual; no se atribuyen a este cambio.
 El score global continúa en **9.99/10**.
 
+## Actualización verificada: estados opcionales y variables muertas
+
+`csrf` calcula la entropía como decimal, `detailed` normaliza valores de
+credenciales ausentes antes de codificarlos, y `SQLMapWrapper.cleanup` valida
+su proxy opcional. También se elimina una cola sin lectores de `RunFunctor` y
+se validan explícitamente las variables de entorno de Docker antes de
+convertirlas a enteros.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los cinco
+módulos. Los tests de CSRF, autenticación y SQLMap conservan fallos de
+fixtures/servicios históricos (`output` no configurado y hosts fallback no
+resolubles); el test de entropía no existe con ese nombre en el árbol actual.
+El score global continúa en **9.99/10**.
+
 ## Actualización verificada: estado tipado en cuatro auditores
 
 `file_upload`, `rfi`, `ssi` y `ssl_certificate` dejan explícitos sus estados

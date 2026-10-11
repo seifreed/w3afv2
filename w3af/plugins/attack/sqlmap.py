@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import queue
 import select
 import textwrap
 from multiprocessing.dummy import Process
@@ -199,7 +198,6 @@ class RunFunctor(Process):
         self.functor = functor
         self.params = params
         self._output = output
-        self.user_input = queue.Queue()
 
         class FakeProcess:
             def poll(self):

@@ -243,7 +243,7 @@ class csrf(AuditPlugin):
         if not data:
             return 0
 
-        entropy = 0
+        entropy = 0.0
 
         for count in Counter(data).values():
             p_x = count / len(data)

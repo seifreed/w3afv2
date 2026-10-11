@@ -122,7 +122,10 @@ class detailed(AuthSessionPlugin):
         information that was provided by the user and needs to be transmitted to
         the remote web application.
         """
-        trans = quote_plus if self.url_encode_params else lambda x: x
+
+        def trans(value):
+            value = value or ""
+            return quote_plus(value) if self.url_encode_params else value
 
         result = self.data_format
         result = result.replace("%u", trans(self.username_field))

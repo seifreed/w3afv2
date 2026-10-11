@@ -110,7 +110,9 @@ class SQLMapWrapper:
         )
 
     def cleanup(self):
-        self.proxy.stop()
+        proxy = self.proxy
+        if proxy is not None:
+            proxy.stop()
 
     def is_vulnerable(self):
         """
