@@ -1,17 +1,35 @@
 #!/usr/bin/env python
 import _thread
-import ipaddress
 import select
 import socket
-import struct
 import sys
 import threading
 import time
-from typing import TypedDict, cast
+from typing import cast
 
-# SOCKS replies carry a bound-address field; this is the protocol's
-# "unspecified address" value, not a listening socket.
-UNSPECIFIED_IP = str(ipaddress.IPv4Address(0))
+from w3af.core.controllers.w3afAgent.client.socks_protocol import (
+    Bind_TimeOut_Expired,
+    COMMAND_BIND,
+    COMMAND_CONNECT,
+    Client_Connection_Closed,
+    Connection_Closed,
+    Request_Error,
+    Request_Failed_Ident_failed,
+    Request_Failed_No_Identd,
+    Remote_Connection_Failed,
+    Remote_Connection_Failed_Invalid_Host,
+    SocksError,
+    SocksRequest,
+    UNSPECIFIED_IP,
+    decode_request,
+    port2string,
+    string2port,
+    REQUEST_GRANTED,
+    REQUEST_REJECTED_FAILED,
+    REQUEST_REJECTED_IDENT_FAILED,
+    REQUEST_REJECTED_NO_IDENTD,
+    ERR_CONNECTION_RESET_BY_PEER,
+)
 
 
 def is_routable(address):
@@ -27,108 +45,9 @@ def is_routable(address):
     return 1
 
 
-def is_port(port):
-    return (port > 0) and (port < 65536)
-
-
-# SOCKS 4 protocol constant values.
-SOCKS_VERSION = 4
-
-COMMAND_CONNECT = 1
-COMMAND_BIND = 2
-COMMANDS = [COMMAND_CONNECT, COMMAND_BIND]
-
-REQUEST_GRANTED = 90
-REQUEST_REJECTED_FAILED = 91
-REQUEST_REJECTED_NO_IDENTD = 92
-REQUEST_REJECTED_IDENT_FAILED = 93
-
-# Sockets protocol constant values.
-ERR_CONNECTION_RESET_BY_PEER = 10054
-ERR_CONNECTION_REFUSED = 10061
-
-
 # For debugging only.
 def now():
     return time.ctime(time.time())
-
-
-# Exception class for file errors
-
-
-class FileError(Exception):
-    pass
-
-
-# Exception classes for the server
-
-
-class SocksError(Exception):
-    pass
-
-
-class Connection_Closed(SocksError):
-    pass
-
-
-class Bind_TimeOut_Expired(SocksError):
-    pass
-
-
-class Request_Error(SocksError):
-    pass
-
-
-class Client_Connection_Closed(Connection_Closed):
-    pass
-
-
-class Remote_Connection_Closed(Connection_Closed):
-    pass
-
-
-class Remote_Connection_Failed(Connection_Closed):
-    pass
-
-
-class Remote_Connection_Failed_Invalid_Host(Remote_Connection_Failed):
-    pass
-
-
-class Request_Failed(Request_Error):
-    pass
-
-
-class Request_Failed_No_Identd(Request_Failed):
-    pass
-
-
-class Request_Failed_Ident_failed(Request_Failed):
-    pass
-
-
-class Request_Refused(Request_Error):
-    pass
-
-
-class Request_Bad_Version(Request_Refused):
-    pass
-
-
-class Request_Unknown_Command(Request_Refused):
-    pass
-
-
-class Request_Unauthorized_Client(Request_Refused):
-    pass
-
-
-class Request_Invalid_Port(Request_Refused):
-    pass
-
-
-class Request_Invalid_Format(Request_Refused):
-    pass
 
 
 class logger:
@@ -157,29 +76,6 @@ class logger:
 
 # Global log object used by the standalone agent process.
 log: logger = logger()
-
-
-class SocksRequest(TypedDict, total=False):
-    version: int
-    command: int
-    address: tuple[str, int]
-    userid: bytes
-
-
-def string2port(port_str):
-    """
-    This function converts between a packed (16 bits) port number to an
-    integer.
-    """
-    return struct.unpack(">H", port_str)[0]
-
-
-def port2string(port):
-    """
-    This function converts a port number (16 bits integer) into a packed
-    string (2 chars).
-    """
-    return struct.pack(">H", port)
 
 
 # Server class
@@ -310,39 +206,7 @@ class ConnectionManager(threading.Thread):
 
     @staticmethod
     def decode_request(data: bytes) -> SocksRequest:
-        """This function reads the request socket for the request data, decodes
-        it and checks that it is well formed.
-        """
-        # It is useless to process a short request.
-        if len(data) < 9:
-            raise Request_Invalid_Format(data)
-
-        # Extracting components of the request. Checks are made at each step.
-        req: SocksRequest = {}
-
-        # SOCKS version of the request.
-        req["version"] = data[0]
-        if req["version"] != SOCKS_VERSION:
-            raise Request_Bad_Version(req)
-
-        # Command used.
-        req["command"] = data[1]
-        if req["command"] not in COMMANDS:
-            raise Request_Unknown_Command(req)
-
-        # Address of the remote peer.
-        req["address"] = (socket.inet_ntoa(data[4:8]), string2port(data[2:4]))
-        if not is_port(req["address"][1]):
-            raise Request_Invalid_Port(req)
-        # Note: only the fact that the port is in [1, 65535] is checked here.
-        # Address and port legitimity are later checked in validate_request.
-
-        # Requester user ID. May not be provided.
-        req["userid"] = data[8:].strip(b"\x00")
-
-        # If we are here, then the request is well-formed. Let us return it to
-        # the caller.
-        return req
+        return decode_request(data)
 
 
 class SocksHandler(threading.Thread):

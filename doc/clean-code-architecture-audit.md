@@ -47,7 +47,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Responsabilidades concentradas
 
-- `w3af/core/controllers/w3af_core.py` (538 líneas) construye varios servicios,
+- `w3af/core/controllers/w3af_core.py` (484 líneas) construye varios servicios,
   configura estado global y coordina inicialización, estrategia, perfiles,
   estado, objetivos y ejecución.
 - `w3af/core/controllers/core_helpers/plugins.py` (240 líneas) mezcla
@@ -60,7 +60,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Calidad y verificabilidad
 
-- Black global pasa: **1667 archivos** sin cambios requeridos.
+- Black global pasa: **1689 archivos** sin cambios requeridos.
 - Ruff global pasa sin hallazgos.
 - `mypy --check-untyped-defs w3af` pasa en **1627 archivos**; el comando
   literal `mypy .` todavía inspecciona `venv/bin/activate_this.py` y falla en
@@ -7882,3 +7882,15 @@ pasan; la cobertura del nuevo `RequestApi` es **100% (41 statements)**; la
 prueba de capas, Black y Ruff globales pasan, y Bandit dirigido no encuentra
 hallazgos. Mypy dirigido no encuentra errores propios, pero su recorrido
 transitivo sigue bloqueado por los stubs ausentes de `defusedxml`.
+
+## Actualización verificada: protocolo SOCKS separado del cliente
+
+Las constantes, excepciones, representación tipada, packing de puertos y
+decodificación de frames SOCKS4 viven ahora en `socks_protocol.py`. El cliente
+mantiene `ConnectionManager.decode_request()` como contrato observable, pero
+la gestión de conexiones y el protocolo ya no comparten la implementación.
+Los tests consumen explícitamente la frontera de protocolo.
+
+Verificación: **8 tests** del paquete `w3afAgent` pasan; el módulo de protocolo
+tiene **100% de cobertura (72 statements)**; mypy, Bandit, Black, Ruff y la
+prueba de capas pasan.
