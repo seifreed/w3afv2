@@ -7339,8 +7339,13 @@ de `w3af_core.py` hacia `CoreResourceLifecycle`. El componente conserva el
 orden de teardown y hace la operación idempotente, por lo que el finalizer y
 `quit()` no pueden liberar dos veces el mismo recurso.
 
-Verificación: **7 tests** de finalización y recolección del core pasan; Black,
+Verificación: **23 tests** de la suite completa de `w3afCore` pasan; Black,
 Ruff y mypy pasan en los módulos modificados.
+
+La medición de seguridad del estado actual mantiene **25 avisos Bandit**,
+todos `B404`/`B603` sobre subprocesses explícitos de tests y scripts Docker;
+`pip-audit` no encuentra vulnerabilidades conocidas y sólo omite la
+dependencia de desarrollo `mitmproxy`, que no está publicada en PyPI.
 
 ## Actualización verificada: construcción única de plugins
 
