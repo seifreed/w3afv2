@@ -5062,6 +5062,17 @@ sin errores en `plugin.py`, Ruff y Black están limpios. El score global contin�
 en **9.99/10**, con deuda transitiva fuera de este bloque y cobertura global no
 demostrada.
 
+## Actualización verificada: contrato local de flush del output manager
+
+El logging de duración de `OutputManager` usa ahora una variable propia para
+sus argumentos, evitando reutilizar la tupla de otro mensaje con una aridad
+distinta. Es un ajuste pequeño, pero deja el flujo de `flush()` completamente
+tipable sin alterar su salida.
+
+Verificación: output manager pasa **36 tests**, mypy estricto focal, Ruff y
+Black están limpios. El score global continúa en **9.99/10**, con deuda
+transitiva histórica y cobertura global no demostrada.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos

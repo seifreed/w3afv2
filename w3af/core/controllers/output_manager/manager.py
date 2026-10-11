@@ -321,9 +321,9 @@ class OutputManager(Process):
             o_plugin.is_running_flush = False
 
             spent_time = time.time() - start_time
-            args = (o_plugin.get_name(), spent_time)
+            flush_args = (o_plugin.get_name(), spent_time)
 
-            LOGGER.debug("{}.flush() took {:.2f}s to run".format(*args))
+            LOGGER.debug("{}.flush() took {:.2f}s to run".format(*flush_args))
 
     def _handle_output_plugin_exception(self, o_plugin, exception):
         w3af_core = self._get_w3af_core()
