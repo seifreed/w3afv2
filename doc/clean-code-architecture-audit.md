@@ -6634,3 +6634,12 @@ camino que se ejecuta durante la preparación de la suite.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en el script. No
 se ejecutó contra servicios externos. El score global continúa en **9.99/10**.
+
+## Actualización verificada: cabeceras CSP en fixtures
+
+Las fixtures de CSP declaran los mapas y listas de cabeceras con sus pares
+`str` correspondientes. Se elimina la inferencia parcial de diccionarios
+vacíos sin modificar las cabeceras enviadas a cada respuesta.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **31 tests**
+de CSP pasan. El score global continúa en **9.99/10**.

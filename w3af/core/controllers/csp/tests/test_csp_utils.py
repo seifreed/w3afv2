@@ -66,7 +66,7 @@ class TestUtils(unittest.TestCase):
         Test case in which site do not provides "unsafe-inline" related CSP
         (no directive value "unsafe-inline").
         """
-        hrds = {}
+        hrds: dict[str, str] = {}
         hrds[CSP_HEADER_FIREFOX] = CSP_DIRECTIVE_SCRIPT + " 'self'"
         hrds[CSP_HEADER_W3C_REPORT_ONLY] = (
             CSP_DIRECTIVE_DEFAULT
@@ -92,7 +92,7 @@ class TestUtils(unittest.TestCase):
         (directive value "unsafe-inline" for a directive other than Script or
         Style).
         """
-        hrds = {}
+        hrds: dict[str, str] = {}
         hrds[CSP_HEADER_FIREFOX] = (
             CSP_DIRECTIVE_IMAGE + " '" + CSP_DIRECTIVE_VALUE_UNSAFE_INLINE + "'"
         )
@@ -119,7 +119,7 @@ class TestUtils(unittest.TestCase):
         Test case in which site provides "unsafe-inline" related CSP for
         script.
         """
-        hrds = {}
+        hrds: dict[str, str] = {}
         hrds[CSP_HEADER_FIREFOX] = (
             CSP_DIRECTIVE_SCRIPT + " '" + CSP_DIRECTIVE_VALUE_UNSAFE_INLINE + "'"
         )
@@ -140,7 +140,7 @@ class TestUtils(unittest.TestCase):
         Test case in which site provides "unsafe-inline" related CSP for
         Style.
         """
-        hrds = {}
+        hrds: dict[str, str] = {}
         hrds[CSP_HEADER_FIREFOX] = (
             CSP_DIRECTIVE_STYLE + " '" + CSP_DIRECTIVE_VALUE_UNSAFE_INLINE + "'"
         )
@@ -160,7 +160,7 @@ class TestUtils(unittest.TestCase):
         """
         Test case in which site do not provides CSP report uri.
         """
-        hrds = list({}.items())
+        hrds: list[tuple[str, str]] = list({}.items())
         csp_headers = Headers(hrds)
         http_response = HTTPResponse(200, "", csp_headers, self.url, self.url)
         uri_set = retrieve_csp_report_uri(http_response)
@@ -197,7 +197,7 @@ class TestUtils(unittest.TestCase):
         """
         Test case in which site do not provides CSP features.
         """
-        hrds = list({}.items())
+        hrds: list[tuple[str, str]] = list({}.items())
         csp_headers = Headers(hrds)
         http_response = HTTPResponse(200, "", csp_headers, self.url, self.url)
         self.assertFalse(provides_csp_features(http_response))
@@ -286,7 +286,7 @@ class TestUtils(unittest.TestCase):
         """
         Test case in which no policies are specified into HTTP response.
         """
-        hrds = list({}.items())
+        hrds: list[tuple[str, str]] = list({}.items())
         csp_headers = Headers(hrds)
         http_response = HTTPResponse(200, "", csp_headers, self.url, self.url)
         policies = retrieve_csp_policies(http_response)
@@ -687,7 +687,7 @@ class TestUtils(unittest.TestCase):
         """
         Test case in witch site do not provide CSP features.
         """
-        hrds = list({}.items())
+        hrds: list[tuple[str, str]] = list({}.items())
         csp_headers = Headers(hrds)
         http_response = HTTPResponse(200, "", csp_headers, self.url, self.url)
         site_protected = site_protected_against_xss_by_csp(http_response)
