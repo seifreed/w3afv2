@@ -5654,3 +5654,14 @@ operaciones de dominio.
 Verificación: Knowledge Base pasa **68 tests**; Black, Ruff, mypy focal y
 Bandit focal están limpios. El score global continúa en **9.99/10**, con los
 gates globales heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: estado textual válido en Info
+
+`Info` inicializa su descripción con una cadena vacía antes de aplicar la
+validación de `set_desc`, evitando que el formateador de descripciones opere
+sobre `None` durante el análisis estático. Los objetos construidos siguen
+requiriendo y conservando una descripción válida.
+
+Verificación: `Info` e `InfoSet` pasan **50 tests**; Black, Ruff, mypy focal y
+Bandit focal están limpios. El score global continúa en **9.99/10**, con los
+gates globales heredados y la cobertura global todavía pendientes.

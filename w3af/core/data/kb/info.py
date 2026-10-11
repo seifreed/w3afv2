@@ -62,7 +62,7 @@ class Info(dict):
 
         # We set these to None just for PyCharm's code analyzer to be happy
         self._name = None
-        self._desc = None
+        self._desc = ""
         self._id = []
         self._plugin_name = None
         self._vulndb_id = None
