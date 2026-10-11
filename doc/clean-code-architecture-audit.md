@@ -47,13 +47,13 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Responsabilidades concentradas
 
-- `w3af/core/controllers/w3afCore.py` (692 líneas) construye varios servicios,
+- `w3af/core/controllers/w3af_core.py` (655 líneas) construye varios servicios,
   configura estado global y coordina inicialización, estrategia, perfiles,
   estado, objetivos y ejecución.
-- `w3af/core/controllers/core_helpers/plugins.py` (463 líneas) mezcla
+- `w3af/core/controllers/core_helpers/plugins.py` (259 líneas) mezcla
   descubrimiento del filesystem, importación dinámica, configuración, orden de
   dependencias, creación de instancias y coordinación con output.
-- `w3af/core/data/url/extended_urllib.py` (1640 líneas) concentra transporte,
+- `w3af/core/data/url/extended_urllib.py` (838 líneas) concentra transporte,
   reintentos, pausas, métricas, evasiones y estado de requests.
 - La inicialización de plugins contiene mapas de tipos repetidos; su conjunto
   se mantenía manualmente y podía desincronizarse del filesystem.
@@ -7001,3 +7001,12 @@ La puntuación permanece en **9.99/10**: la colección demuestra alcance, pero n
 sustituye una ejecución completa con cobertura 100%, y `bandit -r .`/`mypy .`
 incluyen artefactos generados, vendor, extras y tests fuera del código de
 producción.
+
+## Actualización verificada: suites de datos y lifecycle
+
+Las áreas con mayor riesgo de retención de memoria pasan sus baterías completas
+por paquete: DB **177 tests**, utilidades **159 tests y 1 omitido**, parsers
+**85 tests**, URL **220 tests** y core helpers/threads **186 tests**. Son **827
+tests correctos y 1 omitido**; no quedan procesos pytest, workers o parsers
+activos tras las ejecuciones. Los únicos avisos son deprecaciones emitidas por
+dependencias externas (`ldap3`, `jsonschema` y `bravado-core`).
