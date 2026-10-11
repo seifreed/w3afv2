@@ -21,11 +21,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
+from typing import Protocol, cast
+
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
 
 CR = "\r"
 LF = "\n"
 CRLF = CR + LF
 SP = " "
+
+
+class _RequestContract(Protocol):
+    def get_data(self) -> str | bytes | None: ...
+
+    def get_method(self) -> str: ...
+
+    def get_uri(self) -> URL: ...
+
+    def get_headers(self) -> Headers: ...
 
 
 class RequestMixIn:
@@ -43,7 +57,8 @@ class RequestMixIn:
                  by the RFC, and the POST-data (potentially) holding raw bytes
                  such as an image content.
         """
-        data = self.get_data() or b""
+        request = cast(_RequestContract, self)
+        data = request.get_data() or b""
         if isinstance(data, str):
             data = data.encode("utf-8")
 
@@ -62,7 +77,8 @@ class RequestMixIn:
         """
         :return: request first line as sent to the wire.
         """
-        return f"{self.get_method()} {self.get_uri().url_encode()} HTTP/1.1{CRLF}"
+        request = cast(_RequestContract, self)
+        return f"{request.get_method()} {request.get_uri().url_encode()} HTTP/1.1{CRLF}"
 
     def dump_request_head(self, ignore_headers=()):
         """
@@ -74,12 +90,11 @@ class RequestMixIn:
         """
         :return: A string representation of the headers.
         """
-        try:
-            # For FuzzableRequest
-            headers = self.get_all_headers()
-        except AttributeError:
-            # For HTTPRequest
-            headers = self.get_headers()
+        request = cast(_RequestContract, self)
+        get_all_headers = getattr(self, "get_all_headers", None)
+        headers = (
+            get_all_headers() if get_all_headers is not None else request.get_headers()
+        )
 
         # Ignore the headers specified in the kwarg parameter
         for header_name in ignore_headers:

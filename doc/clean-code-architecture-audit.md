@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contrato del request mixin
+
+`RequestMixIn` declara mediante un protocolo privado los métodos que aportan
+`FuzzableRequest` y `HTTPRequest`, sin implementar stubs que alterarían el
+orden de resolución de `urllib`. La variante opcional de headers se conserva
+mediante descubrimiento dinámico, como requería el diseño original.
+
+Verificación: las suites de requests pasan **57 tests**, y mypy estricto,
+Ruff y Black están limpios para el mixin. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
+
 ## Actualización verificada: parser cache inyectado en password profiling
 
 El cambio de scope de parser caches había dejado al subplugin HTML de
