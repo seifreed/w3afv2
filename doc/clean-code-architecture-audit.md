@@ -7199,3 +7199,16 @@ versión mayor y rechaza explícitamente hosts sin un intérprete Python 3 váli
 Verificación: la suite de extrusión pasa **3 tests y 2 omitidos**, incluyendo la
 selección con el intérprete Python 3 real del sistema. Black, Ruff, Mypy y
 Bandit de producción pasan en los dos archivos modificados.
+
+## Actualización verificada: política compartida para clientes remotos
+
+`extrusionScanner` y `w3afAgentManager` duplicaban la selección del intérprete
+y tenían contratos distintos: el agente podía devolver código vacío y un path
+fijo aunque `which python` no encontrara nada. La nueva utilidad de
+`intrusion_tools` valida Python 3, carga el cliente solicitado y devuelve un
+error explícito si el host remoto no puede ejecutarlo; ambos flujos usan ahora
+el mismo contrato.
+
+Verificación: extrusión y cliente del agente pasan **6 tests y 2 omitidos**.
+Black, Ruff, Mypy y Bandit de producción pasan en los tres módulos modificados
+y la nueva utilidad.

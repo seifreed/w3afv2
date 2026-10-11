@@ -21,18 +21,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
-import os
 import socket
 import threading
 import time
 
-from w3af import ROOT_PATH
 from w3af.core.controllers.extrusion_scanning.server.extrusion_server import (
     extrusionServer,
 )
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
     os_detection_exec,
+)
+from w3af.core.controllers.intrusion_tools.python_client import (
+    EXTRUSION_CLIENT_PATH,
+    get_python3_client,
 )
 from w3af.core.controllers.payload_transfer.base_payload_transfer import (
     BasePayloadTransfer,
@@ -268,30 +270,7 @@ class extrusionScanner:
             - bash sockets ?
             - gcc compiler ?
         """
-        for interpreter in ("python3", "python"):
-            try:
-                version = self._exec(
-                    f'{interpreter} -c "import sys; print(sys.version_info[0])"'
-                )
-            except BaseFrameworkException:
-                continue
-
-            if version.strip() == "3":
-                filename = os.path.join(
-                    ROOT_PATH,
-                    "core",
-                    "controllers",
-                    "extrusion_scanning",
-                    "client",
-                    "extrusion_client.py",
-                )
-                with open(filename) as file_handle:
-                    file_content = file_handle.read()
-                return interpreter, file_content, "py"
-
-        msg = "Failed to find a suitable Python 3 extrusion scanner client"
-        msg += " for the remote system."
-        raise BaseFrameworkException(msg)
+        return get_python3_client(self._exec, EXTRUSION_CLIENT_PATH)
 
     def _execExtrusionClient(self, interpreter, remoteFilename):
 

@@ -21,18 +21,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import ipaddress
-import os
 import socket
 import time
 from multiprocessing.dummy import Process
 
-from w3af import ROOT_PATH
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.delayed_execution_factory import (
     delayedExecutionFactory,
 )
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
+)
+from w3af.core.controllers.intrusion_tools.python_client import (
+    CLIENT_PATH,
+    get_python3_client,
 )
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
@@ -227,29 +229,7 @@ class w3afAgentManager(Process):
         This method selects the w3afAgent client to use based on the remote OS and some other factors
         like having a working python installation.
         """
-        python = self._exec("which python")
-        python = python.strip()
-
-        if python.startswith("/"):
-            client = os.path.join(
-                ROOT_PATH,
-                "core",
-                "controllers",
-                "w3afAgent",
-                "client",
-                "w3af_agent_client.py",
-            )
-            with open(client) as client_file:
-                file_content = client_file.read()
-            extension = "py"
-            interpreter = python
-        else:
-            # TODO: Implement this!
-            file_content = ""
-            extension = "py"
-            interpreter = "/usr/bin/python"
-
-        return interpreter, file_content, extension
+        return get_python3_client(self._exec, CLIENT_PATH)
 
     def _is_locally_available(self, port):
         """
