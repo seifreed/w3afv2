@@ -207,11 +207,12 @@ class TestOpenAPIWithoutUrlPartsDiscovery(PluginTest):
 class TestOpenAPIPluginInternals(unittest.TestCase):
 
     def setUp(self):
-        kb.cleanup()
-        self.addCleanup(kb.cleanup)
+        self.knowledge_base = DBKnowledgeBase()
+        self.knowledge_base.setup()
+        self.addCleanup(self.knowledge_base.cleanup)
         self.addCleanup(MiscSettings(cf).set_default_values)
 
-        self.plugin = open_api()
+        self.plugin = open_api(db=self.knowledge_base.db)
         self.plugin.set_configuration(cf)
         self.addCleanup(self.plugin.end)
 
@@ -250,6 +251,3 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
 
 
 cf = Config()
-
-
-kb = DBKnowledgeBase()

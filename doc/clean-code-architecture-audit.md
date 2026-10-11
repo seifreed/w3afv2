@@ -7471,3 +7471,14 @@ sin consumidores.
 
 Verificación: la suite de `find_dvcs` pasa **21 tests**; Black, Ruff y mypy
 pasan en el test modificado.
+
+## Actualización verificada: fixture OpenAPI con base de datos explícita
+
+Los tests internos de `open_api` construían el plugin sin la base de datos que
+`DiskSet` necesita en producción y dependían de una instancia global de la
+knowledge base. Ahora cada caso crea, inicializa y limpia su propia
+`DBKnowledgeBase`, inyectándola en el plugin para limitar el estado compartido
+y evitar recursos persistentes entre tests.
+
+Verificación: la suite de OpenAPI pasa **10 tests**; Black, Ruff y mypy pasan
+en el test modificado.
