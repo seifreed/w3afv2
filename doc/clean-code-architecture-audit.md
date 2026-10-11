@@ -5587,3 +5587,14 @@ declara explícitamente el borde dinámico de `urllib.addinfourl`.
 Verificación: handlers básicos y blacklist pasan **15 tests**; Black, Ruff,
 mypy focal y Bandit focal están limpios. El score global continúa en **9.99/10**,
 con los gates globales heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: helpers de errores y limpieza HTTP
+
+La generación de payloads codificados usa ahora una colección ordenada separada
+de su conjunto de deduplicación, y la lectura de `BadStatusLine` respeta el
+atributo disponible en runtime sin forzar el tipo de typeshed. La carga de
+OpenSSL queda encapsulada en la frontera dinámica ya utilizada por keepalive.
+
+Verificación: helpers y limpieza de cuerpos pasan **36 tests**; Black, Ruff,
+mypy focal y Bandit focal están limpios. El score global continúa en **9.99/10**,
+con los gates globales heredados y la cobertura global todavía pendientes.

@@ -21,12 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import http.client
+import importlib
 import itertools
 import socket
 import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Any
 from errno import (
     ECONNREFUSED,
     ECONNRESET,
@@ -36,8 +38,6 @@ from errno import (
     ENOSPC,
     ETIMEDOUT,
 )
-
-import OpenSSL
 
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.dc.headers import Headers
@@ -72,6 +72,7 @@ KNOWN_SOCKET_ERRORS = (
 )
 
 NO_CONTENT_MSG = "No Content"
+openssl: Any = importlib.import_module("OpenSSL")
 
 
 def new_no_content_resp(uri, add_id=False, id_generator=None):
@@ -336,11 +337,10 @@ def get_clean_body_impl(
         encoded_payloads = unicodes_to_replace_set
 
     # uniq sorted by longest len
-    encoded_payloads = list(encoded_payloads)
-    encoded_payloads.sort(key=len, reverse=True)
-    encoded_payloads = [i.lower() for i in encoded_payloads]
+    sorted_payloads = sorted(encoded_payloads, key=len, reverse=True)
+    sorted_payloads = [payload.lower() for payload in sorted_payloads]
 
-    for to_replace in encoded_payloads:
+    for to_replace in sorted_payloads:
         body, body_lower = remove_using_lower_case(body, body_lower, to_replace)
 
     return body
@@ -419,16 +419,17 @@ def get_exception_reason(error):
     if isinstance(error, http.client.BadStatusLine):
         # RemoteDisconnected is also a ConnectionResetError: an empty status
         # line means the server closed the connection without answering
-        return f"Bad HTTP response status line: {error.line or repr(error.line)}"
+        status_line = getattr(error, "line", "")
+        return f"Bad HTTP response status line: {status_line or repr(status_line)}"
 
     if (
-        isinstance(error, OpenSSL.SSL.SysCallError)
+        isinstance(error, openssl.SSL.SysCallError)
         and len(error.args) > 1
         and error.args[0] in KNOWN_SOCKET_ERRORS
     ):
         return str(error.args[1])
 
-    if isinstance(error, OpenSSL.SSL.ZeroReturnError):
+    if isinstance(error, openssl.SSL.ZeroReturnError):
         return "OpenSSL Error: OpenSSL.SSL.ZeroReturnError"
 
     if isinstance(error, ssl.SSLError):
