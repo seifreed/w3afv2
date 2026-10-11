@@ -248,8 +248,10 @@ class OutputManager(Process):
             return
 
         self._worker_pool_closed = True
-        if self._worker_pool is not None and not self._worker_pool.is_closed():
-            self._worker_pool.terminate_join()
+        worker_pool = self._worker_pool
+        self._worker_pool = None
+        if worker_pool is not None and not worker_pool.is_closed():
+            worker_pool.terminate_join()
 
     def flush_plugin_output(self):
         """
@@ -371,9 +373,11 @@ class OutputManager(Process):
         self.process_all_messages()
 
         # Wait for any calls to flush() which might be running
-        if self._worker_pool is not None:
-            self._worker_pool.close()
-            self._worker_pool.join()
+        worker_pool = self._worker_pool
+        self._worker_pool = None
+        if worker_pool is not None:
+            worker_pool.close()
+            worker_pool.join()
         self._worker_pool_closed = True
 
         # Now call end() on all plugins

@@ -117,7 +117,7 @@ class TestOutputManagerRun(unittest.TestCase):
         stop(manager)
 
         self.assertFalse(manager.is_alive())
-        self.assertTrue(manager._worker_pool.is_closed())
+        self.assertIsNone(manager._worker_pool)
 
     def test_stop_is_idempotent(self):
         manager = self.started_manager()
@@ -127,7 +127,7 @@ class TestOutputManagerRun(unittest.TestCase):
         manager.stop()
 
         self.assertFalse(manager.is_alive())
-        self.assertTrue(manager._worker_pool.is_closed())
+        self.assertIsNone(manager._worker_pool)
         self.assertTrue(manager.in_queue._closed)
         self.assertTrue(manager.in_queue._joincancelled)
 
@@ -392,10 +392,7 @@ print(
         stop(fresh)
 
         self.assertFalse(running.is_alive())
-        worker_pool = running.get_worker_pool()
-        if worker_pool is None:
-            raise AssertionError("OutputManager has no worker pool")
-        self.assertTrue(worker_pool.is_closed())
+        self.assertIsNone(running._worker_pool)
         self.assertIsNot(fresh, running)
         self.assertIs(om.manager, fresh)
 

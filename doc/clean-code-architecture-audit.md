@@ -6892,3 +6892,13 @@ proceso y evita que `has_pending_work()` quede reteniendo una tarea inexistente.
 
 Verificación: Black, Ruff y Mypy pasan en los dos archivos modificados y
 `test_base_consumer` pasa **25 tests**.
+
+## Actualización verificada: liberación de pools del OutputManager
+
+`OutputManager` ya no conserva la referencia al pool después de `stop()` o
+`end_output_plugins()`. El pool se cierra mediante una variable local y el
+atributo queda en `None`, liberando workers, colas y caché de resultados aunque
+el manager global siga existiendo para una futura inicialización.
+
+Verificación: Black, Ruff y Mypy pasan en los dos archivos modificados; la
+batería completa de output manager pasa **40 tests** sin workers persistentes.
