@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.5/10 | Alta |
-| Clean Architecture | 9.7/10 | Alta |
-| Global | 9.6/10 | Alta |
+| Clean Code | 9.6/10 | Alta |
+| Clean Architecture | 9.8/10 | Alta |
+| Global | 9.7/10 | Alta |
 
 La puntuación refleja el estado revalidado: las últimas extracciones han
 aislado ciclo de vida, modo de requests, integración del opener y defaults de
@@ -8091,3 +8091,17 @@ crecimiento lineal observado cuando se retenían ciclos y resultados de pools.
 También se confirma que el árbol queda limpio después de la batería. Black y
 Ruff globales pasan. `mypy .` y `bandit -r .` siguen limitados por artefactos y
 dependencias externas ya documentados, no por los módulos modificados.
+
+## Actualización verificada: recursos del core aislados
+
+La construcción de output, base de datos, parser cache, DNS cache, generador de
+IDs, worker pool y lifecycle se trasladó a `CoreResourceFactory`, que devuelve
+un `CoreResources` inmutable con ownership explícito de la base de datos.
+`w3afCore` conserva la API y el orden de inicialización, pero ya no conoce los
+detalles de construcción de esos recursos.
+
+Verificación: **67 tests** de core, plugins y worker pool, **2 tests** directos
+del factory y la prueba de capas pasan. Black, Ruff, mypy y Bandit dirigidos
+están limpios en el factory; el score sube a **9.7/10 global**. Sigue pendiente
+aislar la composición del pipeline HTTP de `ExtendedUrllib` y cerrar la
+evidencia de cobertura y gates globales.
