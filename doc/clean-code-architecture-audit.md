@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.2/10 | Alta |
-| Clean Architecture | 9.4/10 | Alta |
-| Global | 9.3/10 | Alta |
+| Clean Code | 9.3/10 | Alta |
+| Clean Architecture | 9.5/10 | Alta |
+| Global | 9.4/10 | Alta |
 
 La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
@@ -7991,6 +7991,16 @@ contexto explícitos.
 Verificación: **38 tests** de plugins pasan; Black, Ruff, mypy, Bandit dirigido
 y la prueba de capas pasan. La suite mantiene únicamente warnings deprecados
 de dependencias externas.
+
+## Actualización verificada: contexto de runtime para perfiles
+
+`CoreProfiles` depende ahora de `ProfileRuntimeContext`, un contrato explícito
+con `plugins`, `target` y `uri_opener`. La aplicación de perfiles sigue usando
+los mismos colaboradores reales, pero la política ya no queda acoplada por
+nombre a la clase completa `w3afCore`.
+
+Verificación: **12 tests** de perfiles pasan; Ruff y mypy dirigido no
+encuentran errores. La persistencia continúa aislada en `ProfileRepository`.
 
 ## Actualización verificada: proveedores perezosos del runtime de plugins
 

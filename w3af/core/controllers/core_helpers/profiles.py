@@ -20,16 +20,28 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import Protocol
+
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.core_helpers.profile_repository import ProfileRepository
 from w3af.core.exceptions import BaseFrameworkException
 
 
+class ProfileRuntimeContext(Protocol):
+    """Runtime services required while applying a profile."""
+
+    plugins: object
+    target: object
+    uri_opener: object
+
+
 class CoreProfiles:
 
-    def __init__(self, w3af_core, configuration=None):
-        self._w3af_core = w3af_core
+    def __init__(
+        self, runtime_context: ProfileRuntimeContext | None, configuration=None
+    ):
+        self._runtime_context = runtime_context
         self._configuration = configuration
         self._profile_repository = ProfileRepository()
 
@@ -81,7 +93,7 @@ class CoreProfiles:
 
     def _save_plugin_configuration(self, profile_inst, self_contained):
         """Save enabled plugins and their configured options."""
-        plugins = self._w3af_core.plugins
+        plugins = self._runtime_context.plugins
 
         for plugin_type in plugins.get_plugin_types():
             enabled_plugins = list(plugins.get_enabled_plugins(plugin_type))
@@ -109,7 +121,7 @@ class CoreProfiles:
         misc_settings = MiscSettings(self._configuration)
         profile_inst.set_misc_settings(misc_settings.get_options())
         profile_inst.set_http_settings(
-            self._w3af_core.uri_opener.settings.get_options()
+            self._runtime_context.uri_opener.settings.get_options()
         )
 
     def use_profile(self, profile_name, workdir=None):
@@ -146,15 +158,17 @@ class CoreProfiles:
 
     def _reset_configuration(self):
         """Clear the current profile values before loading a new profile."""
-        self._w3af_core.plugins.zero_enabled_plugins()
+        self._runtime_context.plugins.zero_enabled_plugins()
         MiscSettings(self._configuration).set_default_values()
-        self._w3af_core.uri_opener.settings.set_default_values()
+        self._runtime_context.uri_opener.settings.set_default_values()
 
     def _load_target(self, profile_inst):
         """Apply the target stored in a profile to the core."""
-        self._w3af_core.target.clear()
-        target_options = profile_inst.get_target(self._w3af_core.target.get_options())
-        self._w3af_core.target.set_options(target_options)
+        self._runtime_context.target.clear()
+        target_options = profile_inst.get_target(
+            self._runtime_context.target.get_options()
+        )
+        self._runtime_context.target.set_options(target_options)
 
     def _load_settings(self, profile_inst, error_messages):
         """Apply framework and HTTP settings, collecting profile errors."""
@@ -184,11 +198,11 @@ class CoreProfiles:
             )
             error_messages.append(msg % exception)
         else:
-            self._w3af_core.uri_opener.settings.set_options(http_settings)
+            self._runtime_context.uri_opener.settings.set_options(http_settings)
 
     def _load_plugin_options(self, profile_inst, error_messages):
         """Apply each plugin's saved options and collect stale settings."""
-        plugins = self._w3af_core.plugins
+        plugins = self._runtime_context.plugins
 
         for plugin_type in plugins.get_plugin_types():
             plugin_names = profile_inst.get_enabled_plugins(plugin_type)
