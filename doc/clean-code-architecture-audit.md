@@ -8177,3 +8177,15 @@ recolección y timeout dinámico. Black, Ruff, Bandit focal, `pip-audit` y la
 comprobación de referencias residuales están limpios. Clean Code sube a
 **9.9/10**; queda pendiente reducir la concentración restante de
 `ExtendedUrllib`, `CorePlugins` y completar cobertura/gates globales.
+
+## Actualización verificada: contexto de perfiles sin referencia al core
+
+`ProfileRuntimeContext` limita las operaciones de perfiles a plugins, target y
+opener HTTP. `CoreProfiles` ya no almacena el composition root completo; el
+contexto se ensambla desde `w3afCore` cuando esos servicios están listos y los
+casos de listado de perfiles siguen funcionando sin runtime.
+
+Verificación: **38 tests** de perfiles y core pasan; Black, Ruff y mypy focal
+no presentan errores propios del cambio. Esta frontera reduce otra referencia
+fuerte innecesaria y mantiene la puntuación en **9.9/10** hasta dividir las
+responsabilidades restantes de `ExtendedUrllib` y `CorePlugins`.

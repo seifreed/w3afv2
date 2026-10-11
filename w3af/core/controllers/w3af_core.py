@@ -37,7 +37,10 @@ from w3af.core.controllers.core_helpers.core_resource_factory import (
     CoreResourceFactory,
 )
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
-from w3af.core.controllers.core_helpers.profiles import CoreProfiles
+from w3af.core.controllers.core_helpers.profiles import (
+    CoreProfiles,
+    ProfileRuntimeContext,
+)
 from w3af.core.controllers.core_helpers.runtime_directories import (
     prepare_home_directory,
     prepare_tmp_directory,
@@ -191,7 +194,6 @@ class w3afCore:
         # they basically handle every aspect of the w3af framework. I create
         # these here because they are used by the UIs even before starting a
         # scan.
-        self.profiles = CoreProfiles(self, self._configuration)
         self.target = CoreTarget(self._configuration)
 
         # Create the URI opener object
@@ -229,6 +231,10 @@ class w3afCore:
         self.plugins = CorePlugins(self._plugin_runtime_context, output, manager)
         self._environment_validator = ScanEnvironmentValidator(
             self.plugins, self.target
+        )
+        self.profiles = CoreProfiles(
+            ProfileRuntimeContext(self.plugins, self.target, self.uri_opener),
+            self._configuration,
         )
         self._create_scan_runtime()
         manager.set_plugin_runtime_context(self._plugin_runtime_context)

@@ -76,7 +76,7 @@ class ProfileUriOpener(Protocol):
     settings: ProfileHttpSettings
 
 
-class ProfileRuntimeContext(Protocol):
+class ProfileRuntime(Protocol):
     """Runtime services required while applying a profile."""
 
     plugins: ProfilePlugins
@@ -84,17 +84,29 @@ class ProfileRuntimeContext(Protocol):
     uri_opener: ProfileUriOpener
 
 
-class CoreProfiles:
+class ProfileRuntimeContext:
+    """Hold only the services needed by profile operations."""
 
     def __init__(
-        self, runtime_context: ProfileRuntimeContext | None, configuration=None
-    ):
+        self,
+        plugins: ProfilePlugins,
+        target: ProfileTarget,
+        uri_opener: Any,
+    ) -> None:
+        self.plugins = plugins
+        self.target = target
+        self.uri_opener = uri_opener
+
+
+class CoreProfiles:
+
+    def __init__(self, runtime_context: ProfileRuntime | None, configuration=None):
         self._runtime_context = runtime_context
         self._configuration = configuration
         self._profile_repository = ProfileRepository()
 
     @property
-    def _runtime(self) -> ProfileRuntimeContext:
+    def _runtime(self) -> ProfileRuntime:
         if self._runtime_context is None:
             raise RuntimeError(
                 "A runtime context is required for profile configuration operations."
