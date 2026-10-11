@@ -124,6 +124,14 @@ class TestPoolOperations(unittest.TestCase):
         self.assertNotIn(result.job, pool._cache)
         self.assertEqual(pool.apply(square, (3,)), 9)
 
+    def test_join_releases_unconsumed_iterators(self):
+        pool = self.new_pool(processes=1)
+        pool.imap_unordered(square, range(100))
+
+        pool.terminate_join()
+
+        self.assertEqual(pool._cache, {})
+
     def test_apply_with_return_error(self):
         pool = self.new_pool()
         self.assertEqual(pool.apply(apply_with_return_error, ((square, 3),)), 9)

@@ -282,6 +282,7 @@ class ThreadPool:
         self._result_handler.join()
         for p in self._pool:
             p.join()
+        self._cache.clear()
 
     def is_closed(self):
         return self._state in (CLOSE, TERMINATE)

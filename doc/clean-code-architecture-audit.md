@@ -7099,3 +7099,14 @@ Verificación: la suite de pool y `generic` pasa **36 tests**, incluyendo un
 callback defectuoso seguido de otro trabajo correcto. Black, Ruff y Mypy pasan
 en los dos archivos modificados; Bandit productivo queda en cero y no quedan
 procesos auxiliares tras la ejecución.
+
+## Actualización verificada: limpieza de iteradores abandonados
+
+Un `imap_unordered()` que se terminaba sin consumir dejaba su iterador y sus
+resultados en `Pool._cache` incluso después de `terminate_join()`. `join()`
+vacía ahora ese caché después de unir los handlers y workers, liberando la
+memoria retenida por tareas canceladas o iteradores abandonados.
+
+Verificación: el caso directo pasa de **1 resultado retenido a 0**; threads y
+`generic` pasan **66 tests**, sin procesos auxiliares posteriores. Black, Ruff,
+Mypy y Bandit productivo siguen limpios.
