@@ -55,7 +55,7 @@ class InterruptingClient(threading.Thread):
         self.port = port
         self.path = path
         self.context = context
-        self.body = None
+        self.body: str | None = None
 
     def run(self):
         deadline = time.monotonic() + STARTUP_SECONDS
@@ -72,7 +72,7 @@ class InterruptingClient(threading.Thread):
             "127.0.0.1", self.port, timeout=5, context=self.context
         )
 
-    def fetch(self):
+    def fetch(self) -> str | None:
         connection = self.connection()
         try:
             connection.request(

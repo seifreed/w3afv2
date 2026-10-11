@@ -38,7 +38,10 @@ class BasicAuthTest(APIUnitTest):
         response = self.app.get("/version")
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json["code"], 401)
+        response_json = response.json
+        if response_json is None:
+            raise AssertionError("Unauthorized response has no JSON body")
+        self.assertEqual(response_json["code"], 401)
         self.assertTrue(response.headers["WWW-Authenticate"].startswith("Basic "))
 
     def test_wrong_credentials(self):

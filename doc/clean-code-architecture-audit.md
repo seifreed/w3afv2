@@ -6606,3 +6606,13 @@ que realmente intercambia el test.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **23 tests**
 de DBMS pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: fronteras de respuesta del API
+
+Los tests de autenticación validan que la respuesta 401 contiene JSON antes de
+indexarlo. El cliente HTTP de las pruebas declara su cuerpo como opcional y
+los tests de ciclo de vida comprueban que llegó antes de decodificarlo.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en las tres
+fixtures; API básica y ciclo de vida pasan **10 tests y 4 subtests**. El score
+global continúa en **9.99/10**.
