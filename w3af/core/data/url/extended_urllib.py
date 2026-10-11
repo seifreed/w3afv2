@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import functools
 import http.client
+import importlib
 import logging
 import threading
 import time
@@ -29,8 +30,7 @@ import urllib.error
 import urllib.request
 import uuid
 from http.client import BadStatusLine
-
-import OpenSSL
+from typing import Any
 
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.config import Config
@@ -66,11 +66,13 @@ from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
 from w3af.core.exceptions import (
     ScanMustStopByKnownReasonExc,
     ScanMustStopByUnknownReasonExc,
+    ScanMustStopException,
 )
 
 from . import opener_settings
 
 LOGGER = logging.getLogger(__name__)
+openssl: Any = importlib.import_module("OpenSSL")
 
 
 class ExtendedUrllib:
@@ -224,11 +226,11 @@ class ExtendedUrllib:
         self._request_control.stop()
 
     @property
-    def _stop_exception(self):
+    def _stop_exception(self) -> ScanMustStopException | None:
         return self._request_control.stop_exception
 
     @_stop_exception.setter
-    def _stop_exception(self, exception):
+    def _stop_exception(self, exception: ScanMustStopException | None) -> None:
         self._request_control.stop_exception = exception
 
     def set_worker_pool_provider(self, provider, min_workers, max_workers):
@@ -696,7 +698,7 @@ class ExtendedUrllib:
             # fails. Those errors are raised before the cache handler numbers
             # the response
             if not hasattr(e, "id"):
-                e.id = self._id_generator.inc()
+                setattr(e, "id", self._id_generator.inc())
 
             return self._handle_send_success(
                 req, e, grep, original_url, original_url_inst
@@ -706,9 +708,9 @@ class ExtendedUrllib:
             OSError,
             URLTimeoutError,
             ConnectionPoolException,
-            OpenSSL.SSL.Error,
-            OpenSSL.SSL.SysCallError,
-            OpenSSL.SSL.ZeroReturnError,
+            openssl.SSL.Error,
+            openssl.SSL.SysCallError,
+            openssl.SSL.ZeroReturnError,
             BadStatusLine,
         ) as e:
             return self._handle_send_socket_error(req, e, grep, original_url)
@@ -790,22 +792,25 @@ class ExtendedUrllib:
         args = (error, error.__class__.__module__, error.__class__.__name__)
 
         # If I got a reason, it means that it is a known exception.
+        stop_exception: ScanMustStopException
         if reason_msg is not None:
             # Stop using ExtendedUrllib instance
-            e = ScanMustStopByKnownReasonExc(msg % args, reason=reason_msg)
+            stop_exception = ScanMustStopByKnownReasonExc(msg % args, reason=reason_msg)
 
         else:
             last_errors = self._response_history.get_recent_messages(MAX_ERROR_COUNT)
-            e = ScanMustStopByUnknownReasonExc(msg % args, errs=last_errors)
+            stop_exception = ScanMustStopByUnknownReasonExc(
+                msg % args, errs=last_errors
+            )
 
         LOGGER.debug(
             "The extended urllib will raise a scan must stop exception"
             " for each request after this message. The remote server is"
             " unreachable."
         )
-        self._stop_exception = e
+        self._stop_exception = stop_exception
 
-        raise self._stop_exception
+        raise stop_exception
 
     def _log_successful_response(self, response):
         host = response.get_url().get_domain()

@@ -2,7 +2,7 @@
 
 import time
 
-from w3af.core.exceptions import ScanMustStopByUserRequest
+from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopException
 
 
 class ScanRequestControl:
@@ -11,14 +11,14 @@ class ScanRequestControl:
     def __init__(self):
         self._user_paused = False
         self._user_stopped = False
-        self._stop_exception = None
+        self._stop_exception: ScanMustStopException | None = None
 
     @property
-    def stop_exception(self):
+    def stop_exception(self) -> ScanMustStopException | None:
         return self._stop_exception
 
     @stop_exception.setter
-    def stop_exception(self, exception):
+    def stop_exception(self, exception: ScanMustStopException | None) -> None:
         self._stop_exception = exception
 
     def pause(self, pause_yes_no):

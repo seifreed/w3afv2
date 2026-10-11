@@ -5608,3 +5608,16 @@ transporte de la conexión desafiada permanecen sin cambios.
 Verificación: NTLM pasa **8 tests**; Black, Ruff, mypy focal y Bandit focal están
 limpios. El score global continúa en **9.99/10**, con los gates globales
 heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: estado tipado de parada en ExtendedUrllib
+
+`ScanRequestControl` declara el estado de parada como
+`ScanMustStopException | None`; `ExtendedUrllib` conserva la excepción concreta
+seleccionada sin forzar una inferencia distinta entre las ramas conocida y
+desconocida. El identificador añadido a `urllib.HTTPError` sigue siendo
+dinámico, como exige ese objeto en runtime.
+
+Verificación: las suites de API y errores de ExtendedUrllib pasan **29 tests**;
+Black, Ruff, mypy focal y Bandit focal están limpios. El score global continúa
+en **9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
