@@ -6643,3 +6643,12 @@ vacíos sin modificar las cabeceras enviadas a cada respuesta.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **31 tests**
 de CSP pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: valores polimórficos de JSON iter setters
+
+La fixture declara que el nuevo valor de un setter puede ser `int`, `float` o
+`str`, igual que los escalares que recorre. Se elimina la inferencia accidental
+del primer branch sin cambiar las mutaciones comprobadas.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **10 tests**
+de JSON iter setters pasan. El score global continúa en **9.99/10**.

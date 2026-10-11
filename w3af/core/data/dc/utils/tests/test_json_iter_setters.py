@@ -184,6 +184,7 @@ class TestJSONIterSetters(unittest.TestCase):
         payload_complex = COMPLEX_OBJECT[:]
 
         for idx, (k, v, s) in enumerate(jis):
+            new_value: int | float | str
             if isinstance(v, int):
                 new_value = idx
             elif isinstance(v, float):
