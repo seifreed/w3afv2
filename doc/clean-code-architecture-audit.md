@@ -6102,3 +6102,15 @@ el ciclo de vida del worker pool.
 
 Verificación: el módulo pasa **3 tests**, Mypy con cuerpos no tipados, Ruff y
 Black. El score global continúa en **9.99/10**.
+
+## Actualización verificada: resultados de payloads tipados
+
+Los payloads de descubrimiento de configuración, sistema, Apache, IIS, SVN y
+PHP declaran ahora el tipo real de sus diccionarios de resultados, incluyendo
+el contador y las listas de `rootkit_hunter`. No cambia el protocolo de
+ejecución ni el formato entregado al shell.
+
+Verificación: los **18 módulos** pasan Mypy con cuerpos no tipados, Ruff,
+Black y compilación Python. Sus 20 tests de integración no pudieron arrancar
+porque el entorno no resuelve el host externo `fallback`; no se considera una
+regresión del cambio. El score global continúa en **9.99/10**.

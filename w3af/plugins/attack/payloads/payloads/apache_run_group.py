@@ -10,7 +10,7 @@ class apache_run_group(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, list[str]] = {}
         result["apache_run_group"] = []
 
         def parse_group_envvars(envvars_file):

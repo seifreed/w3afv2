@@ -10,7 +10,7 @@ class apache_htaccess(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, dict[str, str]] = {}
         result["htaccess_files"] = {}
 
         def parse_htaccess(config_file):

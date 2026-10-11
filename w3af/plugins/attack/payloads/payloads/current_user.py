@@ -10,7 +10,7 @@ class current_user(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, dict[str, str | None]] = {}
         result["current"] = {}
 
         def default_user(self_environ):

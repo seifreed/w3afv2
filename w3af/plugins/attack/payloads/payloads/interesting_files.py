@@ -63,7 +63,7 @@ class interesting_files(Payload):
                     yield file_fp
 
     def api_read(self):
-        result = {}
+        result: dict[str, None] = {}
 
         file_path_iter = self._file_path_generator()
 

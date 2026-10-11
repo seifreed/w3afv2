@@ -11,7 +11,7 @@ class iis_root_directory(Payload):
     """
 
     def api_read(self):
-        self.result = {}
+        self.result: dict[str, list[str]] = {}
         files = []
 
         def parse_www_root(iis6_log):

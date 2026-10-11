@@ -89,7 +89,7 @@ class php_sca(Payload):
         if not localtmpdir:
             localtmpdir = tempfile.mkdtemp()
 
-        res = {}
+        res: dict[str, list[dict[str, object]]] = {}
         files = self.exec_payload("get_source_code", args=(localtmpdir,))
 
         # Error handling

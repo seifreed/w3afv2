@@ -12,6 +12,8 @@ class rootkit_hunter(Payload):
     xploits installed on system.
     """
 
+    k: int
+
     def _read_with_progress(self, filename):
         #   "progress bar"
         self.k -= 1
@@ -77,7 +79,7 @@ class rootkit_hunter(Payload):
                 self.result["bad_kernel_modules"].append(module)
 
     def api_read(self):
-        self.result = {}
+        self.result: dict[str, list[str]] = {}
         self.result["bad_kernel_modules"] = []
         self.result["backdoor_files"] = []
         self.k = 400

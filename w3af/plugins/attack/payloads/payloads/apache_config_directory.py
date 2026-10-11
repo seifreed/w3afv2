@@ -58,7 +58,7 @@ class apache_config_directory(Payload):
             yield path + "apache2.conf"
 
     def api_read(self):
-        result = {"apache_directory": []}
+        result: dict[str, list[str]] = {"apache_directory": []}
 
         fname_iter = self.fname_generator()
         for file_path, content in self.read_multi(

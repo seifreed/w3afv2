@@ -53,7 +53,7 @@ class svn_config_files(Payload):
         yield from apache_config_files
 
     def api_read(self):
-        self.result = {}
+        self.result: dict[str, str] = {}
 
         def parse_parent_path(config):
             parent_path = re.findall("^(?<=SVNParentPath )(.*)", config, re.MULTILINE)

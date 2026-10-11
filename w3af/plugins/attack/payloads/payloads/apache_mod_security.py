@@ -10,7 +10,7 @@ class apache_mod_security(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, dict[str, str]] = {}
         result["file"] = {}
         result["version"] = {}
 

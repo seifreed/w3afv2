@@ -109,7 +109,7 @@ class spider(Payload):
         except (TypeError, ValueError) as exc:
             raise ValueError("recursion_level needs to be an integer.") from exc
 
-        self.result = {}
+        self.result: dict[str, bool] = {}
 
         initial_file_list = extract_files_from_payloads()
 

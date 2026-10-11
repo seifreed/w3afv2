@@ -10,7 +10,7 @@ class mysql_config_directory(Payload):
     """
 
     def api_read(self):
-        result = {"directory": []}
+        result: dict[str, list[str]] = {"directory": []}
         paths = []
 
         def parse_mysql_init(mysql_init):

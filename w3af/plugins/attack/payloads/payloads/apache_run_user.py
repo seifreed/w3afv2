@@ -10,7 +10,7 @@ class apache_run_user(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, list[str]] = {}
         result["apache_run_user"] = []
 
         def parse_user_envvars(envvars_file):

@@ -46,7 +46,7 @@ class apache_config_files(Payload):
                 yield directory + "sites-enabled/" + self.shell.get_url().get_domain()
 
     def api_read(self):
-        result = {}
+        result: dict[str, dict[str, str]] = {}
         result["apache_config"] = {}
 
         apache_dirs = self.exec_payload("apache_config_directory")["apache_directory"]

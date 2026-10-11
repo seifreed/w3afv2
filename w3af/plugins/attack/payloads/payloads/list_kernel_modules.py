@@ -10,7 +10,7 @@ class list_kernel_modules(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, dict[str, str]] = {}
 
         def parse_module_info(modules_file):
             info = re.findall(r"(.*?)\s(\d{0,6}) \d\d? (.*?),? -?\s?Live", modules_file)

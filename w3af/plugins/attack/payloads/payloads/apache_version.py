@@ -10,7 +10,7 @@ class apache_version(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, list[str]] = {}
         result["version"] = []
 
         def parse_apache_binary(binary):

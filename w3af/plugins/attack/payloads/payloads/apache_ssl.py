@@ -10,7 +10,7 @@ class apache_ssl(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, dict[str, str]] = {}
         result["apache_ssl_certificate"] = {}
         result["apache_ssl_key"] = {}
 

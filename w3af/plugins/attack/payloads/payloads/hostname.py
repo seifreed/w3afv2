@@ -10,7 +10,7 @@ class hostname(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, list[str]] = {}
         result["hostname"] = []
 
         values = []
@@ -25,7 +25,7 @@ class hostname(Payload):
         return result
 
     def api_win_read(self):
-        result = {}
+        result: dict[str, list[str]] = {}
         result["hostname"] = []
 
         def parse_iis6_log(iis6_log):
