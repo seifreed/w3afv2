@@ -63,10 +63,12 @@ class PluginDependencyResolver:
                 plugin_type, enabled_plugins
             )
 
-    def _order_plugin_type(self, plugin_type, enabled_plugins):
-        ordered_plugins = []
-        visited_plugins = set()
-        visiting_plugins = set()
+    def _order_plugin_type(
+        self, plugin_type: str, enabled_plugins: list[str]
+    ) -> list[str]:
+        ordered_plugins: list[str] = []
+        visited_plugins: set[str] = set()
+        visiting_plugins: set[str] = set()
 
         for plugin_name in enabled_plugins:
             self._visit_plugin(
@@ -82,13 +84,13 @@ class PluginDependencyResolver:
 
     def _visit_plugin(
         self,
-        plugin_type,
-        plugin_name,
-        enabled_plugins,
-        ordered_plugins,
-        visited_plugins,
-        visiting_plugins,
-    ):
+        plugin_type: str,
+        plugin_name: str,
+        enabled_plugins: list[str],
+        ordered_plugins: list[str],
+        visited_plugins: set[str],
+        visiting_plugins: set[str],
+    ) -> None:
         if plugin_name in visited_plugins:
             return
         if plugin_name in visiting_plugins:
@@ -115,15 +117,15 @@ class PluginDependencyResolver:
         visited_plugins.add(plugin_name)
         ordered_plugins.append(plugin_name)
 
-    def _dependencies_for(self, plugin_type, plugin_name):
+    def _dependencies_for(self, plugin_type: str, plugin_name: str) -> list[str]:
         plugin_instance = self._instance_provider(plugin_type, plugin_name)
         return plugin_instance.get_plugin_deps()
 
     @staticmethod
-    def _parse_dependency(dependency):
+    def _parse_dependency(dependency: str) -> tuple[str, str]:
         dependency_parts = dependency.split(".")
         if len(dependency_parts) != 2 or not all(dependency_parts):
             raise ValueError(
                 f"Invalid plugin dependency {dependency!r}; expected 'type.name'"
             )
-        return dependency_parts
+        return dependency_parts[0], dependency_parts[1]

@@ -4993,6 +4993,17 @@ Ruff y Black están limpios. El score global continúa en **9.99/10** porque aú
 quedan errores transitivos históricos fuera de este módulo y cobertura global no
 demostrada.
 
+## Actualización verificada: tipos del resolvedor de plugins
+
+`PluginDependencyResolver` declara ahora los tipos de sus colecciones de
+ordenación y de sus métodos auxiliares. El parser de dependencias devuelve una
+tupla estable `(tipo, nombre)` en vez de filtrar una lista interna, haciendo
+explícito el contrato que consumen `resolve` y `order`.
+
+Verificación: el resolvedor pasa **4 tests**, mypy estricto focal, Ruff y Black.
+El score global continúa en **9.99/10**; quedan errores transitivos históricos
+en otras áreas y la cobertura global no está demostrada.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos
