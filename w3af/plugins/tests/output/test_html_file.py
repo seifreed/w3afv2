@@ -73,7 +73,7 @@ class TestHTMLOutput(PluginTest):
         ),
     ]
 
-    _run_configs: ClassVar[dict[str, object]] = {
+    _run_configs: ClassVar[dict[str, dict[str, object]]] = {
         "cfg": {
             "target": target_url,
             "plugins": {

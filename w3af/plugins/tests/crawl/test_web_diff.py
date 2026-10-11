@@ -23,7 +23,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from w3af import ROOT_PATH
 from w3af.core.data.kb.config import Config
@@ -153,8 +153,9 @@ class TestWebDiffReport(CannedServerPluginTest):
         self.plugin.set_options(options)
 
     def crawl(self):
+        plugin = cast(web_diff, self.plugin)
         with self.log.attached_to_output_manager():
-            self.plugin.crawl(FuzzableRequest(URL(self.REMOTE_ROOT)), "debugging-id")
+            plugin.crawl(FuzzableRequest(URL(self.REMOTE_ROOT)), "debugging-id")
 
     def drain_output_queue(self):
         urls = set()
@@ -235,8 +236,9 @@ class TestWebDiffReport(CannedServerPluginTest):
         existing = 6 if self.SYMLINK_UNSUPPORTED else 7
         self.assertTrue(self.logged(f"Match files: {existing} of {existing + 1}"))
         self.assertNotIn("Match contents", Path(self.log.path).read_text())
-        self.assertEqual(self.plugin._eq_content, [])
-        self.assertEqual(self.plugin._not_eq_content, [])
+        plugin = cast(web_diff, self.plugin)
+        self.assertEqual(plugin._eq_content, [])
+        self.assertEqual(plugin._not_eq_content, [])
 
     def test_banned_extensions_are_not_compared(self):
         self.configure(banned_ext=())
@@ -244,11 +246,13 @@ class TestWebDiffReport(CannedServerPluginTest):
         self.crawl()
 
         script_url = URL(f"{self.REMOTE_ROOT}script.php")
-        self.assertIn(script_url, self.plugin._not_eq_content)
+        plugin = cast(web_diff, self.plugin)
+        self.assertIn(script_url, plugin._not_eq_content)
 
     def test_crawl_without_configuration_raises(self):
+        plugin = cast(web_diff, self.plugin)
         with self.assertRaises(BaseFrameworkException):
-            self.plugin.crawl(FuzzableRequest(URL(self.REMOTE_ROOT)), "debugging-id")
+            plugin.crawl(FuzzableRequest(URL(self.REMOTE_ROOT)), "debugging-id")
 
     def test_local_dir_must_be_a_directory(self):
         not_a_directory = os.path.join(self.local_dir, "index.html")

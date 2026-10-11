@@ -20,9 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from typing import ClassVar
+from typing import ClassVar, cast
 
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.infrastructure.dot_net_errors import dot_net_errors
@@ -30,6 +29,7 @@ from w3af.plugins.tests.canned_http_server import CannedReply
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 from w3af.plugins.tests.infrastructure.canned_plugin_test import (
     CannedServerPluginTest,
+    kb,
 )
 
 
@@ -143,15 +143,17 @@ class DotNetErrorsTest(CannedServerPluginTest):
 
 class TestCustomErrorsEnabled(DotNetErrorsTest):
     def test_error_without_details_is_not_reported(self):
-        self.plugin._send_and_check(URL("http://httpretty/sample~.aspx"))
+        plugin = cast(dot_net_errors, self.plugin)
+        plugin._send_and_check(URL("http://httpretty/sample~.aspx"))
 
         self.assertEqual(kb.get("dot_net_errors", "dot_net_errors"), [])
 
     def test_stops_after_max_tests(self):
-        self.plugin.MAX_TESTS = 1
-        self.plugin._already_tested.add(URL("http://httpretty/first.aspx"))
+        plugin = cast(dot_net_errors, self.plugin)
+        plugin.MAX_TESTS = 1
+        plugin._already_tested.add(URL("http://httpretty/first.aspx"))
 
-        self.plugin.discover(FuzzableRequest(URL("http://httpretty/second.aspx")), 1)
+        plugin.discover(FuzzableRequest(URL("http://httpretty/second.aspx")), 1)
 
         self.assertEqual(self.server.requests, [])
 
@@ -178,6 +180,3 @@ class TestGenerateURLs(unittest.TestCase):
 
         self.assertEqual(plugin.get_plugin_deps(), ["grep.error_pages"])
         self.assertIn("default~.aspx", plugin.get_long_desc())
-
-
-kb = DBKnowledgeBase()

@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from typing import ClassVar
+from queue import Queue
+from typing import ClassVar, cast
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -34,6 +35,7 @@ from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 from w3af.plugins.tests.infrastructure.canned_plugin_test import (
     CannedServerPluginTest,
     closed_port_url,
+    kb,
 )
 
 HOME = "<html><body>Welcome to the localhost home page</body></html>"
@@ -81,7 +83,8 @@ class DNSWildcardTest(CannedServerPluginTest):
         return CannedReply(200, {"Content-Type": "text/html"}, HOME)
 
     def discover(self, url):
-        self.plugin.discover(FuzzableRequest(URL(url)), 1)
+        plugin = cast(dns_wildcard, self.plugin)
+        plugin.discover(FuzzableRequest(URL(url)), 1)
         return {i.get_name() for i in kb.get("dns_wildcard", "dns_wildcard")}
 
 
@@ -133,6 +136,7 @@ class TestRequestErrors(unittest.TestCase):
 
         self.plugin = dns_wildcard()
         self.plugin._uri_opener = ExtendedUrllib()
+        self.plugin.set_output(LogSink(Queue()))
         self.addCleanup(self.plugin._uri_opener.end)
 
         url = closed_port_url()
@@ -154,6 +158,3 @@ class TestRequestErrors(unittest.TestCase):
 
         self.assertEqual(kb.get("dns_wildcard", "dns_wildcard"), [])
         self.assertIn("DNS wildcard", self.plugin.get_long_desc())
-
-
-kb = DBKnowledgeBase()

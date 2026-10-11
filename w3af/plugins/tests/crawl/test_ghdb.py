@@ -25,7 +25,7 @@ import tempfile
 import unittest
 import urllib.parse
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
@@ -67,7 +67,8 @@ class GHDBCrawlTest(CannedServerPluginTest):
 
     def setUp(self):
         super().setUp()
-        self.plugin._ghdb_file = self.ghdb_file
+        plugin = cast(ghdb, self.plugin)
+        plugin._ghdb_file = self.ghdb_file
 
     def respond(self, request):
         uri = urllib.parse.urlsplit(request.uri)
@@ -98,7 +99,8 @@ class GHDBCrawlTest(CannedServerPluginTest):
         return CannedReply(404, HTML, "Not found")
 
     def crawl(self, url=PUBLIC_TARGET):
-        self.plugin.crawl(FuzzableRequest(URL(url)), "debugging-id")
+        plugin = cast(ghdb, self.plugin)
+        plugin.crawl(FuzzableRequest(URL(url)), "debugging-id")
 
     def requested_hosts(self):
         return {urllib.parse.urlsplit(r.uri).hostname for r in self.server.requests}

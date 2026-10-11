@@ -20,12 +20,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-from typing import ClassVar
+from typing import ClassVar, TypedDict
 
 from w3af.plugins.tests.constants.http_responses import get_apache_403
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-run_configs = {
+
+class RunConfig(TypedDict):
+    target: None
+    plugins: dict[str, tuple[PluginConfig, ...]]
+
+
+run_configs: dict[str, RunConfig] = {
     "base": {"target": None, "plugins": {"crawl": (PluginConfig("find_backdoors"),)}},
     "crawl": {
         "target": None,
@@ -47,7 +53,10 @@ class TestFindBackdoor(PluginTest):
 
     def test_find_backdoor(self):
         cfg = run_configs["base"]
-        self._scan(self.target_url, cfg["plugins"])
+        self._scan(
+            self.target_url,
+            cfg["plugins"],
+        )
 
         vulns = self.kb.get("find_backdoors", "backdoors")
 
@@ -76,7 +85,10 @@ class TestFalsePositiveFindBackdoor2017_1(PluginTest):
 
     def test_2017_false_positive_backdoor_1(self):
         cfg = run_configs["base"]
-        self._scan(self.target_url, cfg["plugins"])
+        self._scan(
+            self.target_url,
+            cfg["plugins"],
+        )
 
         vulns = self.kb.get("find_backdoors", "backdoors")
 
@@ -100,7 +112,10 @@ class TestFalsePositiveFindBackdoor2017_2(PluginTest):
 
     def test_2017_false_positive_backdoor_2(self):
         cfg = run_configs["crawl"]
-        self._scan(self.target_url, cfg["plugins"])
+        self._scan(
+            self.target_url,
+            cfg["plugins"],
+        )
 
         vulns = self.kb.get("find_backdoors", "backdoors")
 

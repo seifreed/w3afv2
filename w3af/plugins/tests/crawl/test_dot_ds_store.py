@@ -23,7 +23,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar, cast
 
 from ds_store import DSStore
 
@@ -38,12 +38,10 @@ RUN_PLUGINS = {"crawl": (PluginConfig("dot_ds_store"),)}
 def build_ds_store(*filenames):
     with tempfile.TemporaryDirectory() as temp_dir:
         path = os.path.join(temp_dir, "DS_Store")
-        store = DSStore.open(path, "w+")
-        try:
-            for filename in filenames:
-                store[filename]["Iloc"] = (10, 20)
-        finally:
-            store.close()
+        store = cast(Any, DSStore.open(path, "w+"))
+        for filename in filenames:
+            store[filename]["Iloc"] = (10, 20)
+        store.close()
         return Path(path).read_bytes()
 
 

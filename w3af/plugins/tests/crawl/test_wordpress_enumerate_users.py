@@ -74,7 +74,12 @@ class TestWordpressEnumerateUsers(PluginTest):
         infos = self.kb.get("wordpress_enumerate_users", "users")
 
         user_re = re.compile('WordPress user "(.*?)" found')
-        enum_users = [user_re.match(i.get_desc()).group(1) for i in infos]
+        enum_users = []
+        for info in infos:
+            match = user_re.match(info.get_desc())
+            if match is None:
+                raise AssertionError(f"Unexpected user info: {info.get_desc()}")
+            enum_users.append(match.group(1))
 
         self.assertEqual(sorted(enum_users), ["admin", "andres"])
 

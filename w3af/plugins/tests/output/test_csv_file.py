@@ -29,6 +29,7 @@ from typing import ClassVar
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.vuln import Vuln
@@ -135,7 +136,7 @@ def create_mutant_from_params(method, uri, var, post_data):
     uri = URL(uri)
 
     if method.upper() == "GET" and var in uri.querystring:
-        MutantKlass = QSMutant
+        MutantKlass: type[Mutant] = QSMutant
         headers = Headers()
     else:
         MutantKlass = PostDataMutant

@@ -19,10 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from w3af.core.data.kb.info import Info
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
@@ -30,6 +29,7 @@ from w3af.plugins.infrastructure.detect_reverse_proxy import detect_reverse_prox
 from w3af.plugins.tests.canned_http_server import CannedReply
 from w3af.plugins.tests.infrastructure.canned_plugin_test import (
     CannedServerPluginTest,
+    kb,
 )
 
 TARGET = FuzzableRequest(URL("http://target/"))
@@ -48,7 +48,8 @@ class ReverseProxyTest(CannedServerPluginTest):
         return self.replies.get(request.command, CannedReply(200, {}, ""))
 
     def discover(self):
-        self.plugin.discover(TARGET, 1)
+        plugin = cast(detect_reverse_proxy, self.plugin)
+        plugin.discover(TARGET, 1)
         return kb.get("detect_reverse_proxy", "detect_reverse_proxy")
 
     def received_methods(self):
@@ -70,7 +71,8 @@ class TestViaHeader(ReverseProxyTest):
     def test_runs_once(self):
         self.discover()
 
-        self.assertRaises(RunOnce, self.plugin.discover, TARGET, 2)
+        plugin = cast(detect_reverse_proxy, self.plugin)
+        self.assertRaises(RunOnce, plugin.discover, TARGET, 2)
 
     def test_get_is_not_sent_behind_a_transparent_proxy(self):
         desc = "Your ISP seems to have a transparent proxy installed."
@@ -115,6 +117,3 @@ class TestNoReverseProxy(ReverseProxyTest):
             self.plugin.get_plugin_deps(), ["infrastructure.detect_transparent_proxy"]
         )
         self.assertIn("reverse proxy", self.plugin.get_long_desc())
-
-
-kb = DBKnowledgeBase()

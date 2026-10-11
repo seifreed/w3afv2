@@ -30,10 +30,12 @@ import struct
 import tempfile
 import threading
 import unittest
-from typing import ClassVar
+from queue import Queue
+from typing import ClassVar, Protocol, cast
 
 from clamav_client.clamd import ClamdNetworkSocket, ClamdUnixSocket
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.plugins.grep.clamav import ScanResult, clamav
@@ -50,6 +52,10 @@ EICAR = base64.b64decode(
 CLAMD_VERSION = "ClamAV 1.4.1/27411/Mon Oct  6 08:00:00 2026"
 
 
+class ClamdServer(Protocol):
+    replies: dict[str, str]
+
+
 class ClamdHandler(socketserver.StreamRequestHandler):
     """
     Answers one clamd command per connection, like clamd does for commands
@@ -58,7 +64,7 @@ class ClamdHandler(socketserver.StreamRequestHandler):
 
     def handle(self):
         command = self.rfile.readline().decode().strip()
-        replies = self.server.replies
+        replies = cast(ClamdServer, self.server).replies
 
         if command == "nPING":
             self.reply(replies.get("PING", "PONG"))
@@ -96,6 +102,7 @@ class LocalClamd:
     """
 
     def __init__(self, unix_socket=None, **replies):
+        self.server: socketserver.BaseServer
         if unix_socket is None:
             self.server = socketserver.ThreadingTCPServer(
                 ("127.0.0.1", 0), ClamdHandler
@@ -108,7 +115,7 @@ class LocalClamd:
             self.endpoint = unix_socket
 
         self.server.daemon_threads = True
-        self.server.replies = replies
+        cast(ClamdServer, self.server).replies = replies
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
 
     def __enter__(self):
@@ -138,6 +145,8 @@ class ClamAVTestCase(unittest.TestCase):
         options["clamd_socket"].set_value(endpoint)
         plugin.set_options(options)
         plugin.set_worker_pool(self.pool)
+        plugin.set_knowledge_base(kb)
+        plugin.set_output(LogSink(Queue()))
         return plugin
 
     def grep(self, plugin, body, method="GET", code=200):
@@ -306,7 +315,7 @@ class TestClamAVScan(PluginTest):
         }
         self._scan(self.target_url, plugins)
 
-        findings = kb.get("clamav", "malware")
+        findings = self.kb.get("clamav", "malware")
 
         self.assertEqual(len(findings), 4)
 

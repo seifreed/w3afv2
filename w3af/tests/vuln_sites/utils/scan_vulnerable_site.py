@@ -19,11 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import pytest
 
-from w3af.plugins.tests.helper import PluginConfig
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 @pytest.mark.functional
@@ -55,6 +55,7 @@ class TestScanVulnerableSite:
             return
 
         cfg = self._run_configs["cfg"]
-        self._scan(self.target_url, cfg["plugins"])
+        plugin_test = cast(PluginTest, self)
+        plugin_test._scan(self.target_url, cfg["plugins"])
 
-        self.assertMostExpectedVulnsFound(self.EXPECTED_VULNS)
+        plugin_test.assertMostExpectedVulnsFound(self.EXPECTED_VULNS)

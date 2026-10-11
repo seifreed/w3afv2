@@ -30,7 +30,7 @@ import time
 import unittest
 import urllib.parse
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar, cast
 
 import pytest
 from defusedxml import ElementTree
@@ -303,7 +303,7 @@ class XMLParser:
 
 def get_vulns_from_xml(filename):
     xp = XMLParser()
-    parser = etree.XMLParser(target=xp)
+    parser = etree.XMLParser(target=cast(Any, xp))
     vulns = etree.fromstring(Path(filename).read_bytes(), parser)
     return vulns
 

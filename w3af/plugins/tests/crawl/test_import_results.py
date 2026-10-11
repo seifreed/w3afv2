@@ -190,6 +190,8 @@ class TestImportResults(PluginTest):
                 post_fr = fr
                 break
 
+        if post_fr is None:
+            raise AssertionError("Expected a multipart upload request")
         self.assertEqual(post_fr.get_url().url_string, expected_post_url)
         self.assertIn("_file", post_fr.get_raw_data())
         self.assertEqual(post_fr.get_raw_data()["_file"][0], file_contents)
@@ -254,6 +256,8 @@ class TestImportResults(PluginTest):
                 post_fr = fr
                 break
 
+        if post_fr is None:
+            raise AssertionError("Expected a multipart upload request")
         expected_post_url = "http://127.0.0.1:8000/core/file_upload/upload.py"
         file_contents = "hello\nworld\n"
 

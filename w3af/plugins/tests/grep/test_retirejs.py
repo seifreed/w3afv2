@@ -30,8 +30,10 @@ import stat
 import sys
 import tempfile
 from pathlib import Path
+from queue import Queue
 
 from w3af import ROOT_PATH
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -86,7 +88,7 @@ class RetireJSScanTest(PluginTest):
     def setUp(self):
         self.standin_dir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.standin_dir)
-        self.MOCK_RESPONSES = [
+        type(self).MOCK_RESPONSES = [
             MockResponse("http://httpretty/", body=self.INDEX),
             MockResponse(
                 "http://httpretty/jsrepository.json",
@@ -160,6 +162,8 @@ class RetireJSUnitTest(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
         self.standin_dir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.standin_dir)
@@ -183,6 +187,8 @@ class RetireJSUnitTest(GrepPluginTestCase):
         options["retire_db_url"].set_value(self.server_url(db_path))
         plugin.set_options(options)
         plugin.set_url_opener(self.uri_opener)
+        plugin.set_knowledge_base(kb)
+        plugin.set_output(LogSink(Queue()))
         return plugin
 
     def send_js(self, plugin, body, path="/js/lib.js", content_type=JS, **kwargs):

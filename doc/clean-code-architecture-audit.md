@@ -6830,3 +6830,16 @@ Verificación: Mypy, Black y Ruff pasan en los **8 archivos** modificados; la
 batería focalizada pasa **99 tests**. Mypy del proyecto queda en **39 errores de
 16 archivos**, todos localizados en fixtures aún pendientes; el score global
 continúa en **9.99/10**.
+
+## Actualización verificada: aislamiento y contratos de fixtures de plugins
+
+Las fixtures de plugins declaran tipos concretos para sus servidores, colas y
+resultados opcionales. RetireJS y ClamAV inyectan una KB y un `LogSink` reales,
+limpiando la KB local entre casos; las fixtures canned de infraestructura
+comparten la KB que realmente recibe el plugin, evitando findings invisibles y
+almacenes duplicados. `DSStore` cierra siempre su recurso y los pools de
+ClamAV se limpian mediante cleanup.
+
+Verificación: Mypy pasa en `w3af` completo, Black y Ruff pasan en los archivos
+modificados, y las baterías focalizadas pasan **68 tests**. El score global
+continúa en **9.99/10**.

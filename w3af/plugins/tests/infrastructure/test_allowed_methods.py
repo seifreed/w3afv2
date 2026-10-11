@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import unittest
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import pytest
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
@@ -35,6 +34,7 @@ from w3af.plugins.tests.canned_http_server import CannedReply
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 from w3af.plugins.tests.infrastructure.canned_plugin_test import (
     CannedServerPluginTest,
+    kb,
 )
 
 DAV_ROOT = "http://dav/"
@@ -187,7 +187,8 @@ class TestOnlyArgentinaFails(AllowedMethodsTest):
         return CannedReply(200, {}, "Hello world")
 
     def test_can_bruteforce(self):
-        self.assertTrue(self.plugin._can_bruteforce(URL(DAV_ROOT)))
+        plugin = cast(allowed_methods, self.plugin)
+        self.assertTrue(plugin._can_bruteforce(URL(DAV_ROOT)))
 
 
 class TestOnlyGetFails(AllowedMethodsTest):
@@ -197,7 +198,8 @@ class TestOnlyGetFails(AllowedMethodsTest):
         return CannedReply(200, {}, "Hello world")
 
     def test_can_not_bruteforce(self):
-        self.assertFalse(self.plugin._can_bruteforce(URL(DAV_ROOT)))
+        plugin = cast(allowed_methods, self.plugin)
+        self.assertFalse(plugin._can_bruteforce(URL(DAV_ROOT)))
 
 
 class TestEveryRequestFails(AllowedMethodsTest):
@@ -205,7 +207,8 @@ class TestEveryRequestFails(AllowedMethodsTest):
         raise ConnectionResetError("Down")
 
     def test_no_methods_identified(self):
-        self.assertEqual(self.plugin._identify_allowed_methods(URL(DAV_ROOT)), ([], []))
+        plugin = cast(allowed_methods, self.plugin)
+        self.assertEqual(plugin._identify_allowed_methods(URL(DAV_ROOT)), ([], []))
 
 
 class TestRunOnce(AllowedMethodsTest):
@@ -215,9 +218,10 @@ class TestRunOnce(AllowedMethodsTest):
     def test_second_discover_raises_run_once(self):
         fuzzable_request = FuzzableRequest(URL(DAV_ROOT))
 
-        self.plugin.discover(fuzzable_request, 1)
+        plugin = cast(allowed_methods, self.plugin)
+        plugin.discover(fuzzable_request, 1)
 
-        self.assertRaises(RunOnce, self.plugin.discover, fuzzable_request, 2)
+        self.assertRaises(RunOnce, plugin.discover, fuzzable_request, 2)
         self.assertEqual(kb.get("allowed_methods", "methods"), [])
 
 
@@ -249,6 +253,3 @@ class TestEnd(unittest.TestCase):
 
     def test_long_description(self):
         self.assertIn("run_once", self.plugin.get_long_desc())
-
-
-kb = DBKnowledgeBase()
