@@ -63,7 +63,7 @@ class TeardownCountingConsumer(BaseConsumer):
         self.teardown_calls += 1
 
     def _consume(self, work_unit):
-        if isinstance(work_unit, Exception):
+        if isinstance(work_unit, BaseException):
             raise work_unit
         self.consumed.append(work_unit)
 
@@ -160,6 +160,12 @@ class TestBaseConsumer(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.bc._consume_wrapper(error)
+
+        self.assertFalse(self.bc.has_pending_work())
+
+    def test_consume_wrapper_marks_base_exception_as_done(self):
+        with self.assertRaises(KeyboardInterrupt):
+            self.bc._consume_wrapper(KeyboardInterrupt())
 
         self.assertFalse(self.bc.has_pending_work())
 

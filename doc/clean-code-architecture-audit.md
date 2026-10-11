@@ -6883,3 +6883,12 @@ El mismo helper de cleanup se aplica también a los casos de operaciones de
 pool que terminaban sin liberar el pool si fallaba una aserción intermedia.
 La cobertura focalizada queda en **31 tests** adicionales, sin procesos
 persistentes al finalizar.
+
+## Actualización verificada: cleanup de tareas ante interrupciones
+
+El decorador común de tareas declara explícitamente `BaseException` al liberar
+el contador de tareas. Así conserva el cleanup también ante interrupciones del
+proceso y evita que `has_pending_work()` quede reteniendo una tarea inexistente.
+
+Verificación: Black, Ruff y Mypy pasan en los dos archivos modificados y
+`test_base_consumer` pasa **25 tests**.

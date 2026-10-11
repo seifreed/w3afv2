@@ -54,7 +54,7 @@ def task_decorator(method):
 
         try:
             result = method(self, function_id, *args, **kwds)
-        except:
+        except BaseException:
             self._task_done(function_id)
             raise
         else:
