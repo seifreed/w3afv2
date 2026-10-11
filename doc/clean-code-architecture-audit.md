@@ -53,7 +53,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 - `w3af/core/controllers/core_helpers/plugins.py` (240 líneas) mezcla
   descubrimiento del filesystem, importación dinámica, configuración, orden de
   dependencias, creación de instancias y coordinación con output.
-- `w3af/core/data/url/extended_urllib.py` (688 líneas) concentra transporte,
+- `w3af/core/data/url/extended_urllib.py` (684 líneas) concentra transporte,
   reintentos, pausas, métricas, evasiones y estado de requests.
 - La inicialización de plugins contiene mapas de tipos repetidos; su conjunto
   se mantenía manualmente y podía desincronizarse del filesystem.
