@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import multiprocessing
 import os
 import queue
+import subprocess
+import sys
 import tempfile
 import threading
 import unittest
@@ -291,6 +293,26 @@ class TestOutputManagerPlugins(unittest.TestCase):
 
 
 class TestOutputManagerModule(unittest.TestCase):
+    def test_import_does_not_create_default_resources(self):
+        code = """
+import w3af.core.controllers.output_manager as output_manager
+print(
+    output_manager.__dict__.get("_manager"),
+    output_manager.__dict__.get("_out"),
+    "manager" in output_manager.__dict__,
+    "out" in output_manager.__dict__,
+)
+"""
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=os.environ,
+        )
+
+        self.assertEqual(result.stdout.strip(), "None None False False")
+
     def setUp(self):
         self.previous_manager = om.manager
         self.previous_out = om.out

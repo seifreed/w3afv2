@@ -36,19 +36,20 @@ def fresh_output_manager_inst():
 
     :return: A reference to the newly created instance
     """
-    global manager
+    global _manager
 
-    #
-    #   Stop the old instance thread
-    #
-    manager.stop()
+    has_explicit_manager = "manager" in globals()
+    old_manager = globals().get("manager", _manager)
+    if old_manager is not None:
+        old_manager.stop()
 
-    #
-    #   Create the new instance
-    #
-    manager = OutputManager()
-    manager.start()
-    return manager
+    new_manager = OutputManager()
+    new_manager.start()
+    if has_explicit_manager:
+        globals()["manager"] = new_manager
+    else:
+        _manager = new_manager
+    return new_manager
 
 
 def log_sink_factory(om_queue):
@@ -57,14 +58,36 @@ def log_sink_factory(om_queue):
 
     :return: A reference to the newly created instance
     """
-    global out
-    out = LogSink(om_queue)
-    return out
+    output = LogSink(om_queue)
+    globals()["out"] = output
+    return output
 
 
-# Create the default manager and out instances, we'll be creating others later:
-# most likely for the log sink, which will be replaced in each sub-process
-manager = OutputManager()
+def _get_default_manager() -> OutputManager:
+    global _manager
+    if _manager is None:
+        _manager = OutputManager()
+    return _manager
 
-# Logs to into the logging process through out.debug() , out.error() , etc.
-out = log_sink_factory(manager.get_in_queue())
+
+def _get_default_output() -> LogSink:
+    global _out
+    if _out is None:
+        _out = LogSink(_get_default_manager().get_in_queue())
+    return _out
+
+
+def __getattr__(name):
+    if name == "manager":
+        return _get_default_manager()
+    if name == "out":
+        return _get_default_output()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+_manager = None
+_out = None
+
+# The import machinery exposes the child module as ``manager`` on this package.
+# Remove that name so module attribute access reaches the lazy provider above.
+globals().pop("manager", None)
