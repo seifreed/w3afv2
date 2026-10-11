@@ -40,7 +40,7 @@ class udp(Payload):
             while d > 0:
                 m, n = divmod(n, d)
                 q.append(str(m))
-                d = d / 256
+                d //= 256
             q.reverse()
             return ".".join(q)
 

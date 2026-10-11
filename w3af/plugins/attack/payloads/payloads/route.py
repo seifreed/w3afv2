@@ -32,12 +32,12 @@ class route(Payload):
             while d > 0:
                 m, n = divmod(n, d)
                 q.append(str(m))
-                d /= 256
+                d //= 256
             q.reverse()
             return ".".join(q)
 
         data = parse_route(self.shell.read("/proc/net/route"))
-        result = {"route": []}
+        result: dict[str, list[dict[str, str]]] = {"route": []}
 
         for line in data:
             if len(line) > 7 and "Iface" not in line:

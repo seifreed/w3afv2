@@ -4956,6 +4956,19 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: payloads de red con aritmética entera
+
+Los payloads `tcp`, `udp` y `route` usan división entera al convertir valores
+hexadecimales a octetos IPv4, evitando floats en una operación discreta. Los
+resultados de `portscan` y `root_login_allowed` declaran sus estructuras
+públicas y `portscan` evita reutilizar la lista constante de puertos.
+
+Verificación: mypy, Ruff, Black y compilación sintáctica están limpios en los
+cinco módulos. Sus cinco tests de integración no pudieron arrancar porque este
+entorno no resuelve los fixtures externos `fallback` y `php_moth-fallback`.
+El score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.
+
 ## Actualización verificada: lectura keepalive compatible con stdlib
 
 La respuesta keepalive mantiene el override de `fileno` y las rutas de lectura

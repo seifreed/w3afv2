@@ -61,15 +61,14 @@ class portscan(Payload):
                     ip_address_list.append(connected_to)
 
         if ports == "default":
-            port_list = self.DEFAULT_PORTS
+            port_list = self.DEFAULT_PORTS.copy()
         else:
-            port_list = "".join(ports)
-            port_list = port_list.split(",")
+            port_list = "".join(ports).split(",")
             port_list = [port.strip() for port in port_list]
             if not all(port.isdigit() for port in port_list):
                 raise ValueError("Target ports need to be integers")
 
-        result = {}
+        result: dict[str, list[str]] = {}
 
         #
         #    Init

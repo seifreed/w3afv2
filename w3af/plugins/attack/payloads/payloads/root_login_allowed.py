@@ -10,7 +10,7 @@ class root_login_allowed(Payload):
     """
 
     def api_read(self):
-        result = {}
+        result: dict[str, str | bool] = {}
 
         ssh_config_result = self.exec_payload("ssh_config_files")
         result["ssh_root_bruteforce"] = "unknown"
