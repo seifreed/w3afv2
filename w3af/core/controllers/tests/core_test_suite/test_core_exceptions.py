@@ -181,7 +181,7 @@ class TestCoreExceptions(unittest.TestCase):
 
         errors = " ".join(self.recorder.messages_of("error"))
         self.assertIn('Unhandled exception "Test exception.", traceback:', errors)
-        self.assertIn("raise self.exception_to_raise", errors)
+        self.assertIn("exception_raise.py", errors)
 
     def test_unhandled_exception_with_original_traceback(self):
         self.stop_on_first_exception()

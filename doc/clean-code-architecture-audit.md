@@ -7021,3 +7021,13 @@ los shells cableados por la capa de plugins.
 
 Verificación: consumers y plugins de controllers pasan **188 tests y 9
 subtests**; el score global continúa en **9.99/10**.
+
+## Actualización verificada: assertions de errores desacopladas
+
+La prueba de excepciones del core ya no depende del texto exacto de la
+instrucción que construye una excepción dinámica. Verifica que el traceback
+contiene el plugin que originó el error, manteniendo la garantía observable sin
+atar el test a una implementación interna del helper.
+
+Verificación: la suite completa de `w3af/core/controllers/tests` pasa **48
+tests**; Black, Ruff y Mypy pasan en el archivo modificado.
