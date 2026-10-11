@@ -36,8 +36,8 @@ import pytest
 from defusedxml import ElementTree
 from lxml import etree
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
+from w3af.core.controllers.tests.recording_output import recording_output
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.constants import severity
 from w3af.core.data.db.dbms import get_default_temp_db_instance
@@ -73,7 +73,7 @@ from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 def xml_file_with_output():
     plugin = xml_file(db=get_default_temp_db_instance())
-    plugin.set_output(om.out)
+    plugin.set_output(recording_output())
     return plugin
 
 
@@ -1253,7 +1253,7 @@ class TestXMLFileEdgeCases(unittest.TestCase):
         self.assertEqual(slow(21), 42)
 
         class SlowObject:
-            _output = om.out
+            _output = recording_output()
 
             @took
             def slow(self, value):

@@ -4995,6 +4995,18 @@ una ruta tardía de logging que requiere una reproducción más aislada. El scor
 global continúa en **9.99/10**, con los gates heredados y la cobertura global
 todavía pendientes.
 
+## Actualización verificada: tests XML sin singleton de salida
+
+Los tests unitarios del output XML ya no acceden a `om.out` para disponer de un
+logger: usan el `recording_output` local, que conserva las assertions sin crear
+un proceso ni una cola global. Esto reduce recursos vivos durante la suite y
+evita que el teardown del proceso tenga que cerrar ese singleton.
+
+Verificación: la suite XML mantiene **32 tests** y Black/Ruff están limpios. El
+único aviso restante de `LogSink` pertenece al cierre de un core de integración;
+el score global continúa en **9.99/10**, con los gates heredados y la cobertura
+global todavía pendientes.
+
 ## Actualización verificada: comandos Docker sin shell injection
 
 Los helpers Docker propios dejaron de interpolar comandos en `shell=True`.
