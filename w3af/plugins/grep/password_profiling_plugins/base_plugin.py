@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -31,7 +32,15 @@ class BasePwdProfilingPlugin:
     """
 
     def __init__(self):
-        pass
+        self._parser_cache: ParserCache | None = None
+
+    def set_parser_cache(self, parser_cache: ParserCache) -> None:
+        self._parser_cache = parser_cache
+
+    def _get_parser_cache(self) -> ParserCache:
+        if self._parser_cache is None:
+            raise RuntimeError("Password profiling parser cache is not configured")
+        return self._parser_cache
 
     def get_words(self, response):
         """

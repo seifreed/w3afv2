@@ -50,7 +50,7 @@ class html(BasePwdProfilingPlugin):
         if not response.is_text_or_html():
             return {}
 
-        data = {}
+        data: dict[str, int] = {}
         split = WORD_SPLIT_RE.split
 
         def filter_by_len(x):

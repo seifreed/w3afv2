@@ -190,6 +190,7 @@ class password_profiling(GrepPlugin):
             for plugin_name in self._plugins_names_dict:
                 plugin_klass = "w3af.plugins.grep.password_profiling_plugins.%s"
                 plugin_instance = factory(plugin_klass % plugin_name)
+                plugin_instance.set_parser_cache(self._get_parser_cache())
                 self._plugins.append(plugin_instance)
 
         res = {}

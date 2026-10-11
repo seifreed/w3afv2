@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: parser cache inyectado en password profiling
+
+El cambio de scope de parser caches había dejado al subplugin HTML de
+`password_profiling` sin dependencia de parsing: el scan terminaba guardando
+una lista vacía en lugar del mapa de palabras. El base plugin declara ahora el
+contrato de cache y el plugin principal lo inyecta al crear cada subplugin.
+
+Verificación: password profiling y sus ramas pasan **9 tests**, y mypy
+estricto, Ruff y Black están limpios. El score global continúa en **9.99/10**,
+con los gates globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: contrato del parser de contexto HTML
 
 El parser trata explícitamente la ausencia de texto bruto de la etiqueta y la
