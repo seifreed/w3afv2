@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import datetime
 import math
-from typing import ClassVar
+from typing import Any, ClassVar, cast
 
 from bravado_core.operation import Operation
 
@@ -79,7 +79,7 @@ class ParameterHandler:
 
         for parameter_name, parameter in list(operation.params.items()):
             # We make sure that all parameters have a fill attribute
-            parameter.fill = None
+            cast(Any, parameter).fill = None
 
             if self._should_skip_setting_param_value(parameter, optional):
                 continue
@@ -480,7 +480,11 @@ class ParameterHandler:
         """
         already_defined_objects = already_defined_objects or []
 
-        merged = {"required": [], "properties": {}, "type": "object"}
+        merged: dict[str, Any] = {
+            "required": [],
+            "properties": {},
+            "type": "object",
+        }
 
         for part in all_parts:
 

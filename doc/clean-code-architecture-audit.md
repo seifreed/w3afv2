@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: fronteras dinámicas del parser OpenAPI
+
+El handler OpenAPI explicita sus dos límites dinámicos: los parámetros de
+`bravado` reciben el atributo runtime `fill`, y los esquemas JSON combinados se
+acumulan en una estructura heterogénea tipada como tal. El resto del parser
+mantiene tipos concretos y no cambia la generación de valores.
+
+Verificación: las suites OpenAPI pasan **44 tests**; mypy focal, Ruff y Black
+están limpios. Se emiten **647 avisos** deprecados desde `bravado/jsonschema`.
+El score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.
+
 ## Actualización verificada: payloads de red con aritmética entera
 
 Los payloads `tcp`, `udp` y `route` usan división entera al convertir valores
