@@ -62,7 +62,18 @@ OPTION_TYPES = (
 
 @pytest.mark.smoke
 class TestMiscSettings(unittest.TestCase):
+    def test_defaults_are_initialized_explicitly(self):
+        configuration = Config()
+        settings = MiscSettings(configuration)
+
+        self.assertIsNone(configuration.get("max_discovery_time"))
+
+        settings.ensure_configured()
+
+        self.assertEqual(configuration.get("max_discovery_time"), 120)
+
     def test_basic(self):
+        MiscSettings(cf).ensure_configured()
         opt_lst = MiscSettings(cf).get_options()
 
         for opt in opt_lst:

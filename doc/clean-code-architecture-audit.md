@@ -8053,3 +8053,15 @@ Verificación: **39 tests** de plugins y **2 tests** de integración de evasione
 pasan; la prueba de capas, Black, Ruff, mypy y Bandit dirigidos pasan. La nota
 continúa por debajo de 10/10 hasta cerrar la composición restante del core y
 la cobertura/gates globales.
+
+## Actualización verificada: defaults de misc-settings explícitos
+
+`MiscSettings` ya no escribe configuración ni consulta la red desde
+`__init__`. La inicialización de defaults se expresa con
+`ensure_configured()` y `w3afCore` la invoca explícitamente durante la
+composición. Esto elimina un efecto lateral oculto y evita que eliminar una
+referencia aparentemente no usada rompa valores como `max_discovery_time`.
+
+Verificación: **46 tests** de settings, perfiles y core pasan; Black y Ruff
+están limpios. La prueba conserva el comportamiento del core y demuestra que
+la configuración solo cambia cuando se solicita la inicialización.

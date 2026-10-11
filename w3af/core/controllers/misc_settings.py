@@ -52,12 +52,12 @@ class MiscSettings(Configurable):
     """
 
     def __init__(self, configuration):
-        """
-        Set the defaults and save them to the config dict.
-        """
+        """Create a settings view over the supplied configuration."""
         self._configuration = configuration
+
+    def ensure_configured(self):
+        """Initialize defaults when the configuration has no misc settings."""
         if not self.is_configured():
-            # It's the first time I'm run
             self.set_default_values()
 
     def is_configured(self):

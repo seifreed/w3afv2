@@ -244,6 +244,7 @@ class TestProfileSettings(ProfileTestCase):
 
     def test_misc_settings(self):
         misc_settings = MiscSettings(cf)
+        misc_settings.ensure_configured()
         options = misc_settings.get_options()
         options["fuzzed_files_extension"].set_value("jpg")
 

@@ -145,7 +145,8 @@ class w3afCore:
         """
         # Make sure we get a fresh new instance of the output manager
         self._configuration = Config() if configuration is None else configuration
-        self._misc_settings = MiscSettings(self._configuration)
+        misc_settings = MiscSettings(self._configuration)
+        misc_settings.ensure_configured()
         manager, output = create_output_manager()
         configure_data_logging(output)
         log_queue_provider, worker_initializer = get_parser_worker_bootstrap(manager)
