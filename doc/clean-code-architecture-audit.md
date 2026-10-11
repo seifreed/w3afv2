@@ -6501,3 +6501,15 @@ de los tests.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
 `test_strategy_low_level.py` pasa **7 tests**. El score global continúa en
 **9.99/10**.
+
+## Actualización verificada: ciclo de vida de la consola en tests
+
+`ConsoleTestHelper` centraliza la validación de que la consola se ha creado,
+permitiendo que los tests usen una instancia estrechada sin relajar el
+`tearDown`. El límite de espera del menú se declara como `float`, que coincide
+con su uso real en las pruebas de timeout.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en helper,
+menú y fixture; `test_ctrl_c.py` pasa **16 tests**. Pytest aún muestra nueve
+warnings deprecados procedentes de dependencias externas. El score global
+continúa en **9.99/10**.

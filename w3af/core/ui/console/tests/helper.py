@@ -66,6 +66,11 @@ class ConsoleTestHelper(unittest.TestCase):
     OUTPUT_FILE = "output-w3af-unittest.txt"
     OUTPUT_HTTP_FILE = "output-w3af-unittest-http.txt"
 
+    def get_console(self) -> ConsoleUI:
+        if self.console is None:
+            raise RuntimeError("Console has not been initialized")
+        return self.console
+
     def setUp(self):
         use_temporary_home(self)
         kb.cleanup()

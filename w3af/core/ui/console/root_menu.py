@@ -62,7 +62,7 @@ class rootMenu(menu):
     """
 
     # Wait at most 20 seconds for the core to start the scan
-    MAX_WAIT_FOR_START = 20
+    MAX_WAIT_FOR_START: float = 20
 
     def __init__(self, name, console, core, create_reporter=create_github_reporter):
         """

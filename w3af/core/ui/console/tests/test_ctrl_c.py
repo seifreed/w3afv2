@@ -42,15 +42,16 @@ class TestScanControl(ConsoleTestHelper):
 
     def setUp(self):
         super().setUp()
-        self.console = ConsoleUI(do_upd=False)
-        self.menu = rootMenu("w3af", self.console, self.console._w3af)
+        console = ConsoleUI(do_upd=False)
+        self.console = console
+        self.menu = rootMenu("w3af", console, console._w3af)
 
     def tearDown(self):
-        self.console._w3af.quit()
+        self.get_console()._w3af.quit()
         super().tearDown()
 
     def _output(self):
-        self.console._output_manager.process_all_messages()
+        self.get_console()._output_manager.process_all_messages()
         return "".join(self._captured_stdout.messages)
 
     def test_handle_scan_stop_reports_and_stops(self):
@@ -153,9 +154,10 @@ class TestScanKeypressLoop(ConsoleTestHelper):
     def setUp(self):
         super().setUp()
         self.tty = RealTTY.as_stdin(self)
-        self.console = ConsoleUI(do_upd=False)
-        self.menu = rootMenu("w3af", self.console, self.console._w3af)
-        self.addCleanup(self.console._w3af.quit)
+        console = ConsoleUI(do_upd=False)
+        self.console = console
+        self.menu = rootMenu("w3af", console, console._w3af)
+        self.addCleanup(console._w3af.quit)
         self.menu._pause_scan()
 
     def _type_slowly(self, *keys, then_finish_scan=False):
@@ -166,14 +168,14 @@ class TestScanKeypressLoop(ConsoleTestHelper):
                 self.tty.send(key)
                 time.sleep(0.2)
             if then_finish_scan:
-                self.console._w3af.status.stop()
+                self.get_console()._w3af.status.stop()
 
         thread = threading.Thread(target=typist)
         thread.start()
         self.addCleanup(thread.join)
 
     def _output(self):
-        self.console._output_manager.process_all_messages()
+        self.get_console()._output_manager.process_all_messages()
         return "".join(self._captured_stdout.messages)
 
     def test_keys_during_a_paused_scan(self):
@@ -214,7 +216,7 @@ class TestCtrlCDuringARealScan(ConsoleTestHelper):
     def _press_ctrl_c_once_running(self):
         deadline = time.monotonic() + rootMenu.MAX_WAIT_FOR_START
         while time.monotonic() < deadline:
-            if self.console._w3af.status.is_running():
+            if self.get_console()._w3af.status.is_running():
                 break
             time.sleep(0.1)
 
