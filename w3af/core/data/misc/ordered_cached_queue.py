@@ -24,6 +24,7 @@ import logging
 import queue
 import uuid
 from collections.abc import Callable
+from typing import Any
 
 from w3af.core.constants import POISON_PILL
 from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
@@ -108,10 +109,6 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
 
         QueueSpeedMeasurement.__init__(self)
 
-        self.queue_order = None
-        self.memory = None
-        self.disk = None
-
         # We want to send zero to the maxsize of the Queue implementation
         # here because we can write an infinite number of items. But keep
         # in mind that we don't really use the queue storage in any way
@@ -128,9 +125,11 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         Initialize the dicts and pointer
         :param maxsize: The max size for the queue
         """
-        self.memory = {}
-        self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue", db=self._db)
-        self.queue_order = _OrderedQueueIndex(self.disk.db)
+        self.memory: dict[str, Any] = {}
+        self.disk: DiskDict = DiskDict(
+            table_prefix=f"{self.name}CachedQueue", db=self._db
+        )
+        self.queue_order: _OrderedQueueIndex = _OrderedQueueIndex(self.disk.db)
 
     def _qsize(self, _len=len):
         return _len(self.memory) + _len(self.disk)

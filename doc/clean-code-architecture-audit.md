@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: composición de la cola ordenada
+
+La cola ordenada ya no inicializa `memory`, `disk` y `queue_order` como
+`None` para reemplazarlos inmediatamente desde `queue.Queue.__init__`. Sus
+estructuras se declaran en `_init`, que es el punto real de composición, con
+tipos explícitos y sin estados intermedios falsos.
+
+Verificación: las suites de colas pasan **25 tests**; mypy focal, Ruff y Black
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: contrato explícito del pool de threads
 
 `ThreadPool` declara ahora las colas, el cache, los workers, los handlers y el
