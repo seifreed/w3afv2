@@ -5893,3 +5893,14 @@ vulnerabilidades conocidas; el checkout de desarrollo de mitmproxy queda fuera
 de su auditoría por no estar publicado en PyPI. `mypy .` aún queda bloqueado
 por dos errores del script generado `venv/bin/activate_this.py`, no por código
 del proyecto. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contrato de trazas entre workers y handler
+
+El transporte de excepciones entre workers y `ExceptionData` declara ahora con
+un `Protocol` el atributo `original_traceback_string` que ya formaba parte del
+contrato runtime. Se mantiene la eliminación del traceback después de
+serializarlo, evitando conservar referencias a los locales de los frames.
+
+Verificación: `mypy --check-untyped-defs` del handler pasa sin errores, Ruff y
+Black pasan, y las pruebas de excepciones pasan **29 tests**. El score global
+continúa en **9.99/10**.

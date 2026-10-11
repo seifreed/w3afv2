@@ -26,7 +26,7 @@ import tempfile
 import threading
 import traceback
 from copy import copy
-from typing import TypedDict
+from typing import Protocol, TypedDict, cast
 
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
@@ -47,6 +47,10 @@ ExceptionSummaryEntry = tuple[object, object, Exception, str | None]
 class ExceptionSummary(TypedDict):
     total_exceptions: int
     exceptions: dict[object, list[ExceptionSummaryEntry]]
+
+
+class _ExceptionWithTraceback(Protocol):
+    original_traceback_string: str
 
 
 def debug_enabled():
@@ -373,10 +377,11 @@ class ExceptionData:
         _, self.filename, self.function_name, self.lineno = get_exception_location(tb)
 
         # See add_traceback_string()
-        traceback_string = getattr(self.exception, "original_traceback_string", None)
+        exception = cast(_ExceptionWithTraceback, self.exception)
+        traceback_string = getattr(exception, "original_traceback_string", None)
         if traceback_string is None:
             traceback_string = "".join(traceback.format_tb(tb))
-            self.exception.original_traceback_string = traceback_string
+            exception.original_traceback_string = traceback_string
 
         self.traceback_str = cleanup_bug_report(traceback_string, configuration)
 
