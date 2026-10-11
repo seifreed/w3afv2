@@ -39,11 +39,10 @@ class ResponseSplittingMockResponse(MockResponse):
         header_name_1 = "somevalue"
 
         try:
-            headers_to_inject = headers_to_inject.split("\n")
-            header_value_1 = headers_to_inject[0].strip()
+            header_lines = headers_to_inject.split("\n")
+            header_value_1 = header_lines[0].strip()
 
-            headers_to_inject = headers_to_inject[1]
-            header_name_2, header_value_2 = headers_to_inject.split(":")
+            header_name_2, header_value_2 = header_lines[1].split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
         except (IndexError, ValueError):
@@ -95,11 +94,10 @@ class ResponseSplittingParameterModifiesResponseMockResponse(MockResponse):
         header_name_1 = "somevalue"
 
         try:
-            headers_to_inject = headers_to_inject.split("\n")
-            header_value_1 = headers_to_inject[0].strip()
+            header_lines = headers_to_inject.split("\n")
+            header_value_1 = header_lines[0].strip()
 
-            headers_to_inject = headers_to_inject[1]
-            header_name_2, header_value_2 = headers_to_inject.split(":")
+            header_name_2, header_value_2 = header_lines[1].split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
         except (IndexError, ValueError):
@@ -155,11 +153,10 @@ class ResponseSplittingHeaderMockResponse(MockResponse):
         header_name_1 = "somevalue"
 
         try:
-            headers_to_inject = headers_to_inject.split("\n")
-            header_value_1 = headers_to_inject[0].strip()
+            header_lines = headers_to_inject.split("\n")
+            header_value_1 = header_lines[0].strip()
 
-            headers_to_inject = headers_to_inject[1]
-            header_name_2, header_value_2 = headers_to_inject.split(":")
+            header_name_2, header_value_2 = header_lines[1].split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
         except (IndexError, ValueError):

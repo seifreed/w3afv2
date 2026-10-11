@@ -65,8 +65,9 @@ class RemoteFetcher:
         parts = urllib.parse.urlsplit(url)
 
         if parts.hostname in self.proxied_hosts and self.proxy_address:
+            proxy_host, proxy_port = self.proxy_address
             connection = http.client.HTTPConnection(
-                *self.proxy_address, timeout=FETCH_TIMEOUT
+                proxy_host, proxy_port, timeout=FETCH_TIMEOUT
             )
             request_target = url
         else:

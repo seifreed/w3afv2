@@ -110,7 +110,8 @@ class TestRFI(PluginTest):
     def setUp(self):
         super().setUp()
         self.unused_port = get_unused_port()
-        FETCHER.use_proxy(self.canned_server.host, self.canned_server.port)
+        canned_server = self.get_canned_server()
+        FETCHER.use_proxy(canned_server.host, canned_server.port)
 
     def scan_for_rfi(self, target, use_w3af_site):
         plugins = rfi_plugins(use_w3af_site, self.unused_port)

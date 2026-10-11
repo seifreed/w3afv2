@@ -6747,3 +6747,15 @@ evitando reasignaciones por instancia y estado compartido accidental.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; FrontPage y DAV
 pasan **4 tests**. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contratos de fixtures RFI, RFD y response splitting
+
+Las fixtures de RFI estrechan el servidor canned mediante su accessor público y
+la fixture RFD usa un callback de módulo con `MOCK_RESPONSES` de clase. Los
+parsers de headers de response splitting mantienen separadas la cadena original
+y sus líneas, y `RemoteFetcher` desempaqueta explícitamente host y puerto antes
+de crear la conexión HTTP.
+
+Verificación: Black, Ruff y Mypy no muestran errores propios en los cuatro
+archivos modificados. La colección dinámica queda bloqueada en este entorno por
+la dependencia local ausente `vulndb`; el score global continúa en **9.99/10**.

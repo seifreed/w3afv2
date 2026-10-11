@@ -37,6 +37,12 @@ RUN_CONFIG = {
 }
 
 
+def safe_json_responder(mock_response, request, uri, response_headers):
+    response_headers["Content-Type"] = "text/json"
+    response_headers["Content-Disposition"] = 'attachment; filename="safe.json"'
+    return 200, response_headers, '{"q": "rfd"}'
+
+
 class TestJSONAllFiltered(PluginTest):
 
     target_url = "http://json-all-filtered/?q=rfd"
@@ -204,16 +210,9 @@ class TestRFDContentDispositionFilename(PluginTest):
 
     target_url = "http://download/?q=rfd"
 
-    def responder(self, mock_response, request, uri, response_headers):
-        response_headers["Content-Type"] = "text/json"
-        response_headers["Content-Disposition"] = 'attachment; filename="safe.json"'
-        return 200, response_headers, '{"q": "rfd"}'
-
-    def setUp(self):
-        self.MOCK_RESPONSES = [
-            MockResponse(re.compile("http://download/.*"), self.responder)
-        ]
-        super().setUp()
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile("http://download/.*"), safe_json_responder)
+    ]
 
     def test_filename_disables_rfd(self):
         self._scan(self.target_url, RUN_CONFIG["cfg"]["plugins"])
