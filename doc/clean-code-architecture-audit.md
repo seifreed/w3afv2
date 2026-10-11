@@ -5919,6 +5919,16 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: parsing tipado de sitemap
+
+`sitemap_xml` mantiene separados el nodo DOM, el texto de la URL y el objeto
+`URL`; descarta nodos sin datos de texto y usa variables de logging específicas
+para cada error de parseo. La lista enviada al worker queda tipada como URLs,
+sin conservar nodos DOM ni mezclar tipos durante el recorrido.
+
+Verificación: sitemap XML pasa **5 tests**; Mypy con cuerpos no tipados, Ruff
+y Black pasan en el módulo. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: contratos de web spider
 
 `web_spider` valida localmente la regex de seguimiento antes de usarla y

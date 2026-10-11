@@ -68,31 +68,41 @@ class sitemap_xml(CrawlPlugin):
             dom = minidom.parseString(response.get_body())
         except (ExpatError, DefusedXmlException) as e:
             msg = 'Exception while parsing sitemap.xml from %s: "%s"'
-            args = (response.get_url(), e)
-            self._output.debug(msg % args)
+            parse_log_args = (response.get_url(), e)
+            self._output.debug(msg % parse_log_args)
             return
 
-        parsed_url_list = []
+        parsed_url_list: list[URL] = []
         raw_url_list = dom.getElementsByTagName("loc")
 
-        for url in raw_url_list:
+        for loc_node in raw_url_list:
             try:
-                url = url.childNodes[0].data
-            except (IndexError, AttributeError) as e:
+                text_node = loc_node.childNodes[0]
+            except IndexError as e:
                 msg = "Sitemap file at %s has an invalid format: %s"
-                args = (response.get_url(), e)
-                self._output.debug(msg % args)
+                format_log_args = (response.get_url(), e)
+                self._output.debug(msg % format_log_args)
+                continue
+
+            url_text = getattr(text_node, "data", None)
+            if not isinstance(url_text, str):
+                msg = "Sitemap file at %s has an invalid format: %s"
+                missing_text_log_args = (
+                    response.get_url(),
+                    AttributeError("missing text data"),
+                )
+                self._output.debug(msg % missing_text_log_args)
                 continue
 
             try:
-                url = URL(url)
-            except ValueError as ve:
+                parsed_url = URL(url_text)
+            except ValueError as error:
                 msg = 'Sitemap file at %s has an invalid URL: "%s"'
-                args = (response.get_url(), ve)
-                self._output.debug(msg % args)
+                url_log_args = (response.get_url(), error)
+                self._output.debug(msg % url_log_args)
                 continue
             else:
-                parsed_url_list.append(url)
+                parsed_url_list.append(parsed_url)
 
         self.worker_pool.map(self.http_get_and_parse, parsed_url_list)
 
