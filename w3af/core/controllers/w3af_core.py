@@ -40,6 +40,7 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
 from w3af.core.controllers.core_helpers.scan_environment_validator import (
     ScanEnvironmentValidator,
 )
+from w3af.core.controllers.core_helpers.scan_end_lifecycle import ScanEndLifecycle
 from w3af.core.controllers.core_helpers.scan_stop_controller import (
     ScanStopController,
 )
@@ -235,6 +236,17 @@ class w3afCore:
             lambda: self.STOP_LOOP_DELAY,
         )
         self._strategy_runner = ScanStrategyRunner(output, get_home_dir)
+        self._scan_end_lifecycle = ScanEndLifecycle(
+            output,
+            manager,
+            self._parser_cache,
+            self._stop_profiling,
+            self._worker_pool_manager.terminate,
+            self.exploit_phase_prerequisites,
+            self.plugins.zero_enabled_plugins,
+            self.target.clear,
+            lambda: self.status.stop(),
+        )
 
         # Keep track of first scan to call cleanup or not
         self._first_scan = True
@@ -491,42 +503,11 @@ class w3afCore:
     def verify_environment(self):
         self._environment_validator.validate()
 
-    def _terminate_worker_pool(self):
-        self._worker_pool_manager.terminate()
-
     def scan_end_hook(self):
         """
         This method is called when the process ends normally or by an error.
         """
-        self._stop_profiling()
-        self._parser_cache.clear()
-
-        try:
-            #
-            # Close the output manager, this needs to be done BEFORE the end()
-            # in uri_opener because some plugins (namely xml_output) use the
-            # data from the history in their end() method.
-            #
-            # Also needs to be done before target.clear() because some plugins
-            # need to access the target data stored in the configuration
-            #
-            self._output.debug("Calling end_output_plugins()")
-            self._output_manager.end_output_plugins()
-        finally:
-            self._terminate_worker_pool()
-
-            self.exploit_phase_prerequisites()
-
-            # Remove all references to plugins from memory
-            self.plugins.zero_enabled_plugins()
-
-            # No targets to be scanned
-            self.target.clear()
-
-            # Status
-            self.status.stop()
-
-        self._output.debug("scan_end_hook() completed")
+        self._scan_end_lifecycle.finish()
 
     def exploit_phase_prerequisites(self):
         """

@@ -7709,3 +7709,14 @@ regresión cubre tanto la lista original como la devuelta por el getter.
 
 Verificación: la batería de lifecycle del output manager pasa con el nuevo caso;
 Black y Ruff pasan en los archivos modificados.
+
+## Actualización verificada: lifecycle explícito de fin de scan
+
+El orden delicado de `scan_end_hook()` ya no vive dentro del controlador
+principal. `ScanEndLifecycle` recibe sus dependencias y callbacks explícitos,
+mantiene el cierre de output dentro de `try/finally` y conserva el orden
+parser, output, workers, exploit, plugins, target y status. `w3afCore` queda como
+fachada pública que delega la transición.
+
+Verificación: las suites de core y estrategia pasan; Black, Ruff y mypy dirigido
+pasan en el nuevo lifecycle y el controlador.
