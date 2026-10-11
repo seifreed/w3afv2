@@ -4884,3 +4884,14 @@ Verificación: `click_jacking` y `web_spider` terminan limpiamente con **19
 tests**, sin el bloqueo posterior en `_finalize_join`; Black, Ruff, mypy y
 Bandit focales están limpios. El score global continúa en **9.99/10**, con los
 gates heredados del entorno todavía pendientes.
+
+## Actualización verificada: contrato Python 3.14 del test de plugins
+
+`test_basic` comparaba métodos enlazados con `__func__` contra funciones de
+clase, solo inspeccionaba la base directa y exigía que atributos inicializados
+a `None` fueran truthy. La aserción ahora recorre el MRO y verifica presencia,
+reconociendo implementaciones intermedias como `AuthSessionPlugin`.
+
+Verificación: `test_basic.py` pasa **9 tests**; Black, Ruff, mypy y Bandit
+focales están limpios. El score global continúa en **9.99/10**, con los gates
+heredados del entorno todavía pendientes.

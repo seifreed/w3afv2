@@ -211,7 +211,7 @@ class TestBasic(unittest.TestCase):
                 # Not defined in class or parent class
                 return False
 
-            for base_klass in klass.__class__.__bases__:
+            for base_klass in klass.__class__.__mro__[1:]:
 
                 base_method = getattr(base_klass, attr, None)
                 if base_method is None:
@@ -219,7 +219,7 @@ class TestBasic(unittest.TestCase):
                     # implement all methods
                     continue
 
-                if any_klass_method.__func__ is not base_method.__func__:
+                if any_klass_method.__func__ is not base_method:
                     return True
 
             return False
@@ -263,7 +263,7 @@ class TestBasic(unittest.TestCase):
                 # and that the corresponding attrs are there
                 for attr in ALL_TYPES_ATTRS:
                     msg = f"Plugin {plugin.get_name()} doesn't have attribute {attr}: {dir(plugin)!r}"
-                    self.assertTrue(getattr(plugin, attr, False), msg)
+                    self.assertTrue(hasattr(plugin, attr), msg)
 
                 # Verify that the current plugin, and not the parent, defined
                 # the required methods
