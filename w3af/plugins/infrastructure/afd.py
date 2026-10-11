@@ -97,8 +97,8 @@ class afd(InfrastructurePlugin):
         tests = []
         for offending_string in self._get_offending_strings():
             args = (fuzzable_request.get_url(), rnd_param, offending_string)
-            offending_url = fmt % args
-            offending_url = URL(offending_url)
+            offending_url_string = fmt % args
+            offending_url = URL(offending_url_string)
             tests.append((offending_string, offending_url, orig_resp_body, rnd_param))
 
         self.worker_pool.map_multi_args(self._send_and_analyze, tests)

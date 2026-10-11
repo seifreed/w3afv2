@@ -24,6 +24,7 @@ import re
 import unittest
 from typing import ClassVar
 
+from w3af.core.data.db.dbms import database_session
 from w3af.plugins.crawl.find_captchas import find_captchas
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -126,4 +127,5 @@ class TestFindCAPTCHAS(PluginTest):
 
 class TestFindCAPTCHASDescription(unittest.TestCase):
     def test_long_description(self):
-        self.assertIn("CAPTCHA", find_captchas().get_long_desc())
+        with database_session() as database:
+            self.assertIn("CAPTCHA", find_captchas(db=database).get_long_desc())

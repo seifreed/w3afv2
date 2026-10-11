@@ -6049,3 +6049,14 @@ El flujo de comparación, cache y generación de respuestas permanece intacto.
 Verificación: las pruebas de fingerprinting y generación 404 pasan **39 tests**;
 Mypy estricto, Ruff y Black pasan en ambos módulos. El score global continúa en
 **9.99/10**.
+
+## Actualización verificada: contratos explícitos en plugins
+
+AFD separa la cadena de URL de la instancia parseada, websockets declara sus
+conjuntos de enlaces y CAPTCHA declara su lista de resultados. Sus fixtures
+configuran ahora DB, parser cache y output reales, alineados con el ciclo de
+vida exigido por los plugins y sin recursos globales implícitos.
+
+Verificación: AFD, websockets y CAPTCHA pasan **16 tests**; Mypy estricto, Ruff
+y Black pasan en los módulos y fixtures modificados. El score global continúa
+en **9.99/10**.

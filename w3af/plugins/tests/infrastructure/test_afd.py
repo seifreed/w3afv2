@@ -25,6 +25,7 @@ import unittest
 import urllib.parse
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -166,6 +167,7 @@ class TestAFDUnreachable(unittest.TestCase):
     def setUp(self):
         kb.cleanup()
         self.plugin = afd()
+        self.plugin.set_output(om.out)
         self.plugin._uri_opener = ExtendedUrllib()
         self.addCleanup(self.plugin._uri_opener.end)
 

@@ -21,9 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.websockets_links import websockets_links
@@ -33,6 +35,11 @@ class TestWebsocketsLinks(unittest.TestCase):
 
     def setUp(self):
         self.plugin = websockets_links()
+        self.plugin.set_output(om.out)
+        self.plugin.set_knowledge_base(kb)
+        self.parser_cache = ParserCache()
+        self.plugin.set_parser_cache(self.parser_cache)
+        self.addCleanup(self.parser_cache.clear)
         kb.clear("websockets_links", "websockets_links")
 
     def tearDown(self):

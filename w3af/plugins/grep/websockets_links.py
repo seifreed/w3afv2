@@ -67,6 +67,7 @@ class websockets_links(GrepPlugin):
         url = request.get_url()
 
         # if it is javascript we search the whole doc
+        ws_links: set[str]
         if JavaScriptParser(response).can_parse(response):
             ws_links = find_websockets_links(response.body)
         else:
@@ -113,7 +114,7 @@ class websockets_links(GrepPlugin):
 
 
 def find_websockets_links(text):
-    ws_links = set()
+    ws_links: set[str] = set()
 
     if text is None:
         return ws_links

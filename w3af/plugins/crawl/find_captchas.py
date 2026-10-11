@@ -79,7 +79,7 @@ class find_captchas(CrawlPlugin):
                           indeed a CAPTCHA
         """
         found_captcha = False
-        captchas = []
+        captchas: list[CaptchaInfo] = []
 
         # GET the document, and fetch the images
         images_1 = self._get_images(fuzzable_request)
