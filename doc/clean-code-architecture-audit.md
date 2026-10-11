@@ -7263,3 +7263,16 @@ idempotente, sincronizado para el registro de pipes y cubre todas esas rutas.
 
 Verificación: los tests de servidor pasan **2 tests**; Black, Ruff, Mypy y
 Bandit de producción pasan en los archivos modificados.
+
+## Actualización verificada: gates globales tras el lifecycle del agente
+
+La validación global actual deja Black en **1665 archivos sin cambios** y Ruff
+sin hallazgos. `pip-audit` no encuentra vulnerabilidades conocidas y mantiene
+solo la omisión documentada de `mitmproxy`, que no está publicado en PyPI.
+`mypy .` conserva exactamente dos errores en el artefacto generado
+`venv/bin/activate_this.py`; `bandit -r .` recorre además ese entorno y sus
+dependencias, por lo que emite avisos fuera del código de producción.
+
+El score verificable permanece en **9.99/10**: estas limitaciones pertenecen a
+la ejecución global del workspace y no se han ocultado mediante exclusiones o
+supresiones.
