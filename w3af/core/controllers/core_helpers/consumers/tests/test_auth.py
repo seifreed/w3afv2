@@ -25,6 +25,7 @@ from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import 
     WAIT_TIMEOUT,
     counting_auth,
     crashing_auth,
+    crashing_logout_auth,
     drain_results,
     reported_errors,
 )
@@ -87,3 +88,15 @@ class TestAuthConsumer(unittest.TestCase):
         self.assertEqual(
             reported_errors(consumer), [("crashing_auth", "session check failed")]
         )
+
+    def test_logout_errors_are_reported_and_end_still_runs(self):
+        plugin = crashing_logout_auth()
+        consumer = self.start_consumer([plugin], NEVER)
+
+        consumer.send_poison_pill()
+        consumer.join()
+
+        self.assertEqual(
+            reported_errors(consumer), [("crashing_logout_auth", "logout failed")]
+        )
+        self.assertEqual(plugin.end_calls, 1)

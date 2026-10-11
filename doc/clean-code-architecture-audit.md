@@ -6954,3 +6954,8 @@ de un atributo global implícito.
 
 Verificación: Black, Ruff y Mypy pasan en los archivos modificados; la batería
 de plugins y consumers de autenticación pasa **59 tests**.
+
+Los errores de `logout()` se envían ahora al mismo canal de excepciones del
+consumer y no impiden ejecutar `end()` del plugin afectado.
+
+Verificación adicional: `test_auth.py` pasa **6 tests**.

@@ -98,6 +98,11 @@ class counting_auth(EndBehaviour, AuthPlugin):
         self.logouts += 1
 
 
+class crashing_logout_auth(counting_auth):
+    def logout(self):
+        raise ValueError("logout failed")
+
+
 class crashing_auth(EndBehaviour, AuthPlugin):
     def has_active_session(self, debugging_id=None):
         raise ValueError("session check failed")
