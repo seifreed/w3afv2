@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import http.client
+import importlib
 import os
 import socket
 import ssl
@@ -28,15 +29,16 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from functools import partial
-from typing import ClassVar
-
-import OpenSSL
+from typing import Any, ClassVar, cast
 
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.openssl_wrapper.ssl_wrapper import wrap_socket
 
 from .http_response import HTTPResponse
 from .utils import debug
+
+openssl: Any = importlib.import_module("OpenSSL")
+_DEFAULT_TIMEOUT = cast(Any, socket)._GLOBAL_DEFAULT_TIMEOUT
 
 
 class UniqueID:
@@ -54,9 +56,7 @@ class UniqueID:
 
     def __str__(self):
         # Only makes sense when DEBUG is True
-        timeout = (
-            None if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
-        )
+        timeout = None if self.timeout is _DEFAULT_TIMEOUT else self.timeout
         args = (self.__class__.__name__, self.id, self.req_count, timeout)
         return "<{}(id:{}, req_count:{}, timeout:{})>".format(*args)
 
@@ -67,7 +67,7 @@ class _HTTPConnection(http.client.HTTPConnection, UniqueID):
         self,
         host,
         port=None,
-        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        timeout=_DEFAULT_TIMEOUT,
         configuration=None,
         resolver=None,
     ):
@@ -91,14 +91,14 @@ class _HTTPConnection(http.client.HTTPConnection, UniqueID):
         self.sock = create_connection(
             (self.host, self.port),
             self.timeout,
-            self.source_address,
+            cast(Any, self).source_address,
             resolver=self._resolver,
         )
 
 
 def create_connection(
     address,
-    timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+    timeout=_DEFAULT_TIMEOUT,
     source_address=None,
     resolver=None,
 ):
@@ -120,7 +120,7 @@ def create_connection(
             # https://github.com/andresriancho/w3af/issues/11359
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-            if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+            if timeout is not _DEFAULT_TIMEOUT:
                 sock.settimeout(timeout)
             if source_address:
                 sock.bind(source_address)
@@ -146,7 +146,7 @@ class ProxyHTTPConnection(_HTTPConnection):
         self,
         host,
         port=None,
-        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        timeout=_DEFAULT_TIMEOUT,
         configuration=None,
         resolver=None,
     ):
@@ -192,8 +192,8 @@ class ProxyHTTPConnection(_HTTPConnection):
         self.send(("\r\n".join(connect_lines) + "\r\n\r\n").encode("ascii"))
 
         # expect a HTTP/1.0 200 Connection established
-        response = self.response_class(self.sock, method=self._method)
-        _version, code, message = response._read_status()
+        response = self.response_class(self.sock, method=cast(Any, self)._method)
+        _version, code, message = cast(Any, response)._read_status()
 
         # probably here we can handle auth requests...
         if code != 200:
@@ -210,10 +210,10 @@ class ProxyHTTPConnection(_HTTPConnection):
 
 
 _protocols = [
-    OpenSSL.SSL.TLS_METHOD,
-    OpenSSL.SSL.TLSv1_2_METHOD,
-    OpenSSL.SSL.TLSv1_1_METHOD,
-    OpenSSL.SSL.TLSv1_METHOD,
+    openssl.SSL.TLS_METHOD,
+    openssl.SSL.TLSv1_2_METHOD,
+    openssl.SSL.TLSv1_1_METHOD,
+    openssl.SSL.TLSv1_METHOD,
 ]
 
 # Avoid race conditions
@@ -277,7 +277,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
             # Always close the tcp/ip connection on error
             sock.close()
 
-        except (OSError, ValueError, OpenSSL.SSL.Error) as e:
+        except (OSError, ValueError, openssl.SSL.Error) as e:
             msg = "Unexpected exception occurred with protocol %s: '%s'"
             debug(msg % (protocol, e))
 
@@ -314,7 +314,7 @@ class ProxyHTTPSConnection(ProxyHTTPConnection, SSLNegotiatorConnection):
         port=None,
         key_file=None,
         cert_file=None,
-        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        timeout=_DEFAULT_TIMEOUT,
         configuration=None,
         resolver=None,
     ):
@@ -327,7 +327,9 @@ class ProxyHTTPSConnection(ProxyHTTPConnection, SSLNegotiatorConnection):
             configuration=configuration,
             resolver=resolver,
         )
-        self.response_class = partial(self.response_class, configuration=configuration)
+        cast(Any, self).response_class = partial(
+            self.response_class, configuration=configuration
+        )
         self.key_file = key_file
         self.cert_file = cert_file
 
@@ -353,7 +355,7 @@ class HTTPConnection(_HTTPConnection):
         self,
         host,
         port=None,
-        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        timeout=_DEFAULT_TIMEOUT,
         configuration=None,
         resolver=None,
     ):
@@ -365,7 +367,9 @@ class HTTPConnection(_HTTPConnection):
             configuration=configuration,
             resolver=resolver,
         )
-        self.response_class = partial(self.response_class, configuration=configuration)
+        cast(Any, self).response_class = partial(
+            self.response_class, configuration=configuration
+        )
         self.current_request_start = None
         self.connection_manager_move_ts = None
 
@@ -377,7 +381,7 @@ class HTTPSConnection(SSLNegotiatorConnection):
         self,
         host,
         port=None,
-        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        timeout=_DEFAULT_TIMEOUT,
         configuration=None,
         resolver=None,
     ):
@@ -389,7 +393,9 @@ class HTTPSConnection(SSLNegotiatorConnection):
             configuration=configuration,
             resolver=resolver,
         )
-        self.response_class = partial(self.response_class, configuration=configuration)
+        cast(Any, self).response_class = partial(
+            self.response_class, configuration=configuration
+        )
         self.is_fresh = True
         self.current_request_start = None
         self.connection_manager_move_ts = None

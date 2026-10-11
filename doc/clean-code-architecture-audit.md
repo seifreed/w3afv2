@@ -4956,6 +4956,19 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: frontera tipada de conexiones keepalive
+
+La integración keepalive encapsula ahora la carga de `pyOpenSSL`, el timeout
+privado de `socket` y los atributos internos de `http.client` en puntos locales
+de compatibilidad tipada. Las clases de conexión mantienen el mismo contrato
+de red y el mismo cierre de sockets, pero el resto del módulo ya no depende de
+detalles que los stubs públicos no exponen.
+
+Verificación: keepalive pasa **56 tests**; `connections.py` queda sin errores
+de mypy, y Black, Ruff y Bandit focales están limpios. El score global continúa
+en **9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
+
 ## Actualización verificada: excepciones sin retener frames
 
 `ExceptionData` ya no conserva el objeto traceback en las excepciones que el
