@@ -6469,3 +6469,13 @@ de las colas IPC antes de cerrarlos.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en producción y
 tests; manager pasa **8 tests**, ciclo de vida **28** y logging **4**. El score
 global continúa en **9.99/10**.
+
+## Actualización verificada: contrato del mixin de phpinfo
+
+El mixin de `phpinfo` declara la URL y el conjunto de resultados esperados, y
+expresa mediante un cast estático que solo se mezcla con `PluginTest`. Así se
+elimina la propagación de `None` sin convertir el mixin en una suite adicional
+de pytest ni alterar la jerarquía runtime de los tests.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
+`test_phpinfo.py` pasa **11 tests**. El score global continúa en **9.99/10**.

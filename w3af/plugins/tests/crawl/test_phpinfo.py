@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
@@ -61,23 +61,28 @@ def phpinfo_site(phpinfo_file):
 class PHPInfoScanMixin:
 
     target_url: str | None = TARGET_URL
-    EXPECTED_INFOS: ClassVar[set] = set()
+    EXPECTED_INFOS: ClassVar[set[str]] = set()
 
     def test_phpinfo(self):
-        self._scan(self.target_url, RUN_CONFIG)
+        test_case = cast(PluginTest, self)
+        target_url = self.target_url
+        if target_url is None:
+            raise AssertionError("phpinfo test requires a target URL")
 
-        urls = [url.url_string for url in self.kb.get_all_known_urls()]
-        self.assertIn(self.target_url + "phpversion.php", urls)
-        self.assertNotIn(self.target_url + "info.php", urls)
-        self.assertNotIn(self.target_url + "x.php", urls)
+        test_case._scan(target_url, RUN_CONFIG)
 
-        infos = self.kb.get("phpinfo", "phpinfo")
+        urls = [url.url_string for url in test_case.kb.get_all_known_urls()]
+        test_case.assertIn(target_url + "phpversion.php", urls)
+        test_case.assertNotIn(target_url + "info.php", urls)
+        test_case.assertNotIn(target_url + "x.php", urls)
+
+        infos = test_case.kb.get("phpinfo", "phpinfo")
 
         info_urls = {i.get_url().url_string for i in infos}
-        self.assertEqual(info_urls, {self.target_url + "phpversion.php"})
+        test_case.assertEqual(info_urls, {target_url + "phpversion.php"})
 
         found_infos = {i.get_name() for i in infos}
-        self.assertEqual(found_infos, self.EXPECTED_INFOS)
+        test_case.assertEqual(found_infos, self.EXPECTED_INFOS)
 
 
 class TestPHPInfo516(PHPInfoScanMixin, PluginTest):
