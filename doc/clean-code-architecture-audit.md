@@ -7787,7 +7787,7 @@ liberados.
 
 Verificación: **60 tests** de lifecycle, output, observers, not-found y debug
 pasan; el caso de reinicio global confirma manager y sink coherentes. La
-batería de múltiples cores conserva un RSS máximo de **101941248 bytes**.
+batería de múltiples cores conserva un RSS máximo de **102301696 bytes**.
 Black y Ruff pasan globalmente; `mypy .` sigue entrando en el
 `venv/bin/activate_this.py` externo al código del proyecto.
 
