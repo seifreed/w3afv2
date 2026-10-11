@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import base64
 import re
 import time
+from typing import Any
 
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.local_target import LocalTarget
@@ -52,7 +53,7 @@ class ScanLifecycleTest(APIUnitTest):
             headers=self.HEADERS,
         )
         self.assertEqual(response.status_code, 200, response.data)
-        return response.json["scan_profile"]
+        return self._json_object(response)["scan_profile"]
 
     def start_scan(self, plugins=None):
         plugins = {"crawl": ["web_spider"]} if plugins is None else plugins
@@ -62,12 +63,18 @@ class ScanLifecycleTest(APIUnitTest):
         }
         response = self.app.post("/scans/", json=data, headers=self.HEADERS)
         self.assertEqual(response.status_code, 201, response.data)
-        return response.json["id"]
+        return self._json_object(response)["id"]
 
     def status(self, scan_id):
         response = self.app.get(f"/scans/{scan_id}/status", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
-        return response.json
+        return self._json_object(response)
+
+    def _json_object(self, response) -> dict[str, Any]:
+        data = response.json
+        if not isinstance(data, dict):
+            raise TypeError("Expected an object JSON response")
+        return data
 
     def wait_for_status(self, scan_id, expected):
         deadline = time.monotonic() + WAIT_SECONDS
@@ -128,7 +135,7 @@ class ScanLifecycleTest(APIUnitTest):
         self.assertEqual(status["progress"], 0)
         self.assertIn("plugins", status["exception"])
         response = self.app.get("/scans/", headers=self.HEADERS)
-        self.assertTrue(response.json["items"][0]["errors"])
+        self.assertTrue(self._json_object(response)["items"][0]["errors"])
 
         response = self.app.delete(f"/scans/{scan_id}", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
@@ -176,14 +183,15 @@ class ScanLifecycleTest(APIUnitTest):
         self.assertEqual(response.status_code, 201, response.data)
 
         response = self.app.get(f"/scans/{scan_id}/exceptions/", headers=self.HEADERS)
-        items = response.json["items"]
+        items = self._json_object(response)["items"]
         self.assertEqual(len(items), 1)
         self.assertNotIn("traceback", items[0])
 
         response = self.app.get(items[0]["href"], headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.json["exception"], "unittest")
-        self.assertIn("exception_creator", response.json["traceback"])
+        response_json = self._json_object(response)
+        self.assertEqual(response_json["exception"], "unittest")
+        self.assertIn("exception_creator", response_json["traceback"])
 
         response = self.app.get(f"/scans/{scan_id}/kb/0", headers=self.HEADERS)
         self.assertEqual(response.status_code, 404)
@@ -191,20 +199,22 @@ class ScanLifecycleTest(APIUnitTest):
     def assert_rejected(self, payload, message):
         response = self.app.post("/scans/", json=payload, headers=self.HEADERS)
         self.assertEqual(response.status_code, 400, response.data)
-        self.assertIn(message, response.json["message"])
+        self.assertIn(message, self._json_object(response)["message"])
 
     def list_scans(self):
         response = self.app.get("/scans/", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
         return [
             (item["id"], item["status"], item["target_urls"])
-            for item in response.json["items"]
+            for item in self._json_object(response)["items"]
         ]
 
     def assert_scan_results(self, scan_id):
         response = self.app.get(f"/scans/{scan_id}/log?id=0", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
-        messages = [entry["message"] for entry in response.json["entries"]]
+        messages = [
+            entry["message"] for entry in self._json_object(response)["entries"]
+        ]
         self.assertIn("Called w3afCore.start()", messages)
 
         request_ids = [
@@ -217,8 +227,9 @@ class ScanLifecycleTest(APIUnitTest):
         traffic_href = f"/scans/{scan_id}/traffic/{request_ids[0]}"
         response = self.app.get(traffic_href, headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
-        request = base64.b64decode(response.json["request"]).decode()
-        response_text = base64.b64decode(response.json["response"]).decode()
+        response_json = self._json_object(response)
+        request = base64.b64decode(response_json["request"]).decode()
+        response_text = base64.b64decode(response_json["response"]).decode()
         self.assertTrue(request.startswith("GET "), request)
         self.assertIn("w3af</body>", response_text)
 
@@ -227,4 +238,4 @@ class ScanLifecycleTest(APIUnitTest):
                 f"/scans/{scan_id}/{resource}", headers=self.HEADERS
             )
             self.assertEqual(response.status_code, 200, response.data)
-            self.assertIsInstance(response.json["items"], list)
+            self.assertIsInstance(self._json_object(response)["items"], list)

@@ -6479,3 +6479,14 @@ de pytest ni alterar la jerarquía runtime de los tests.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
 `test_phpinfo.py` pasa **11 tests**. El score global continúa en **9.99/10**.
+
+## Actualización verificada: frontera JSON del ciclo de vida API
+
+Los tests de ciclo de vida validan una vez que cada respuesta contiene un
+objeto JSON antes de indexarlo. El helper local centraliza la comprobación de
+la frontera HTTP y elimina doce accesos opcionales dispersos sin cambiar las
+peticiones ni las aserciones funcionales.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
+el ciclo de vida API pasa **5 tests y 6 subtests**. El score global continúa
+en **9.99/10**.
