@@ -8283,3 +8283,11 @@ externas y los coordinadores grandes tienen colaboradores explícitos. El score
 global de calidad todavía no se puede certificar como 10/10 porque `mypy .`
 incluye el `venv` generado, `bandit -r .` incluye dependencias y tests con
 subprocess legítimo, y no existe evidencia de cobertura global del 100%.
+
+La extracción posterior de `StatusMetrics` mueve las métricas de crawl, audit y
+grep, el cálculo de ETA y el progreso fuera de `CoreStatus`, que pasa de 530 a
+393 líneas. El componente nuevo tiene **100% de cobertura** en la batería de
+status, y la regresión de serialización de `ExceptionData` queda cubierta: la
+batería ampliada pasa **77 tests**. `StatusMetrics` depende de
+`StatusLifecycle`, no de callbacks ligados a `CoreStatus`, para evitar ciclos
+de referencias que retengan el `OutputManager`.
