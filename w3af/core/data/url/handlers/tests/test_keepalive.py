@@ -26,6 +26,7 @@ import socket
 import threading
 import time
 import unittest
+from typing import Any, cast
 
 import OpenSSL
 
@@ -208,7 +209,8 @@ class TestHTTPKeepAlive(OpenerTestCase):
         self.assertEqual(response.read(), b"ok")
 
     def test_100_continue_with_a_huge_header(self):
-        line = b"X-Huge: " + b"a" * (http.client._MAXLINE + 1) + b"\r\n"
+        max_line = cast(Any, http.client)._MAXLINE
+        line = b"X-Huge: " + b"a" * (max_line + 1) + b"\r\n"
         server = self.serve({"/": raw(b"HTTP/1.1 100 Continue\r\n" + line + b"\r\n")})
 
         with self.assertRaises(http.client.LineTooLong):
@@ -309,7 +311,8 @@ class TestHTTPKeepAlive(OpenerTestCase):
         server = self.serve({"/": Response(body="ok")})
 
         first = self.opener.open(request(server.url()))
-        self.opener.open(request(server.url(), timeout=socket._GLOBAL_DEFAULT_TIMEOUT))
+        default_timeout = cast(Any, socket)._GLOBAL_DEFAULT_TIMEOUT
+        self.opener.open(request(server.url(), timeout=default_timeout))
         self.assertEqual(
             first._connection.sock.gettimeout(), socket.getdefaulttimeout()
         )

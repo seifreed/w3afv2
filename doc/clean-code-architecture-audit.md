@@ -6781,3 +6781,14 @@ una aserción antes del final normal del test.
 Verificación: Black, Ruff y diff limpio. La ejecución completa sigue limitada
 por dependencias opcionales no instaladas en este entorno; el score global
 continúa en **9.99/10**.
+
+## Actualización verificada: contratos tipados en URL handlers
+
+Las fixtures de URL declaran las colas de logging y los mapas de rutas, usan
+`HTTPRequest` cuando el handler necesita sus atributos propios y estrechan los
+contextos opcionales de SPNEGO. Los metadatos dinámicos de respuestas estándar
+quedan confinados a casts locales de la fixture, y los accesos a constantes
+privadas de la librería estándar están tipados en un único punto.
+
+Verificación: Mypy, Black y Ruff pasan en los **10 archivos** modificados; la
+batería integrada pasa **105 tests**. El score global continúa en **9.99/10**.

@@ -25,6 +25,7 @@ import tempfile
 import unittest
 import urllib.request
 from pathlib import Path
+from typing import Any, cast
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -109,7 +110,8 @@ class TestCookieHandler(unittest.TestCase):
 
     def test_requests_without_session_support_are_not_modified(self):
         request = urllib.request.Request(self.check_cookie.url_string)
-        request.cookies = True
+        request_with_cookies = cast(Any, request)
+        request_with_cookies.cookies = True
 
         self.assertIs(CookieHandler().http_request(request), request)
         self.assertFalse(request.has_header("Cookie"))

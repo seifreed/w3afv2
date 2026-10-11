@@ -69,7 +69,10 @@ def ntlm_protected(request):
     if context is None:
         context = spnego.server(protocol="ntlm")
         request.connection["ntlm"] = context
-        challenge = base64.b64encode(context.step(token)).decode("ascii")
+        challenge_token = context.step(token)
+        if challenge_token is None:
+            return Response(401, "Missing challenge token", headers=challenge_header)
+        challenge = base64.b64encode(challenge_token).decode("ascii")
         return Response(
             401, "Challenge", headers=[("WWW-Authenticate", f"NTLM {challenge}")]
         )

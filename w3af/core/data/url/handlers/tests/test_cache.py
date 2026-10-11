@@ -24,6 +24,7 @@ import io
 import unittest
 import urllib.response
 from email.message import Message
+from typing import Any, cast
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
@@ -111,10 +112,12 @@ class TestCacheHandler(unittest.TestCase):
     def test_store_errors(self):
         request = HTTPRequest(self.url, cache=True)
         response = urllib.response.addinfourl(
-            io.BytesIO(b"body"), Message(), self.url.url_string, code="abc"
+            io.BytesIO(b"body"), Message(), self.url.url_string, code=200
         )
-        response.msg = "OK"
-        response.id = 1
+        response_with_metadata = cast(Any, response)
+        response_with_metadata.code = "abc"
+        response_with_metadata.msg = "OK"
+        response_with_metadata.id = 1
 
         with self.assertRaises(CacheStoreException):
             self.cache.http_response(request, response)

@@ -185,12 +185,18 @@ class TestGetCleanBody(unittest.TestCase):
 
             if expected_result:
                 msg = 'Failed in round (%s - %s), clean body is: "%s"'
-                args = (expected_result, max_escape_count, clean_body)
-                self.assertEqual(clean_body, "abc  def", msg % args)
+                self.assertEqual(
+                    clean_body,
+                    "abc  def",
+                    msg % (expected_result, max_escape_count, clean_body),
+                )
             else:
                 msg = 'Failed in round (%s - %s), clean body is: "%s"'
-                args = (expected_result, max_escape_count, clean_body)
-                self.assertEqual(clean_body, body, msg % args)
+                self.assertEqual(
+                    clean_body,
+                    body,
+                    msg % (expected_result, max_escape_count, clean_body),
+                )
 
 
 class TestApplyMultiEscapeTable(unittest.TestCase):

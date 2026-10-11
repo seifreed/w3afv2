@@ -4,6 +4,7 @@ import threading
 import unittest
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Any, cast
 from urllib.response import addinfourl
 
 from w3af.core.controllers.output_manager.log_sink import LogSink
@@ -15,10 +16,12 @@ from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.opener_settings import OpenerSettings
 
+LogMessage = tuple[tuple[str, HTTPRequest, HTTPResponse], dict[str, object]]
+
 
 class TestHTTPLogHandler(unittest.TestCase):
     def test_opener_sends_http_messages_to_the_injected_sink(self):
-        messages = queue.Queue()
+        messages: queue.Queue[LogMessage] = queue.Queue()
         uri_opener = ExtendedUrllib(LogSink(messages).log_http)
         settings = uri_opener.settings
         settings.build_openers()
@@ -46,7 +49,7 @@ class TestHTTPLogHandler(unittest.TestCase):
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.start()
         connection = http.client.HTTPConnection(*server.server_address)
-        messages = queue.Queue()
+        messages: queue.Queue[LogMessage] = queue.Queue()
         url = URL(f"http://127.0.0.1:{server.server_port}/")
         request = HTTPRequest(url)
 
@@ -57,8 +60,9 @@ class TestHTTPLogHandler(unittest.TestCase):
                 raw_response, raw_response.headers, url.url_string
             )
             wrapped_response.code = raw_response.status
-            wrapped_response.msg = raw_response.reason
-            wrapped_response.id = 42
+            response_with_metadata = cast(Any, wrapped_response)
+            response_with_metadata.msg = raw_response.reason
+            response_with_metadata.id = 42
 
             handler = HTTPLogHandler(LogSink(messages).log_http)
             handler.http_response(request, wrapped_response)
@@ -75,7 +79,7 @@ class TestHTTPLogHandler(unittest.TestCase):
             server_thread.join()
 
     def test_rejects_non_framework_requests(self):
-        messages = queue.Queue()
+        messages: queue.Queue[LogMessage] = queue.Queue()
         url = URL("http://example.test/")
         request = urllib.request.Request(url.url_string)
         response = HTTPResponse(200, "body", Headers(), url, url)

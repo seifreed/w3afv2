@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 import urllib.error
+from typing import Any, cast
 
 from w3af.core.data.constants.response_codes import NOT_FOUND
 from w3af.core.data.parsers.doc.url import URL
@@ -56,7 +57,8 @@ class TestErrorHandler(unittest.TestCase):
     def test_error_handler_id(self):
         opener = build_opener(CustomOpenerDirector, [HTTPHandler(), ErrorHandler])
         request = HTTPRequest(self.fail_url)
-        request.id = 42
+        request_with_id = cast(Any, request)
+        request_with_id.id = 42
 
         with self.assertRaises(urllib.error.HTTPError) as error:
             opener.open(request)

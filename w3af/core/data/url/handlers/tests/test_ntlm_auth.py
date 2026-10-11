@@ -77,11 +77,15 @@ class NTLMServer:
             self.negotiate = self.negotiate or token
             return self.challenge()
 
+        context = self.context
+        if context is None:
+            return ntlm_required()
+
         try:
-            self.context.step(token)
+            context.step(token)
         except SpnegoError:
             return ntlm_required()
-        return Response(body=f"You are {self.context.client_principal}")
+        return Response(body=f"You are {context.client_principal}")
 
 
 class TestNTLMHandler(unittest.TestCase):

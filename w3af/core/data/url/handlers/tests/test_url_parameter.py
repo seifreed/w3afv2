@@ -27,7 +27,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.tests.helpers.certificates import server_tls_context
-from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
+from w3af.core.data.url.tests.helpers.route_server import Response, Route, RouteServer
 from w3af.core.data.url.url_parameter_settings import URLParameterSettings
 
 
@@ -51,7 +51,7 @@ class TestURLParameterHandler(unittest.TestCase):
         settings.build_openers()
         opener = settings.get_custom_opener()
 
-        routes = {
+        routes: dict[str, Route] = {
             "/abc/def.html": Response(body="FAIL"),
             f"/abc/def.html;{test_param}": Response(body="SUCCESS"),
         }

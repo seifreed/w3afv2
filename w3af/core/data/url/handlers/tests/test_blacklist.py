@@ -30,7 +30,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.blacklist import BlacklistHandler
 from w3af.core.data.url.http_request import HTTPRequest
-from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
+from w3af.core.data.url.tests.helpers.route_server import Response, Route, RouteServer
 
 
 class TestBlacklistHandler(unittest.TestCase):
@@ -41,7 +41,7 @@ class TestBlacklistHandler(unittest.TestCase):
         cf.save("blacklist_http_request", [])
         cf.save("ignore_regex", None)
 
-        routes = {
+        routes: dict[str, Route] = {
             path: Response(body=self.BODY)
             for path in ("/scanner/", "/block/", "/pass/")
         }
@@ -71,8 +71,7 @@ class TestBlacklistHandler(unittest.TestCase):
 
         opener = urllib.request.build_opener(BlacklistHandler(cf))
 
-        request = urllib.request.Request(self.scanner_url.url_string)
-        request.url_object = self.scanner_url
+        request = HTTPRequest(self.scanner_url)
         response = opener.open(request)
 
         self.assertEqual(response.code, NO_CONTENT)
@@ -83,8 +82,7 @@ class TestBlacklistHandler(unittest.TestCase):
     def test_blacklist_handler_pass(self):
         opener = urllib.request.build_opener(BlacklistHandler(cf))
 
-        request = urllib.request.Request(self.scanner_url.url_string)
-        request.url_object = self.scanner_url
+        request = HTTPRequest(self.scanner_url)
         response = opener.open(request)
 
         self.assertEqual(response.code, 200)
