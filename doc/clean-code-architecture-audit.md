@@ -5037,6 +5037,18 @@ Verificación: profiling pasa **4 tests**, mypy estricto focal, Ruff y Black est
 limpios. El score global continúa en **9.99/10**; quedan errores transitivos
 históricos y cobertura global no demostrada.
 
+## Actualización verificada: contrato de la cola de plugins
+
+`Plugin.output_queue` declara explícitamente `Queue[FuzzableRequest]`, que es el
+tipo que producen los plugins de crawl y consumen las infraestructuras de crawl.
+La anotación elimina el contenedor genérico implícito sin cambiar la semántica
+de bloqueo, `get_nowait` ni el flujo de descubrimiento.
+
+Verificación: la suite de bases de plugins pasa **26 tests**, Ruff y Black están
+limpios y desaparece el error directo de anotación de la cola en mypy estricto.
+El score global continúa en **9.99/10** por la deuda transitiva restante y la
+cobertura global no demostrada.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos

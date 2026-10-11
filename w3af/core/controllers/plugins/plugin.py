@@ -34,6 +34,7 @@ from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import new_no_content_resp
 from w3af.core.exceptions import BaseFrameworkException
@@ -68,7 +69,7 @@ class Plugin(Configurable):
         self._output = None
         self.worker_pool = None
 
-        self.output_queue = queue.Queue()
+        self.output_queue: queue.Queue[FuzzableRequest] = queue.Queue()
         self._plugin_lock = threading.RLock()
 
     def set_worker_pool(self, worker_pool):
