@@ -4191,3 +4191,20 @@ scan aislada **106 MiB**; no quedaron fallos del parser. Persisten únicamente
 dos pruebas dependientes de detección SO/red en macOS y dos expectativas ANSI
 dependientes del terminal. Black, Ruff y mypy focal están limpios. El score
 sube a **9.9/10** en Clean Architecture y **9.8/10** global.
+
+## Actualización verificada: KB aislada y singleton eliminado
+
+`knowledge_base.py` ya no crea ni exporta una instancia global. `w3afCore` crea
+una `DBKnowledgeBase` privada por instancia cuando no recibe una explícita, y
+`PluginTest` inyecta una KB nueva por caso de test. Los tests que construyen
+cores y consumen la KB directamente pasan la misma instancia de forma explícita.
+Esto evita que findings, URLs y caches de una suite queden retenidos en una KB
+compartida y elimina una fuente de contaminación y crecimiento acumulativo de
+memoria durante las baterías largas.
+
+Verificación: **996 tests collected**; KB/core/auth pasan **107 tests** y la
+suite de estrategia pasa **4 tests**. El RSS máximo de `test_strategy.py` fue
+**219103232 bytes** (aprox. 209 MiB), equivalente a la medición anterior de
+esa misma suite. Black y Ruff globales pasan. Persisten fallos preexistentes en
+fixtures que dejan `_output` o `_uri_opener` sin configurar y pruebas
+dependientes de macOS, red o terminal.
