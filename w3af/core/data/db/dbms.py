@@ -486,6 +486,18 @@ def database_context(database: SQLiteDBMS):
         _current_database.reset(token)
 
 
+@contextmanager
+def database_session():
+    """Own a temporary database for all objects created in this context."""
+    database = create_temp_db_instance()
+    try:
+        with database_context(database):
+            yield database
+    finally:
+        if not database.sql_executor.get_received_poison_pill():
+            database.close()
+
+
 def get_default_temp_db_instance():
     global temp_default_db
 

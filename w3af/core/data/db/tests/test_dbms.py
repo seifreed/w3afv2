@@ -38,6 +38,7 @@ from w3af.core.data.db.dbms import (
     SQLiteExecutor,
     create_temp_db_instance,
     database_context,
+    database_session,
     get_default_persistent_db_instance,
     get_default_temp_db_instance,
 )
@@ -261,6 +262,14 @@ class TestDefaultDB(unittest.TestCase):
             self.assertIs(get_default_temp_db_instance(), scoped_db)
 
         self.assertIsNot(get_default_temp_db_instance(), scoped_db)
+
+    def test_database_session_owns_and_closes_database(self):
+        with database_session() as session_db:
+            self.assertIs(get_default_temp_db_instance(), session_db)
+
+        self.assertTrue(session_db.sql_executor.get_received_poison_pill())
+        with self.assertRaises(RuntimeError):
+            session_db.select("SELECT 1")
 
     def test_get_default_persistent_db_instance(self):
         self.assertIs(

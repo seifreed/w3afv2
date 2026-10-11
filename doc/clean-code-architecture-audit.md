@@ -4543,6 +4543,18 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: sesión explícita para DB standalone
+
+`database_session()` crea una SQLite temporal, la hace visible a los
+constructores que reciben la DB scoped y la cierra siempre al salir. Esto da a
+los consumidores standalone un owner determinista y evita multiplicar una DB
+por cada `DiskList`, `DiskDict` o `HistoryItem`; el fallback antiguo queda
+aislado para la migración posterior.
+
+Verificación: **22 tests** de SQLiteDBMS pasan; Black, Ruff, mypy y Bandit
+focales pasan. El score global continúa en **9.99/10**, con los gates heredados,
+el fallback standalone restante y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: sentinels correctos en diccionarios de disco
 
 `DiskDict` y `CachedDiskDict` ya no comparan un entero con `is` para distinguir
