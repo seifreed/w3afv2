@@ -26,6 +26,7 @@ pip-log.txt
 
 # Unit test / coverage reports
 .coverage
+.coverage.*
 .tox
 nosetests.xml
 .noseids
@@ -101,3 +102,10 @@ node_modules/
 
 # Ignore scan logs
 scan-logs/
+# Local-only (never committed)
+AGENTS.md
+.codegraph/
+.cursor/
+.claude/
+venv/
+.venv/
