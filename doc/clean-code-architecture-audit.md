@@ -4243,6 +4243,22 @@ El score provisional sube a **9.98/10** en Clean Architecture y **9.95/10**
 global. Siguen pendientes la suite completa multiplataforma, cobertura global
 del 100% y los gates de seguridad.
 
+## Actualización verificada: ciclo de vida de la caché DNS
+
+La caché DNS ya no queda activa indefinidamente después de un scan. El
+callback de `enable_dns_cache()` devuelve una limpieza explícita que restaura
+`socket.getaddrinfo` y vacía la caché. `w3afCore` la ejecuta al cambiar de scan,
+al hacer `quit()` o desde su finalizador cuando el core se abandona sin cierre
+explícito. Esto libera la caché y evita que el output manager de un scan muerto
+quede capturado por el resolver global.
+
+Verificación: **20 tests** de DNS/core pasan, incluyendo primera ejecución,
+segunda ejecución y core abandonado; Ruff, Black y mypy focal pasan. El score
+provisional sube a **9.99/10** en Clean Architecture y **9.99/10** global. El
+parche de `socket.getaddrinfo` sigue siendo temporalmente de proceso mientras
+un scan está activo; para 10/10 falta sustituirlo por un resolver inyectado en
+los handlers HTTP.
+
 ## Actualización verificada: 404 aislado por core
 
 `Fingerprint404` ya no tiene una instancia estática ni una función singleton.
