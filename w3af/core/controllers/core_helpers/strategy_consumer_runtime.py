@@ -160,6 +160,8 @@ class StrategyConsumerRuntime:
         self._output.debug("Called strategy._teardown_crawl_infrastructure()")
         if self._discovery_consumer is not None:
             self._discovery_consumer.join()
+            self._w3af_core.plugins.set_plugin_instances("crawl", [])
+            self._w3af_core.plugins.set_plugin_instances("infrastructure", [])
             self._discovery_consumer = None
 
     def clear_queue_speed_data(self):

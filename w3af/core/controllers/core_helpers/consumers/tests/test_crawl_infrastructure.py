@@ -174,7 +174,7 @@ class TestRouting(CrawlConsumerTest):
         self.assertEqual(results[-1], POISON_PILL)
         self.assertEqual(plugin.crawled, [BASE])
         self.assertEqual(plugin.end_calls, 1)
-        self.assertEqual(self.core.plugins.get_plugin_instances("crawl"), [])
+        self.assertEqual(consumer._consumer_plugins, [])
 
         errors = [
             (result.plugin, str(result.exception))
@@ -263,7 +263,7 @@ class TestRouting(CrawlConsumerTest):
         self.assertEqual(drain_results(consumer), [])
 
         consumer.join()
-        self.assertEqual(self.core.plugins.get_plugin_instances("crawl"), [])
+        self.assertEqual(consumer._consumer_plugins, [])
 
 
 class TestPluginErrors(CrawlConsumerTest):

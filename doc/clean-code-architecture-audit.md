@@ -7643,3 +7643,14 @@ del registro ni la modifican mediante asignaciones al diccionario.
 Verificación: **59 tests** de plugins, estrategia, consumidores y core pasan;
 Black y Ruff pasan en todos los archivos afectados. No quedan referencias a
 `core.plugins.plugins` en el código del proyecto.
+
+## Actualización verificada: ownership del cleanup de discovery
+
+`CrawlInfrastructure` ya no vacía el registro global de plugins durante su
+cleanup. Libera únicamente su estado local; `StrategyConsumerRuntime`, como
+coordinador del ciclo de consumidores, elimina las instancias de `crawl` e
+`infrastructure` después de esperar al consumidor. La validación de plugins
+registrados continúa usando la API pública de `CorePlugins`.
+
+Verificación: **2 tests** de rutas de discovery y plugins desconocidos pasan
+tras el cambio; el resto de la batería focalizada había pasado **44 tests**.
