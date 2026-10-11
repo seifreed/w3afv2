@@ -34,6 +34,7 @@ from weakref import ReferenceType, proxy, ref
 
 from w3af import ROOT_PATH
 from w3af.core.constants import POISON_PILL
+from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
@@ -338,15 +339,7 @@ class OutputManager(Process):
         # plugin exceptions in this way, and not framework
         # exceptions
         #
-        # FIXME: I need to import this here because of the awful
-        #        singletons I use all over the framework. If imported
-        #        at the top, they will generate circular import errors
-        from w3af.core.controllers.core_helpers.status import CoreStatus
-
-        class FakeStatus(CoreStatus):
-            pass
-
-        status = FakeStatus(self._output)
+        status = CoreStatus(self._output)
         status.set_current_fuzzable_request("output", "n/a")
         status.set_running_plugin("output", o_plugin.get_name(), log=False)
 

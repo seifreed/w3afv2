@@ -6902,3 +6902,11 @@ el manager global siga existiendo para una futura inicialización.
 
 Verificación: Black, Ruff y Mypy pasan en los dos archivos modificados; la
 batería completa de output manager pasa **40 tests** sin workers persistentes.
+
+La fixture de `test_output_manager` valida ahora que el manager global esté
+activo y que el `LogSink` use su misma cola; si otro módulo lo cerró, crea un
+par nuevo y libera el anterior. La suite deja de depender del orden de
+colección y evita retener colas cerradas entre casos.
+
+Verificación adicional: lifecycle seguido de output manager pasa **36 tests**
+en una sola invocación.

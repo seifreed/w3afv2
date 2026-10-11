@@ -53,10 +53,20 @@ class TestOutputManager(unittest.TestCase):
     )
 
     def setUp(self):
+        manager = om.manager
+        output = om.out
+        if (
+            not manager.is_alive()
+            or output._closed
+            or output.om_queue is not manager.get_in_queue()
+        ):
+            manager = om.fresh_output_manager_inst()
+            output = log_sink_factory(manager.get_in_queue())
+
         self.plugin = console()
         self.plugin.verbose = True
         self.plugin.use_colors = False
-        om.manager._output_plugin_instances = [self.plugin]
+        manager._output_plugin_instances = [self.plugin]
 
     def _run_output_action(self, action, message, new_line=True, **kwargs):
         output = StringIO()
