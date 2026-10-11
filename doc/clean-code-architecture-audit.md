@@ -7332,6 +7332,9 @@ servicios de ejecución.
 Verificación: **36 tests** de catálogo, fábrica y resolución pasan; Black,
 Ruff y mypy pasan en los tres módulos modificados.
 
+La cobertura focalizada del loader alcanza también **100%** (`9/9` líneas)
+con la suite de plugins.
+
 ## Actualización verificada: ownership explícito del lifecycle del core
 
 La liberación de output manager, pool de workers, cachés y base de datos salió
