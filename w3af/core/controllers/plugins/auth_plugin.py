@@ -83,9 +83,7 @@ class AuthPlugin(Plugin):
     def logout(self):
         """
         Logout user from web application.
-
-        TODO: need to add calling of this method to w3afCore::_end()
-
+        The authentication consumer calls this method before ending the plugin.
         """
         raise NotImplementedError("Plugin is not implementing required method logout")
 
