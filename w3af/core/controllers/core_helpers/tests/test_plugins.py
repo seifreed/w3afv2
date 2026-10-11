@@ -32,6 +32,7 @@ from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.db.disk_list import CLOSED
 from w3af.core.exceptions import BaseFrameworkException
+from w3af.plugins.crawl.web_spider import web_spider
 
 
 class TestPluginRegistryStructure(unittest.TestCase):
@@ -294,6 +295,7 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.core.plugins.init_plugins()
 
         plugin = self.core.plugins.get_plugin_instances("crawl")[0]
+        assert isinstance(plugin, web_spider)
         broken_links = plugin._broken_links
 
         self.core.plugins.zero_enabled_plugins()

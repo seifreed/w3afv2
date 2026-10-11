@@ -67,7 +67,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 - Black global pasa: **1693 archivos** sin cambios requeridos.
 - Ruff global pasa sin hallazgos.
-- `mypy --check-untyped-defs w3af` pasa en **1627 archivos**; el comando
+- `mypy --check-untyped-defs w3af` pasa en **1662 archivos**; el comando
   literal `mypy .` todavía inspecciona `venv/bin/activate_this.py` y falla en
   dos líneas generadas fuera del código fuente.
 - Bandit global no queda limpio porque `bandit -r .` recorre `venv`, vendor,
@@ -8189,3 +8189,13 @@ Verificación: **38 tests** de perfiles y core pasan; Black, Ruff y mypy focal
 no presentan errores propios del cambio. Esta frontera reduce otra referencia
 fuerte innecesaria y mantiene la puntuación en **9.9/10** hasta dividir las
 responsabilidades restantes de `ExtendedUrllib` y `CorePlugins`.
+
+## Actualización verificada: mypy sin errores en producción y tests
+
+El único error de mypy que quedaba en el árbol era un acceso de test sobre una
+instancia concreta de `web_spider` que estaba tipada como `Plugin`. El test
+ahora afirma el tipo real antes de inspeccionar su almacenamiento en disco.
+
+Verificación: `venv/bin/mypy --check-untyped-defs w3af` pasa en **1662 archivos**
+y la suite de plugins pasa **39 tests**. No se añadieron supresiones ni
+exclusiones.
