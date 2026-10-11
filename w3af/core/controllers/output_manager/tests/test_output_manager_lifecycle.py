@@ -387,6 +387,39 @@ print(
 
         self.assertEqual(result.stdout.strip(), "None None False False")
 
+    def test_restarting_manager_replaces_stale_output_sink(self):
+        sentinel = object()
+        previous_globals = {
+            name: om.__dict__.get(name, sentinel)
+            for name in ("manager", "out", "_manager", "_out")
+        }
+        manager = OutputManager()
+        manager.start()
+        output = LogSink(manager.get_in_queue())
+        om.manager = manager
+        om.out = output
+        om._manager = manager
+        om._out = output
+
+        try:
+            manager.stop()
+            restarted_manager = om._get_default_manager()
+            restarted_output = om.out
+
+            self.assertIsNot(restarted_manager, manager)
+            self.assertIsNot(restarted_output, output)
+            self.assertIs(restarted_output.om_queue, restarted_manager.get_in_queue())
+        finally:
+            output.close()
+            restarted_manager = om.__dict__.get("manager")
+            if restarted_manager is not None and restarted_manager is not manager:
+                restarted_manager.stop()
+            for name, value in previous_globals.items():
+                if value is sentinel:
+                    om.__dict__.pop(name, None)
+                else:
+                    om.__dict__[name] = value
+
     def setUp(self):
         self.previous_manager = om.manager
         self.previous_out = om.out

@@ -38,6 +38,16 @@ class TestRecordingOutput(unittest.TestCase):
         self.assertIsNot(first, second)
         self.assertEqual(manager.get_output_plugin_inst(), [second])
 
+    def test_plugin_instance_snapshot_is_not_mutable(self):
+        manager = OutputManager()
+        self.addCleanup(manager.stop)
+        recorder = start_recording_output(manager)
+
+        plugins = manager.get_output_plugin_inst()
+        plugins.clear()
+
+        self.assertEqual(manager.get_output_plugin_inst(), [recorder])
+
     def test_start_uses_the_active_default_manager(self):
         previous_manager = om._get_default_manager()
         replacement_manager = OutputManager()

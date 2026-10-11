@@ -73,7 +73,7 @@ class TextFileLog:
         finally:
             output_manager.process_all_messages()
             plugin.flush()
-            output_manager.get_output_plugin_inst().remove(plugin)
+            output_manager.remove_output_plugin_inst(plugin)
             plugin.end()
 
     def contains(self, log_type, message):

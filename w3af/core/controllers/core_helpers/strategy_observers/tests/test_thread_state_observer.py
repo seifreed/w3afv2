@@ -54,7 +54,7 @@ class QuickThreadStateObserver(ThreadStateObserver):
 
 def record_output(test_case):
     recorder = start_recording_output()
-    test_case.addCleanup(om.manager.get_output_plugin_inst().remove, recorder)
+    test_case.addCleanup(om.manager.remove_output_plugin_inst, recorder)
     return recorder
 
 

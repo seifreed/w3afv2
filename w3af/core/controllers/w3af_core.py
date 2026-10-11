@@ -36,10 +36,10 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
     prepare_home_directory,
     prepare_tmp_directory,
 )
+from w3af.core.controllers.core_helpers.scan_end_lifecycle import ScanEndLifecycle
 from w3af.core.controllers.core_helpers.scan_environment_validator import (
     ScanEnvironmentValidator,
 )
-from w3af.core.controllers.core_helpers.scan_end_lifecycle import ScanEndLifecycle
 from w3af.core.controllers.core_helpers.scan_reset_lifecycle import (
     ScanResetLifecycle,
 )

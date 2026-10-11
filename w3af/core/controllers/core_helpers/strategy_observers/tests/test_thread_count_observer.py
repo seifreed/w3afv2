@@ -32,7 +32,7 @@ from w3af.core.controllers.tests.recording_output import start_recording_output
 class TestThreadCountObserver(unittest.TestCase):
     def setUp(self):
         self.recorder = start_recording_output()
-        self.addCleanup(om.manager.get_output_plugin_inst().remove, self.recorder)
+        self.addCleanup(om.manager.remove_output_plugin_inst, self.recorder)
 
     def thread_count_messages(self):
         return [

@@ -37,7 +37,7 @@ class TestMonkeyPatchDebug(unittest.TestCase):
 
     def setUp(self):
         self.recorder = start_recording_output()
-        self.addCleanup(om.manager.get_output_plugin_inst().remove, self.recorder)
+        self.addCleanup(om.manager.remove_output_plugin_inst, self.recorder)
         self.addCleanup(remove_monkey_patch_debug)
 
     def test_patch_sends_pool_debug_to_output_manager(self):

@@ -83,13 +83,19 @@ def _get_default_manager() -> OutputManager:
     explicit_manager = globals().get("manager")
     if explicit_manager is not None and explicit_manager.is_alive():
         _manager = explicit_manager
-        return explicit_manager
-
-    if _manager is None or not _manager.is_alive():
+    elif _manager is None or not _manager.is_alive():
         _manager = OutputManager()
         _manager.start()
 
     globals()["manager"] = _manager
+
+    explicit_output = globals().get("out")
+    if explicit_output is not None and (
+        explicit_output._closed
+        or explicit_output.om_queue is not _manager.get_in_queue()
+    ):
+        log_sink_factory(_manager.get_in_queue())
+
     return _manager
 
 

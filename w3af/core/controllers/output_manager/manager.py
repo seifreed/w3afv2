@@ -513,8 +513,11 @@ class OutputManager(Process):
     def set_output_plugin_inst(self, output_plugin_inst):
         self._output_plugin_instances.append(output_plugin_inst)
 
+    def remove_output_plugin_inst(self, output_plugin_inst):
+        self._output_plugin_instances.remove(output_plugin_inst)
+
     def get_output_plugin_inst(self):
-        return self._output_plugin_instances
+        return list(self._output_plugin_instances)
 
     def set_output_plugins(self, output_plugins):
         """

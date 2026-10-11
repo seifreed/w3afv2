@@ -7776,3 +7776,17 @@ explícitos para preparación, handlers y reintentos.
 Verificación: **65 tests** de urllib, errores y proxy pasan; Black, Ruff y
 Bandit dirigido pasan, y `RequestSender` pasa mypy. Persisten únicamente dos
 warnings de deprecación en dependencias `ldap3/pyasn1`.
+
+## Actualización verificada: ownership del output y recuperación de la sink
+
+`OutputManager.get_output_plugin_inst()` entrega un snapshot y la retirada de
+instancias pasa por una operación explícita. Además, al recuperar un manager
+global parado se renueva la `LogSink` si la anterior está cerrada o pertenece a
+otra cola; así los tests encadenados no conservan referencias a recursos ya
+liberados.
+
+Verificación: **60 tests** de lifecycle, output, observers, not-found y debug
+pasan; el caso de reinicio global confirma manager y sink coherentes. La
+batería de múltiples cores conserva un RSS máximo de **101941248 bytes**.
+Black y Ruff pasan globalmente; `mypy .` sigue entrando en el
+`venv/bin/activate_this.py` externo al código del proyecto.
