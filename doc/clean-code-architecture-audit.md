@@ -4543,6 +4543,17 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: parseo de query strings sin lista intermedia
+
+`parse_qsl()` procesa ahora cada segmento `&` y `;` directamente, eliminando
+la lista intermedia que duplicaba todos los parámetros antes de decodificarlos.
+Se conserva el orden, el tratamiento de parámetros repetidos, valores vacíos y
+la codificación configurada.
+
+Verificación: **138 tests** de URL pasan y 1 queda omitido; Black, Ruff y mypy
+focales pasan. El score global continúa en **9.99/10**, con los gates
+heredados, el fallback standalone y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: extractor de dominios compartido y acotado
 
 `URL.get_root_domain()` ya no construye un `TLDExtract` por llamada. Usa una

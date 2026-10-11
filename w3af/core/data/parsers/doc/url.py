@@ -106,22 +106,22 @@ def parse_qsl(qs, encoding=DEFAULT_ENCODING):
 
     Returns a list, as G-d intended.
     """
-    pairs = [s2 for s1 in qs.split("&") for s2 in s1.split(";")]
     r = []
-    for name_value in pairs:
-        if not name_value:
-            continue
-        nv = name_value.split("=", 1)
-        if len(nv) != 2:
-            # Handle case of a control-name with no equal sign
-            nv.append("")
-        name = urllib.parse.unquote(
-            nv[0].replace("+", " "), encoding=encoding, errors="ignore"
-        )
-        value = urllib.parse.unquote(
-            nv[1].replace("+", " "), encoding=encoding, errors="ignore"
-        )
-        r.append((name, value))
+    for ampersand_pair in qs.split("&"):
+        for name_value in ampersand_pair.split(";"):
+            if not name_value:
+                continue
+            nv = name_value.split("=", 1)
+            if len(nv) != 2:
+                # Handle case of a control-name with no equal sign
+                nv.append("")
+            name = urllib.parse.unquote(
+                nv[0].replace("+", " "), encoding=encoding, errors="ignore"
+            )
+            value = urllib.parse.unquote(
+                nv[1].replace("+", " "), encoding=encoding, errors="ignore"
+            )
+            r.append((name, value))
 
     return r
 
