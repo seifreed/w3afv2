@@ -82,7 +82,7 @@ def create_mutants(
 
     msg = 'Created %s mutants for "%s" (%s)'
 
-    count_data = {}
+    count_data: dict[str, int] = {}
     for mutant in result:
         if mutant.get_mutant_type() in count_data:
             count_data[mutant.get_mutant_type()] += 1

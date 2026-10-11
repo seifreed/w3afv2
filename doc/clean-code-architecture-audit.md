@@ -5762,3 +5762,13 @@ explícita y el borrado de la referencia.
 Verificación: la suite de parser multiproceso y caché pasa **66 tests**;
 Black, Ruff y Bandit focales pasan. Mypy no reporta errores de flujo propios
 del módulo, únicamente los stubs ausentes de `psutil` y `pebble`.
+
+## Actualización verificada: contrato del contador de mutantes
+
+`create_mutants` declara el contador agrupado como `dict[str, int]`, haciendo
+explícito que la métrica de logging solo acumula cantidades por tipo de
+mutante. No cambia la generación ni el orden de los mutantes.
+
+Verificación: la suite focal de fuzzer pasa **30 tests**; mypy global baja a
+**680 errores en 267 archivos** desde 681, y Black, Ruff y Bandit del módulo
+pasan sin hallazgos. El score global continúa en **9.99/10**.
