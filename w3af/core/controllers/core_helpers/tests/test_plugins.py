@@ -187,6 +187,14 @@ class TestW3afCorePlugins(unittest.TestCase):
         retrieved = self.core.plugins.get_enabled_plugins("audit")
         self.assertEqual(enabled, retrieved)
 
+    def test_evasion_plugins_reach_core_opener(self):
+        self.core.plugins.set_plugins(["self_reference"], "evasion")
+
+        self.assertEqual(
+            [plugin.get_name() for plugin in self.core.uri_opener._evasion_plugins],
+            ["self_reference"],
+        )
+
     def test_set_plugins_negative(self):
         enabled = [
             "fake",

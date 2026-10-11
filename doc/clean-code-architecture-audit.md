@@ -8040,3 +8040,16 @@ Verificación: **37 tests** de URL pasan, incluida la prueba de cambio de modo;
 Black, Ruff, mypy dirigido, Bandit dirigido y la prueba de capas pasan. Sigue
 pendiente descomponer la composición restante de `ExtendedUrllib` y demostrar
 la cobertura global al 100%.
+
+## Actualización verificada: integración del opener de plugins aislada
+
+`CorePlugins` ya no construye lambdas que capturan el core completo para
+resolver la DB o configurar evasiones y mangle. `PluginCoreIntegration` expone
+esas tres operaciones en un adaptador explícito y conserva el comportamiento
+standalone cuando no existe un core, mientras la selección y el runtime de
+plugins permanecen independientes del opener.
+
+Verificación: **39 tests** de plugins y **2 tests** de integración de evasiones
+pasan; la prueba de capas, Black, Ruff, mypy y Bandit dirigidos pasan. La nota
+continúa por debajo de 10/10 hasta cerrar la composición restante del core y
+la cobertura/gates globales.
