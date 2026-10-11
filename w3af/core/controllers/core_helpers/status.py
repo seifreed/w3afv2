@@ -38,7 +38,7 @@ from w3af.core.controllers.core_helpers.status_eta import (
 from w3af.core.controllers.core_helpers.status_lifecycle import StatusLifecycle
 from w3af.core.controllers.core_helpers.status_presenter import StatusPresenter
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
-from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import NumberGenerator
 
 PAUSED = "Paused"
 STOPPED = "Stopped"
@@ -52,11 +52,14 @@ class CoreStatus:
     calling the different methods to (get) the information required.
     """
 
-    def __init__(self, output, consumer_metrics=None, scans_completed=0):
+    def __init__(
+        self, output, consumer_metrics=None, scans_completed=0, id_generator=None
+    ):
         self._output = output
+        self._id_generator = NumberGenerator() if id_generator is None else id_generator
         self._consumer_metrics = consumer_metrics or ConsumerMetrics()
         self._lifecycle = StatusLifecycle(scans_completed)
-        self._request_count_at_start = consecutive_number_generator.get()
+        self._request_count_at_start = self._id_generator.get()
 
         # Init some internal values
         # This indicates the plugin that is running right now for each
@@ -530,7 +533,7 @@ class CoreStatus:
         """
         :return: The number of HTTP requests that have been sent
         """
-        return consecutive_number_generator.get() - self._request_count_at_start
+        return self._id_generator.get() - self._request_count_at_start
 
     def get_long_status(self):
         return StatusPresenter(self).long_status()

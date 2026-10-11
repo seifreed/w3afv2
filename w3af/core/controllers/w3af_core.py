@@ -75,6 +75,7 @@ from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import (
@@ -145,6 +146,7 @@ class w3afCore:
         register_parser_multiprocessing(manager)
         self._dns_cache = DNSCache(output)
         self._parser_cache = ParserCache()
+        self._id_generator = NumberGenerator()
         self._output_manager_finalizer = weakref.finalize(
             self, _stop_core_resources, manager, self._dns_cache, self._parser_cache
         )
@@ -199,6 +201,7 @@ class w3afCore:
         self.status = CoreStatus(
             output,
             ConsumerMetrics(self.strategy, lambda: self.worker_pool),
+            id_generator=self._id_generator,
         )
 
         # Create the URI opener object
@@ -207,6 +210,7 @@ class w3afCore:
             configuration=self._configuration,
             resolver=self._dns_cache.getaddrinfo,
             parser_cache=self._parser_cache,
+            id_generator=self._id_generator,
         )
         self.uri_opener.set_worker_pool_provider(
             lambda: self.worker_pool,
@@ -259,6 +263,7 @@ class w3afCore:
             self._output,
             ConsumerMetrics(self.strategy, lambda: self.worker_pool),
             scans_completed=scans_completed,
+            id_generator=self._id_generator,
         )
         self.status.start()
         self.strategy.add_observer(DiskSpaceObserver())
@@ -413,6 +418,10 @@ class w3afCore:
     @property
     def parser_cache(self):
         return self._parser_cache
+
+    @property
+    def id_generator(self):
+        return self._id_generator
 
     def can_cleanup(self):
         return self.status.get_simplified_status() == STOPPED

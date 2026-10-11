@@ -43,7 +43,7 @@ from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import PERCENT_ENCODE, smart_unicode
 from w3af.core.data.misc.iterables import unique_everseen_hash
-from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.misc.web_encodings import (
     HTML_ENCODING_FUNCTIONS,
     JSON_ENCODING_FUNCTIONS,
@@ -74,7 +74,7 @@ KNOWN_SOCKET_ERRORS = (
 NO_CONTENT_MSG = "No Content"
 
 
-def new_no_content_resp(uri, add_id=False):
+def new_no_content_resp(uri, add_id=False, id_generator=None):
     """
     Return a new NO_CONTENT HTTPResponse object.
 
@@ -97,7 +97,8 @@ def new_no_content_resp(uri, add_id=False):
     )
 
     if add_id:
-        no_content_response.id = consecutive_number_generator.inc()
+        generator = NumberGenerator() if id_generator is None else id_generator
+        no_content_response.id = generator.inc()
 
     return no_content_response
 

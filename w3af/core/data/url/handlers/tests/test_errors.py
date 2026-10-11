@@ -24,7 +24,6 @@ import unittest
 import urllib.error
 
 from w3af.core.data.constants.response_codes import NOT_FOUND
-from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
@@ -36,7 +35,6 @@ from w3af.core.data.url.tests.helpers.route_server import RouteServer
 
 class TestErrorHandler(unittest.TestCase):
     def setUp(self):
-        consecutive_number_generator.reset()
         self.server = RouteServer().start()
         self.addCleanup(self.server.stop)
         self.fail_url = URL(self.server.url("/abc/def/do-not-exist.foo"))

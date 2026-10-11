@@ -32,6 +32,7 @@ from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import new_no_content_resp
@@ -60,6 +61,7 @@ class Plugin(Configurable):
         self._configuration = None
         self._knowledge_base = None
         self._parser_cache = None
+        self._id_generator = NumberGenerator()
         self._fingerprint_404 = None
         self._output = None
         self.worker_pool = None
@@ -117,6 +119,10 @@ class Plugin(Configurable):
     def set_parser_cache(self, parser_cache):
         """Set the parser cache used by this plugin."""
         self._parser_cache = parser_cache
+
+    def set_id_generator(self, id_generator):
+        """Set the ID generator used by this plugin."""
+        self._id_generator = id_generator
 
     def set_fingerprint_404(self, fingerprint_404):
         """Set the 404 detector used by standalone plugin instances."""
@@ -333,7 +339,9 @@ class Plugin(Configurable):
             * result: The result to be returned to the caller. This only makes
                       sense if re_raise is False.
         """
-        no_content_resp = new_no_content_resp(uri, add_id=True)
+        no_content_resp = new_no_content_resp(
+            uri, add_id=True, id_generator=self._id_generator
+        )
 
         msg = (
             'The %s plugin got an error while requesting "%s".'

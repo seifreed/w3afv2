@@ -43,7 +43,7 @@ from w3af.core.controllers.core_helpers.status import (
 from w3af.core.controllers.core_helpers.status_consumers import ConsumerMetrics
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
-from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
@@ -144,10 +144,11 @@ class TestStatus(unittest.TestCase):
                 method()
 
     def test_sent_request_count_is_local_to_the_status(self):
-        consecutive_number_generator.inc()
-        status = CoreStatus(om.out)
+        generator = NumberGenerator()
+        generator.inc()
+        status = CoreStatus(om.out, id_generator=generator)
 
-        consecutive_number_generator.inc()
+        generator.inc()
 
         self.assertEqual(status.get_sent_request_count(), 1)
 

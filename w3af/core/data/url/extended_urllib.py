@@ -35,7 +35,7 @@ import OpenSSL
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.lru import SynchronizedLRUDict
-from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.url.constants import (
     MAX_ERROR_COUNT,
@@ -87,12 +87,15 @@ class ExtendedUrllib:
         configuration=None,
         resolver=None,
         parser_cache=None,
+        id_generator=None,
     ):
         self._configuration = Config() if configuration is None else configuration
+        self._id_generator = NumberGenerator() if id_generator is None else id_generator
         self.settings = opener_settings.OpenerSettings(
             http_log_callback,
             configuration=self._configuration,
             resolver=resolver,
+            id_generator=self._id_generator,
         )
         self._sleep = sleep
         self._average_rtt_mutant = GetAverageRTTForMutant(self)
@@ -691,7 +694,7 @@ class ExtendedUrllib:
             # fails. Those errors are raised before the cache handler numbers
             # the response
             if not hasattr(e, "id"):
-                e.id = consecutive_number_generator.inc()
+                e.id = self._id_generator.inc()
 
             return self._handle_send_success(
                 req, e, grep, original_url, original_url_inst

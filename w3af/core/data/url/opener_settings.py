@@ -24,6 +24,7 @@ import logging
 
 from w3af.core.configurable import Configurable
 from w3af.core.data.kb.config import Config
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.url.authentication_settings import AuthenticationSettings
 from w3af.core.data.url.cookie_settings import CookieSettings
 from w3af.core.data.url.header_settings import HeaderSettings
@@ -45,16 +46,23 @@ class OpenerSettings(Configurable):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, http_log_callback=None, configuration=None, resolver=None):
+    def __init__(
+        self,
+        http_log_callback=None,
+        configuration=None,
+        resolver=None,
+        id_generator=None,
+    ):
 
         self._configuration = Config() if configuration is None else configuration
         self._resolver = resolver
+        self._id_generator = NumberGenerator() if id_generator is None else id_generator
         cfg = self._configuration
 
         # Set the openers to None
         self._proxy = ProxySettings(cfg, LOGGER.debug)
         self._url_parameter = URLParameterSettings(cfg)
-        self._lifecycle = OpenerLifecycle(cfg)
+        self._lifecycle = OpenerLifecycle(cfg, self._id_generator)
         self._request_limits = RequestLimitsSettings(cfg)
         self._defaults = OpenerDefaults(cfg)
         self._options = OpenerOptions(cfg)

@@ -19,6 +19,7 @@ class PluginInstanceFactory:
         plugin_instance.set_knowledge_base(self._w3af_core.knowledge_base)
         plugin_instance.set_output(self._output)
         plugin_instance.set_parser_cache(self._w3af_core.parser_cache)
+        plugin_instance.set_id_generator(self._w3af_core.id_generator)
 
         if custom_options is not None:
             plugin_instance.set_options(custom_options)

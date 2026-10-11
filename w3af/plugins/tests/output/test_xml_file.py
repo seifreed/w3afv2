@@ -46,7 +46,6 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import OUTPUT_FILE
@@ -672,9 +671,6 @@ class TestScanStatus(XMLNodeGeneratorTest):
     def setUp(self):
         kb.cleanup()
         create_temp_dir()
-        # The request counter is global, previous tests in this process
-        # would otherwise change the rpm and sent request count
-        consecutive_number_generator.reset()
 
     def tearDown(self):
         remove_temp_dir()

@@ -42,6 +42,7 @@ class OpenerBuilder:
         mangle_plugins,
         url_parameter_handler: URLParameterHandler | None,
         ignore_session_cookies: bool,
+        id_generator,
     ):
         self._configuration = configuration
         self._http_log_callback = http_log_callback
@@ -54,13 +55,14 @@ class OpenerBuilder:
         self._mangle_plugins = mangle_plugins
         self._url_parameter_handler = url_parameter_handler
         self._ignore_session_cookies = ignore_session_cookies
+        self._id_generator = id_generator
 
     def build(self) -> BuiltOpeners:
         http_handler = HTTPHandler(self._configuration, self._resolver)
         https_handler = HTTPSHandler(
             self._proxy_url, self._configuration, self._resolver
         )
-        cache_handler = CacheHandler()
+        cache_handler = CacheHandler(self._id_generator)
         handlers = self._build_handlers(
             http_handler,
             https_handler,
@@ -97,7 +99,7 @@ class OpenerBuilder:
                     else None
                 ),
                 HTTP30XHandler,
-                BlacklistHandler(self._configuration),
+                BlacklistHandler(self._configuration, self._id_generator),
                 MangleHandler(self._mangle_plugins),
                 HTTPGzipProcessor,
                 self._url_parameter_handler,

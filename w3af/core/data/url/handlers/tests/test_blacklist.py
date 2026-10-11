@@ -26,7 +26,6 @@ import urllib.request
 
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.kb.config import Config
-from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.blacklist import BlacklistHandler
@@ -39,7 +38,6 @@ class TestBlacklistHandler(unittest.TestCase):
     BODY = "Hello world"
 
     def setUp(self):
-        consecutive_number_generator.reset()
         cf.save("blacklist_http_request", [])
         cf.save("ignore_regex", None)
 

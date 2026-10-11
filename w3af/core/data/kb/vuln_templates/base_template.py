@@ -25,7 +25,7 @@ from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL, parse_qs
@@ -42,7 +42,8 @@ class BaseTemplate(Configurable):
     for later exploitation.
     """
 
-    def __init__(self):
+    def __init__(self, id_generator=None):
+        self._id_generator = NumberGenerator() if id_generator is None else id_generator
         self.name = ""
         self.url = URL("http://host.tld/")
         self.data = parse_qs("")
@@ -130,7 +131,7 @@ class BaseTemplate(Configurable):
         knowledge_base.append(kb_loc_a, kb_loc_b, created_vulnerability)
 
     def get_vuln_id(self):
-        return consecutive_number_generator.inc()
+        return self._id_generator.inc()
 
     def create_mutant_from_params(self):
         url = self.url

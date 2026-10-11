@@ -119,6 +119,15 @@ class TestW3afCore(unittest.TestCase):
 
         self.assertIsNone(parser_cache._mp_parser._pool)
 
+    def test_cores_own_id_generators(self):
+        first = w3afCore()
+        second = w3afCore()
+
+        first.id_generator.inc()
+
+        self.assertEqual(first.id_generator.get(), 1)
+        self.assertEqual(second.id_generator.get(), 0)
+
     def test_unreferenced_core_does_not_mutate_dns_resolver(self):
         original = socket.getaddrinfo
         core = w3afCore()

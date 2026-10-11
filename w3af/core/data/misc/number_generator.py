@@ -58,6 +58,3 @@ class NumberGenerator:
         """
         with self._lock:
             self._id = 0
-
-
-consecutive_number_generator = NumberGenerator()

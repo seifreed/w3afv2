@@ -26,6 +26,7 @@ import logging
 import urllib.request
 import urllib.response
 
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.url.helpers import new_no_content_resp
 
 LOGGER = logging.getLogger(__name__)
@@ -44,8 +45,9 @@ class BlacklistHandler(urllib.request.BaseHandler):
 
     handler_order = urllib.request.HTTPErrorProcessor.handler_order - 1
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, id_generator=None):
         self._configuration = configuration
+        self._id_generator = NumberGenerator() if id_generator is None else id_generator
         self._blacklist_urls = None
         self._compiled_ignore_re = None
 
@@ -87,7 +89,9 @@ class BlacklistHandler(urllib.request.BaseHandler):
         LOGGER.debug(msg, uri)
 
         # Return a 204 response
-        no_content = new_no_content_resp(req.url_object)
+        no_content = new_no_content_resp(
+            req.url_object, id_generator=self._id_generator
+        )
         no_content = http_response_to_httplib(no_content)
         return no_content
 

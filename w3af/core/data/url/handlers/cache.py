@@ -25,9 +25,7 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.data.db.exceptions import DBException
-from w3af.core.data.misc.number_generator import (
-    consecutive_number_generator as core_num_gen,
-)
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse
 
 # TODO: Why not POST? Why don't we perform real caching and respect
@@ -48,7 +46,8 @@ class CacheHandler(urllib.request.BaseHandler):
     :author: Version 0.3 by Javier Andalia <jandalia =at= gmail.com>
     """
 
-    def __init__(self):
+    def __init__(self, id_generator=None):
+        self._id_generator = NumberGenerator() if id_generator is None else id_generator
         CacheClass.init()
 
     def clear(self):
@@ -86,7 +85,7 @@ class CacheHandler(urllib.request.BaseHandler):
 
     def http_response(self, request, response):
         # Set unique numeric identifier
-        request.id = response.id = core_num_gen.inc()
+        request.id = response.id = self._id_generator.inc()
         CacheClass.store_in_cache(request, response)
         return response
 

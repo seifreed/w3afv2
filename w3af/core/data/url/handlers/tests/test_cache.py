@@ -28,7 +28,7 @@ from email.message import Message
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
@@ -46,7 +46,8 @@ from w3af.core.exceptions import ScanMustStopException
 
 class TestCacheHandler(unittest.TestCase):
     def setUp(self):
-        self.cache = CacheHandler()
+        self.id_generator = NumberGenerator()
+        self.cache = CacheHandler(self.id_generator)
         self.addCleanup(self.cache.clear)
         self.server = RouteServer(
             {"/": Response(body="spameggs", headers=[("X-Test", "cached")])}
@@ -89,7 +90,7 @@ class TestCacheHandler(unittest.TestCase):
 
         headers = Headers([("Content-Type", "text/html")])
         response = HTTPResponse(200, "<html/>", headers, url, url, msg="OK")
-        response.set_id(consecutive_number_generator.inc())
+        response.set_id(self.id_generator.inc())
         response.set_alias(gen_hash(request))
 
         history = HistoryItem()
