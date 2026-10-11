@@ -5987,3 +5987,13 @@ Mypy.
 
 Verificación: KB `Info`/`Vuln` pasa **30 tests**; Mypy estricto, Ruff y Black
 pasan en los módulos modificados. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contratos de motores de búsqueda
+
+El motor PKS acepta ahora la firma paginada común de `SearchEngine`, mientras
+que Bing separa la cadena extraída del HTML de la instancia `URL` parseada.
+Esto elimina una incompatibilidad de sustitución y una asignación heterogénea
+sin cambiar las consultas ni el filtrado de resultados.
+
+Verificación: Bing y PKS pasan **11 tests**; Mypy estricto, Ruff y Black pasan
+en ambos módulos. El score global continúa en **9.99/10**.

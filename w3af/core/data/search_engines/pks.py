@@ -46,7 +46,7 @@ class pks(SearchEngine):
         self._uri_opener = uri_opener
         self._lookup_url = lookup_url
 
-    def search(self, hostname):
+    def search(self, hostname, start=0, count=10):
         """
         Searches a PKS server, and returns all emails related to hostname.
 

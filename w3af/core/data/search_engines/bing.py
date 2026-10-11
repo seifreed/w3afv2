@@ -76,22 +76,22 @@ class bing(SearchEngine):
 
         results = set()
 
-        for url, _, _ in re_match:
+        for url_string, _, _ in re_match:
             try:
-                url = URL(url)
+                parsed_url = URL(url_string)
             except ValueError:
                 pass
             else:
                 # Test for full match.
-                if url.get_domain() not in self.BLACKLISTED_DOMAINS:
+                if parsed_url.get_domain() not in self.BLACKLISTED_DOMAINS:
 
                     # Now test for partial match
                     for blacklisted_domain in self.BLACKLISTED_DOMAINS:
-                        if blacklisted_domain in url.get_domain():
+                        if blacklisted_domain in parsed_url.get_domain():
                             # ignore this domain.
                             break
                     else:
-                        bing_result = BingResult(url)
+                        bing_result = BingResult(parsed_url)
                         results.add(bing_result)
 
         return results
