@@ -4347,3 +4347,24 @@ tests** del bloque de plugins grep con fixtures aislados. Black y Ruff globales
 pasan. Mypy global sigue detenido únicamente por los dos errores preexistentes
 de `venv/bin/activate_this.py`; el generador global de IDs continúa pendiente,
 por lo que el score provisional queda en **9.99/10** y no se declara 10/10.
+
+## Actualización verificada: generador de IDs aislado por core
+
+Se eliminó `consecutive_number_generator`, la instancia global que mezclaba
+requests, respuestas, errores, responses de blacklist, métricas y vulnerabilidades
+manuales. `w3afCore` crea un `NumberGenerator` propio y lo inyecta en
+`CoreStatus`, `ExtendedUrllib`, la cadena `OpenerSettings`/`OpenerLifecycle`/
+`OpenerBuilder`, los handlers de cache y blacklist, y los plugins. Los
+componentes construidos fuera de un core crean su propio generador local.
+
+La prueba de dos cores verifica que incrementar el contador de uno no cambia el
+otro. También se eliminaron los resets globales de tests y el template manual
+de vulnerabilidades conserva su contador en la instancia correspondiente.
+
+Verificación: pasan **118 tests** de generador/status/handlers/opener/templates,
+**75 tests** de core, profiling, respuestas y urllib, **18 tests** de lifecycle
+del core y **31 tests** de XML output. Black, Ruff y mypy sobre los archivos
+modificados pasan; no quedan referencias Python al generador global. El score
+provisional sube a **10/10 en aislamiento de dependencias**, pero la puntuación
+global de Clean Code/Architecture se mantiene en **9.99/10** hasta cerrar los
+gates globales y los módulos heredados de gran tamaño.
