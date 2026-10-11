@@ -26,7 +26,7 @@ import urllib.response
 from email.message import Message
 from typing import Any, cast
 
-from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
@@ -49,7 +49,8 @@ from w3af.core.exceptions import ScanMustStopException
 class TestCacheHandler(unittest.TestCase):
     def setUp(self):
         self.id_generator = NumberGenerator()
-        self.db = get_default_temp_db_instance()
+        self.db = create_temp_db_instance()
+        self.addCleanup(self.db.close)
         self.cache = CacheHandler(self.id_generator, db=self.db)
         self.addCleanup(self.cache.clear)
         self.server = RouteServer(
@@ -100,7 +101,7 @@ class TestCacheHandler(unittest.TestCase):
         response.set_id(self.id_generator.inc())
         response.set_alias(gen_hash(request))
 
-        history = HistoryItem(db=get_default_temp_db_instance())
+        history = HistoryItem(db=self.db)
         history.request = request
         history.response = response
         history.save()
@@ -151,8 +152,12 @@ class TestCachedResponseInterface(unittest.TestCase):
 
 
 class CacheIntegrationTest(unittest.TestCase):
+    def setUp(self):
+        self.db = create_temp_db_instance()
+        self.addCleanup(self.db.close)
+
     def test_cache_http_errors(self):
-        settings = opener_settings.OpenerSettings()
+        settings = opener_settings.OpenerSettings(db=self.db)
         settings.build_openers()
         opener = settings.get_custom_opener()
 

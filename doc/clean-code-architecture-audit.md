@@ -7042,3 +7042,19 @@ ejecución.
 
 Con los bloques anteriores quedan validados **1981 tests y 1 omitido** en las
 áreas de datos y lifecycle revisadas; el score global continúa en **9.99/10**.
+
+## Actualización verificada: aislamiento de caché y procesos multiproceso
+
+Los tests de `CacheHandler` y de integración ya no usan la base SQLite temporal
+global. Cada caso crea su propia instancia, comparte esa instancia con
+`HistoryItem` y la cierra mediante cleanup. Esto elimina la contaminación por
+filas de tests anteriores que hacía que el resultado dependiera del orden de
+ejecución.
+
+Verificación: handlers de URL y wrapper de OpenSSL pasan **141 tests**;
+Black, Ruff y Mypy pasan en el archivo modificado. La auditoría de procesos
+encontró y terminó un `spawn_main` huérfano y su `resource_tracker`, ambos
+arrancados en una ejecución antigua desde un worktree y reteniendo semáforos.
+Después de la batería actual no quedan procesos `pytest`, `spawn_main` o
+`resource_tracker` activos. El score global continúa en **9.99/10** por las
+limitaciones de cobertura y gates globales documentadas arriba.
