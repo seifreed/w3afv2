@@ -1,5 +1,6 @@
 """Assemble the plugin instances used by a scan."""
 
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -8,6 +9,8 @@ from w3af.core.controllers.core_helpers.plugin_dependency_resolver import (
     PluginWithDependencies,
 )
 from w3af.core.controllers.plugins.plugin import Plugin
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PluginRuntime:
@@ -49,6 +52,23 @@ class PluginRuntime:
                     plugin_instance,
                     plugin_options[plugin_type],
                 )
+
+    @staticmethod
+    def release_instances(active_plugins: dict[str, list[Plugin]]) -> None:
+        """End every active plugin and clear the references it owns."""
+        first_exception = None
+        for plugin_instances in active_plugins.values():
+            for plugin_instance in plugin_instances:
+                try:
+                    plugin_instance.end()
+                except Exception as exception:
+                    LOGGER.debug("Plugin cleanup failed", exc_info=True)
+                    if first_exception is None:
+                        first_exception = exception
+            plugin_instances.clear()
+
+        if first_exception is not None:
+            raise first_exception
 
     @staticmethod
     def _add_or_update_instance(

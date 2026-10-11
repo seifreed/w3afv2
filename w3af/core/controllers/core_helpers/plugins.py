@@ -48,7 +48,7 @@ class CorePlugins(PluginCatalog):
         self.initialized = False
         self._plugins_names_dict: dict[str, list[str]]
         self._plugins_options: dict[str, dict[str, Any]]
-        self.plugins: dict[str, list[Plugin]]
+        self.plugins: dict[str, list[Plugin]] = {}
         self.zero_enabled_plugins()
 
     def zero_enabled_plugins(self):
@@ -56,6 +56,7 @@ class CorePlugins(PluginCatalog):
         Init some internal variables; this method is called when the whole
         process starts, and when the user loads a new profile.
         """
+        self._plugin_runtime.release_instances(self.plugins)
         plugin_types = self.get_plugin_types()
         self._plugin_selection.reset(plugin_types)
         self._plugins_names_dict = self._plugin_selection.names

@@ -7537,3 +7537,14 @@ al cleanup o al cierre del core.
 
 Verificación: **34 tests** de core, estrategia y lifecycle pasan; Black y Ruff
 pasan en los módulos modificados.
+
+## Actualización verificada: cleanup explícito de instancias de plugins
+
+`CorePlugins.zero_enabled_plugins()` ya no abandona instancias activas sin
+ejecutar su contrato `end()`. `PluginRuntime` libera cada plugin, limpia las
+referencias aunque otro cleanup falle y propaga la primera excepción después de
+intentar todos los cierres. Esto evita que `DiskList`, SQLite y caches de
+plugins sobrevivan a un cambio de perfil o al final de un scan.
+
+Verificación: **68 tests** de plugins, perfiles y core pasan; Black y Ruff
+pasan en los módulos modificados.

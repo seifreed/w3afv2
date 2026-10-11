@@ -29,6 +29,7 @@ import pytest
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.db.disk_list import CLOSED
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -233,6 +234,18 @@ class TestW3afCorePlugins(unittest.TestCase):
         crawl_plugins = self.core.plugins.plugins["crawl"]
         self.assertEqual(len(crawl_plugins), 1)
         self.assertTrue(crawl_plugins[0].get_options()["only_forward"].get_value())
+
+    def test_zero_enabled_plugins_ends_disk_backed_plugins(self):
+        self.core.plugins.set_plugins(["web_spider"], "crawl")
+        self.core.plugins.init_plugins()
+
+        plugin = self.core.plugins.plugins["crawl"][0]
+        broken_links = plugin._broken_links
+
+        self.core.plugins.zero_enabled_plugins()
+
+        self.assertEqual(self.core.plugins.plugins["crawl"], [])
+        self.assertEqual(broken_links._state, CLOSED)
 
     def test_plugin_options_invalid(self):
         self.assertRaises(
