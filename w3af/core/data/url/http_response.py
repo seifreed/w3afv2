@@ -156,6 +156,8 @@ class HTTPResponse(DiskItem):
 
         self._charset = charset
         self._headers = None
+        self._body: str | bytes | None
+        self._raw_body: str | bytes | None
 
         if set_body:
             # We use this case for deserialization via from_dict()
@@ -713,7 +715,7 @@ class HTTPResponse(DiskItem):
         status_line = self.get_status_line()
         dumped_headers = self.dump_headers(exclude_headers=exclude_headers)
 
-        dump_head = f"{status_line}{dumped_headers}"
+        dump_head: str | bytes = f"{status_line}{dumped_headers}"
 
         if isinstance(dump_head, str):
             dump_head = dump_head.encode(self.charset, "replace")
@@ -802,6 +804,7 @@ class HTTPResponse(DiskItem):
         return state
 
     def __setstate__(self, state):
-        [setattr(self, k, v) for k, v in state.items()]
+        for key, value in state.items():
+            setattr(self, key, value)
         self._parser_cache = None
         self._body_lock = threading.RLock()

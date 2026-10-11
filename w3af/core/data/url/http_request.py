@@ -25,12 +25,15 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Any, cast
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.request_mixin import RequestMixIn
 from w3af.core.data.url.constants import MAX_HTTP_RETRIES
+
+_DEFAULT_TIMEOUT = cast(Any, socket)._GLOBAL_DEFAULT_TIMEOUT
 
 
 class HTTPRequest(RequestMixIn, urllib.request.Request):
@@ -48,7 +51,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         method=None,
         error_handling=True,
         retries=MAX_HTTP_RETRIES,
-        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        timeout=_DEFAULT_TIMEOUT,
         new_connection=False,
         follow_redirects=False,
         use_basic_auth=True,
@@ -175,7 +178,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         self.new_connection = new_connection
 
     def to_dict(self):
-        serializable_dict = {}
+        serializable_dict: dict[str, object] = {}
         sdict = serializable_dict
 
         sdict["method"] = self.get_method()
@@ -185,9 +188,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         sdict["cookies"] = self.cookies
         sdict["session"] = self.session
         sdict["cache"] = self.get_from_cache
-        sdict["timeout"] = (
-            None if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
-        )
+        sdict["timeout"] = None if self.timeout is _DEFAULT_TIMEOUT else self.timeout
         sdict["new_connection"] = self.new_connection
         sdict["follow_redirects"] = self.follow_redirects
         sdict["use_basic_auth"] = self.use_basic_auth
@@ -230,11 +231,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         cookies = udict["cookies"]
         session = udict["session"]
         cache = udict["cache"]
-        timeout = (
-            socket._GLOBAL_DEFAULT_TIMEOUT
-            if udict["timeout"] is None
-            else udict["timeout"]
-        )
+        timeout = _DEFAULT_TIMEOUT if udict["timeout"] is None else udict["timeout"]
         new_connection = udict["new_connection"]
         follow_redirects = udict["follow_redirects"]
         use_basic_auth = udict["use_basic_auth"]
@@ -265,7 +262,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
     def __deepcopy__(self, memo):
         # The default timeout is a sentinel compared by identity, a copy of
         # it would be taken as a (broken) explicit timeout value
-        memo[id(socket._GLOBAL_DEFAULT_TIMEOUT)] = socket._GLOBAL_DEFAULT_TIMEOUT
+        memo[id(_DEFAULT_TIMEOUT)] = _DEFAULT_TIMEOUT
 
         clone = self.__class__.__new__(self.__class__)
         memo[id(self)] = clone
@@ -278,7 +275,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
     def __repr__(self):
         fmt = '<HTTPRequest "%s" (cookies:%s, cache:%s, did:%s, timeout:%.2f, new_connection:%s)>'
 
-        timeout = 3 if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
+        timeout = 3 if self.timeout is _DEFAULT_TIMEOUT else self.timeout
 
         return fmt % (
             self.url_object.url_string,

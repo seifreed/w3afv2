@@ -5564,3 +5564,15 @@ tablas creadas por las pruebas de rendimiento. Verificación: estructuras DB
 primitivas auxiliares **38**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
+
+## Actualización verificada: contratos tipados de request y response
+
+`HTTPRequest` centraliza el sentinel de timeout de `socket` y declara el
+diccionario serializable; `HTTPResponse` explicita que sus cuerpos pueden ser
+texto, bytes o `None` durante la decodificación y restaura estado con un bucle
+claro. No cambia el formato serializado ni añade copias de cuerpos en memoria.
+
+Verificación: request, response, cache, keepalive y helpers pasan **82 tests**;
+Black, Ruff, mypy focal y Bandit focal están limpios. El score global continúa
+en **9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
