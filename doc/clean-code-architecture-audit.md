@@ -5689,3 +5689,15 @@ Verificación: formularios URL-encoded y multipart pasan **21 tests**; Black,
 Ruff, mypy focal y Bandit focal están limpios. El score global continúa en
 **9.99/10**, con los gates globales heredados y la cobertura global todavía
 pendientes.
+
+## Actualización verificada: jerarquía tipada de campos de formulario
+
+`FormParameters.form_field_factory` usa `FormFieldMixin` como contrato de
+salida y `ChooseFormField` para las opciones que acumulan valores. Así la
+fábrica mantiene una única responsabilidad y deja explícita la capacidad
+adicional de radio/checkbox sin alterar el resultado.
+
+Verificación: las suites de formularios pasan **63 tests y 7 subtests**; Black,
+Ruff, mypy focal y Bandit focal están limpios. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.

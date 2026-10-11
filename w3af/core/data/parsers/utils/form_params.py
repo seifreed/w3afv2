@@ -47,7 +47,9 @@ from w3af.core.data.parsers.utils.form_constants import (
 )
 from w3af.core.data.parsers.utils.form_fields import (
     CheckboxFormField,
+    ChooseFormField,
     FileFormField,
+    FormFieldMixin,
     GenericFormField,
     RadioFormField,
     SelectFormField,
@@ -375,6 +377,7 @@ class FormParameters(OrderedDict):
         autocomplete = autocomplete.lower() != "off"
 
         should_add_new = True
+        form_field: FormFieldMixin
 
         if input_type == INPUT_TYPE_SELECT:
             input_values = get_value_by_key(attributes, "values") or []
@@ -384,8 +387,9 @@ class FormParameters(OrderedDict):
             match_fields = [ff for ff in snf if ff.input_type is INPUT_TYPE_RADIO]
 
             if match_fields:
-                form_field = match_fields[-1]
-                form_field.values.append(input_value)
+                matched_field: ChooseFormField = match_fields[-1]
+                form_field = matched_field
+                matched_field.values.append(input_value)
                 should_add_new = False
             else:
                 form_field = RadioFormField(input_name, [input_value])
@@ -394,8 +398,9 @@ class FormParameters(OrderedDict):
             match_fields = [ff for ff in snf if ff.input_type is INPUT_TYPE_CHECKBOX]
 
             if match_fields:
-                form_field = match_fields[-1]
-                form_field.values.append(input_value)
+                matched_field = match_fields[-1]
+                form_field = matched_field
+                matched_field.values.append(input_value)
                 should_add_new = False
             else:
                 form_field = CheckboxFormField(input_name, [input_value])
