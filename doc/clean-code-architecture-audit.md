@@ -6029,3 +6029,13 @@ Verificación: Mypy estricto, Ruff, Black, Bandit y compilación pasan. La suite
 específica no pudo ejecutar su `setUp`: el fixture intenta resolver el host
 externo `fallback`, que no está disponible en este entorno. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: estado seguro de ReadShell
+
+`ReadShell.__repr__` normaliza el estado de sistema remoto antes de construir
+el texto, evitando concatenar `None` cuando la detección aún no ha producido
+un valor. El comportamiento visible conserva `unknown` como fallback.
+
+Verificación: ReadShell y shells relacionados pasan **16 tests**; Mypy
+estricto, Ruff, Black y Bandit pasan en los módulos modificados. El score
+global continúa en **9.99/10**.

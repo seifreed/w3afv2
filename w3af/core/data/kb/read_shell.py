@@ -169,7 +169,8 @@ class ReadShell(Shell):
         if not self._rOS:
             self.identify_os()
 
-        return '<shell object (rsystem: "' + self._rOS + '")>'
+        remote_os = self._rOS or "unknown"
+        return '<shell object (rsystem: "' + remote_os + '")>'
 
     __str__ = __repr__
 
