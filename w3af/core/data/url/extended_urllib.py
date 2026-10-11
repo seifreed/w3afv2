@@ -21,38 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
-import threading
 import time
 import uuid
 
 from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.url.constants import TIMEOUT_ADJUST_LIMIT
-from w3af.core.data.url.failed_response_recorder import FailedResponseRecorder
-from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
-from w3af.core.data.url.grep_dispatcher import GrepDispatcher
-from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
-from w3af.core.data.url.rate_limiter import RateLimiter
-from w3af.core.data.url.request_builder import RequestBuilder
-from w3af.core.data.url.request_error_handler import RequestErrorHandler
-from w3af.core.data.url.request_evasion import RequestEvasionPipeline
-from w3af.core.data.url.request_api import RequestApi
-from w3af.core.data.url.request_metrics import RequestMetrics
-from w3af.core.data.url.request_mode_controller import RequestModeController
-from w3af.core.data.url.request_preparer import RequestPreparer
-from w3af.core.data.url.request_preflight import RequestPreflight
-from w3af.core.data.url.request_retry_handler import RequestRetryHandler
-from w3af.core.data.url.request_sender import RequestSender
-from w3af.core.data.url.response_history import ResponseHistory
-from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
-from w3af.core.data.url.scan_request_control import ScanRequestControl
-from w3af.core.data.url.scan_error_policy import ScanErrorPolicy
-from w3af.core.data.url.server_reachability_checker import ServerReachabilityChecker
-from w3af.core.data.url.session_lifecycle import SessionLifecycle
-from w3af.core.data.url.size_limit_override import SizeLimitOverride
-from w3af.core.data.url.timeout_adjustment_policy import TimeoutAdjustmentPolicy
-from w3af.core.data.url.timeout_manager import TimeoutManager
-from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
+from w3af.core.data.url.request_component_factory import RequestComponentFactory
 from w3af.core.exceptions import ScanMustStopException
 
 from . import opener_settings
@@ -87,130 +62,42 @@ class ExtendedUrllib:
             db=db,
         )
         self._sleep = sleep
-        self._average_rtt_mutant = GetAverageRTTForMutant(self)
-
-        # For error handling, the history starts with successful responses so
-        # the unreachable-server pattern can be detected from the first errors.
-        self._response_history = ResponseHistory()
-        self._count_lock = threading.RLock()
-
-        # For rate limiting and timeouts
-        self._rate_limiter = RateLimiter(self.settings, sleep)
-        self._timeout_manager = TimeoutManager(self.settings)
-        self._request_mode_controller = RequestModeController(
-            self.clear_timeout,
-            self.settings.close_connections,
-        )
-        self._size_limit_override = SizeLimitOverride(self._configuration)
-        self._timeout_adjustment = TimeoutAdjustmentPolicy(
-            self._timeout_manager,
-            self.get_average_rtt,
-            self.get_total_requests,
-            self.set_timeout,
-            self.get_timeout,
-            LOGGER.debug,
-        )
-
-        self._request_metrics = RequestMetrics()
-
-        self._worker_pool_adjuster = WorkerPoolAdjuster(
-            self.get_error_rate,
-            LOGGER.debug,
-        )
-
-        # Timeout is kept by host
-        # Used in the pause on HTTP error feature to keep track of when the
-        # core slept waiting for the remote end to be reachable
-        self._error_pause_controller = HttpErrorPauseController(
-            self.get_error_rate,
-            self.get_total_requests,
-            self._sleep,
-            LOGGER.debug,
-        )
-        # User configured options (in an indirect way)
-        self._grep_dispatcher = GrepDispatcher()
-        self._evasion_pipeline = RequestEvasionPipeline(LOGGER.error)
-        self._request_preparer = RequestPreparer(self.settings)
-        self._request_builder = RequestBuilder(
-            lambda: self.settings,
-            self.setup,
-            self.get_timeout,
-            self.add_headers,
-        )
-        self._response_success_handler = ResponseSuccessHandler(
-            LOGGER.debug,
-            self._log_successful_response,
-            self._track_rtt,
-            self._worker_pool_adjuster.adjust,
-            self._grep,
+        components = RequestComponentFactory(
+            self,
+            self.settings,
+            self._configuration,
+            sleep,
             parser_cache,
-        )
-        self._retry_handler = RequestRetryHandler(
-            self.send,
-            self.get_timeout,
-            LOGGER.debug,
-        )
-        self._reachability_checker = ServerReachabilityChecker(
-            self.get_timeout,
-            self.set_timeout,
-            self.add_headers,
-            self.send,
-            LOGGER.debug,
-        )
-        self._request_control = ScanRequestControl()
-        self._request_preflight = RequestPreflight(
-            self._request_control,
-            self._error_pause_controller,
-            self._rate_limiter,
-            self._timeout_adjustment,
-            self._request_metrics,
-        )
-        self._scan_error_policy = ScanErrorPolicy(
-            self._response_history,
-            self._reachability_checker,
-            self._request_control,
-            LOGGER.debug,
-        )
-        self._failed_response_recorder = FailedResponseRecorder(
-            self._response_history,
-            self.get_timeout,
-            self._log_error_rate,
-            LOGGER.debug,
-        )
-        self._error_handler = RequestErrorHandler(
-            LOGGER.debug,
-            self._increase_timeout_on_error,
-            self._count_lock,
-            self._log_failed_response,
-            self._should_stop_scan,
-            self._handle_error_count_exceeded,
-            self._worker_pool_adjuster.adjust,
-            self._retry,
-        )
-        self._session_lifecycle = SessionLifecycle(
-            lambda: self.settings,
-            self._request_control,
-            self._response_history,
-            self._reset_total_requests,
-            lambda: self._request_mode_controller.set_exploit_mode(False),
-            self.clear_timeout,
-            self._request_metrics.clear_rtt,
-        )
-        self._request_sender = RequestSender(
-            self._before_send_hook,
-            self.assert_allowed_proto,
-            lambda: self._opener,
-            self._evasion,
             self._id_generator,
-            self._handle_send_socket_error,
-            self._handle_send_urllib_error,
-            self._handle_send_success,
-        )
-        self._request_api = RequestApi(
-            self._request_builder,
-            self._size_limit_override,
-            self.send,
-        )
+            LOGGER.debug,
+            LOGGER.error,
+        ).create()
+        self._average_rtt_mutant = components.average_rtt_mutant
+        self._response_history = components.response_history
+        self._count_lock = components.count_lock
+        self._rate_limiter = components.rate_limiter
+        self._timeout_manager = components.timeout_manager
+        self._request_mode_controller = components.request_mode_controller
+        self._size_limit_override = components.size_limit_override
+        self._timeout_adjustment = components.timeout_adjustment
+        self._request_metrics = components.request_metrics
+        self._worker_pool_adjuster = components.worker_pool_adjuster
+        self._error_pause_controller = components.error_pause_controller
+        self._grep_dispatcher = components.grep_dispatcher
+        self._evasion_pipeline = components.evasion_pipeline
+        self._request_preparer = components.request_preparer
+        self._request_builder = components.request_builder
+        self._response_success_handler = components.response_success_handler
+        self._retry_handler = components.retry_handler
+        self._reachability_checker = components.reachability_checker
+        self._request_control = components.request_control
+        self._request_preflight = components.request_preflight
+        self._scan_error_policy = components.scan_error_policy
+        self._failed_response_recorder = components.failed_response_recorder
+        self._error_handler = components.error_handler
+        self._session_lifecycle = components.session_lifecycle
+        self._request_sender = components.request_sender
+        self._request_api = components.request_api
 
     @property
     def _opener(self):

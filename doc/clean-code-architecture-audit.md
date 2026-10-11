@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.7/10 | Alta |
-| Clean Architecture | 9.8/10 | Alta |
-| Global | 9.7/10 | Alta |
+| Clean Code | 9.8/10 | Alta |
+| Clean Architecture | 9.9/10 | Alta |
+| Global | 9.8/10 | Alta |
 
 La puntuación refleja el estado revalidado: las últimas extracciones han
 aislado ciclo de vida, modo de requests, integración del opener y defaults de
@@ -8119,3 +8119,17 @@ Verificación: la suite de perfiles pasa **13 tests**; mypy con
 `--check-untyped-defs`, Ruff, Black y Bandit dirigidos pasan en los módulos
 modificados. Clean Code sube a **9.7/10**; todavía queda pendiente la
 composición del pipeline HTTP y la cobertura/gates globales.
+
+## Actualización verificada: composición del pipeline HTTP aislada
+
+La construcción de los colaboradores de `ExtendedUrllib` se trasladó a
+`RequestComponentFactory`, que devuelve un bundle inmutable con el estado,
+políticas, handlers, lifecycle, sender y API de requests. `ExtendedUrllib`
+mantiene sus métodos públicos y referencias privadas compatibles, pero su
+constructor ya no mezcla la fachada con la composición de 27 dependencias.
+
+Verificación: **62 tests** de URL pasan con requests reales en 142.84 s; la
+prueba de capas, mypy con `--check-untyped-defs`, Ruff, Black y Bandit dirigidos
+están limpios. El score sube a **9.8/10 global**. El único acoplamiento grande
+pendiente está en la estrategia y sus consumidores, que todavía reciben el
+core completo en lugar de un contexto de scan mínimo.
