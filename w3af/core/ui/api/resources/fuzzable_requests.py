@@ -27,7 +27,7 @@ from w3af.core.ui.api.resources.traffic import encode_message
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.json_stream import stream_json_items
-from w3af.core.ui.api.utils.scans import get_scan_info_from_id
+from w3af.core.ui.api.utils.scans import get_scan_core, get_scan_info_from_id
 
 
 @app.route("/scans/<int:scan_id>/fuzzable-requests/", methods=["GET"])
@@ -43,7 +43,7 @@ def get_fuzzable_request_list(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    knowledge_base = scan_info.w3af_core.knowledge_base
+    knowledge_base = get_scan_core(scan_info).knowledge_base
     requests = (
         encode_message(fuzzable_request.dump())
         for fuzzable_request in knowledge_base.get_all_known_fuzzable_requests()

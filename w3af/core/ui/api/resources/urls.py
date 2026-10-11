@@ -26,7 +26,7 @@ from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.json_stream import stream_json_items
-from w3af.core.ui.api.utils.scans import get_scan_info_from_id
+from w3af.core.ui.api.utils.scans import get_scan_core, get_scan_info_from_id
 
 
 @app.route("/scans/<int:scan_id>/urls/", methods=["GET"])
@@ -42,5 +42,7 @@ def get_url_list(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    urls = (str(url) for url in scan_info.w3af_core.knowledge_base.get_all_known_urls())
+    urls = (
+        str(url) for url in get_scan_core(scan_info).knowledge_base.get_all_known_urls()
+    )
     return Response(stream_json_items(urls), mimetype="application/json")

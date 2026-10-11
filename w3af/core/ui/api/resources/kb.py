@@ -26,7 +26,7 @@ from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.json_stream import stream_json_items
-from w3af.core.ui.api.utils.scans import get_scan_info_from_id
+from w3af.core.ui.api.utils.scans import get_scan_core, get_scan_info_from_id
 
 
 @app.route("/scans/<int:scan_id>/kb/", methods=["GET"])
@@ -57,7 +57,7 @@ def list_kb(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    knowledge_base = scan_info.w3af_core.knowledge_base
+    knowledge_base = get_scan_core(scan_info).knowledge_base
 
     def findings():
         for finding_id, finding in enumerate(knowledge_base.get_all_findings_iter()):
@@ -83,7 +83,7 @@ def get_kb(scan_id, vulnerability_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    knowledge_base = scan_info.w3af_core.knowledge_base
+    knowledge_base = get_scan_core(scan_info).knowledge_base
     for finding_id, finding in enumerate(knowledge_base.get_all_findings_iter()):
         if vulnerability_id == finding_id:
             return jsonify(finding_to_json(finding, scan_id, finding_id, detailed=True))

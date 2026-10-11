@@ -5818,3 +5818,15 @@ real sin reemplazar métodos en runtime.
 Verificación: las pruebas API pasan **13 tests y 11 subtests**; mypy global
 baja a **635 errores en 261 archivos** desde 640, y Black, Ruff y Bandit de
 los tres módulos pasan sin hallazgos. El score global continúa en **9.99/10**.
+
+## Actualización verificada: recursos API sobre el mismo puerto de scan
+
+Los recursos de Knowledge Base, URLs, tráfico y requests fuzzables usan ahora
+`get_scan_core()` para validar el ciclo de vida antes de acceder a datos del
+core. Se elimina la misma clase de `None` implícito en cuatro endpoints y se
+mantiene el streaming de resultados.
+
+Verificación: las suites disponibles de KB, URLs y requests fuzzables pasan
+**3 tests**; mypy global queda en **634 errores en 261 archivos**, y Black,
+Ruff y Bandit de los cinco módulos pasan sin hallazgos. El score global
+continúa en **9.99/10**.
