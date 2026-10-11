@@ -42,7 +42,7 @@ class TestPDF(unittest.TestCase):
 
         pdf_inst = pdf()
 
-        words = pdf_inst._get_pdf_content(Path(fname).read_text())
+        words = pdf_inst._get_pdf_content(Path(fname).read_bytes())
 
         EXPECTED_RESULT = [
             "Testing,",
