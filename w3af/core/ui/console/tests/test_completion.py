@@ -35,11 +35,12 @@ class TestConsoleCompletion(ConsoleTestHelper):
 
     def setUp(self):
         super().setUp()
-        self.console = ConsoleUI(do_upd=False)
-        self.root = rootMenu("w3af", self.console, self.console._w3af)
+        console = ConsoleUI(do_upd=False)
+        self.console = console
+        self.root = rootMenu("w3af", console, console._w3af)
 
     def tearDown(self):
-        self.console._w3af.quit()
+        self.get_console()._w3af.quit()
         super().tearDown()
 
     def _audit_menu(self):
@@ -99,7 +100,7 @@ class TestConsoleCompletion(ConsoleTestHelper):
         config = self._config_menu()
         option_name = next(iter(config._opt_dict))
         config._cmd_help([option_name])
-        self.console._output_manager.process_all_messages()
+        self.get_console()._output_manager.process_all_messages()
         self.assertTrue(self._captured_stdout.messages)
 
     def test_plugins_para_list(self):
@@ -133,7 +134,7 @@ class TestConsoleCompletion(ConsoleTestHelper):
             name for name, option in config._opt_dict.items() if option.get_help()
         )
         config._cmd_help([option_name])
-        self.console._output_manager.process_all_messages()
+        self.get_console()._output_manager.process_all_messages()
         output = "".join(self._captured_stdout.messages)
         self.assertIn(config._opt_dict[option_name].get_help(), output)
 

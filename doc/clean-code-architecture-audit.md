@@ -6542,3 +6542,13 @@ el traceback transportado por el pool con un tipo estrechado.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; la fixture pasa
 **14 tests**. El score global continúa en **9.99/10**.
+
+## Actualización verificada: ciclo de vida de completado de consola
+
+La fixture de completado usa el accessor común de `ConsoleTestHelper` para
+estrechar la consola antes de acceder al core y al output manager. El setup
+conserva una referencia local para construir el menú con una instancia real.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; la fixture pasa
+**16 tests**. Pytest muestra los mismos nueve warnings de dependencias
+deprecadas. El score global continúa en **9.99/10**.
