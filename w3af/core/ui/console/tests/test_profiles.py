@@ -42,6 +42,8 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
     Load profiles from the console UI.
     """
 
+    console: ConsoleUI
+
     def setUp(self):
         super().setUp()
         self._remove_if_exists(self.get_profile_name())

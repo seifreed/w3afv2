@@ -37,6 +37,7 @@ from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.plugins.mangle_plugin import ManglePlugin
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.options.option_types import (
     BOOL,
@@ -79,7 +80,7 @@ class TestBasic(unittest.TestCase):
 
         self.plugin_types = self.w3afcore.plugins.get_plugin_types()
         self.plugin_types += ["attack"]
-        self.plugins = {}
+        self.plugins: dict[str, list[Plugin]] = {}
 
         for plugin_type in self.plugin_types:
             self.plugins[plugin_type] = []
@@ -175,6 +176,8 @@ class TestBasic(unittest.TestCase):
 
     def test_plugin_root_probability(self):
         for plugin in self.plugins["attack"]:
+            if not isinstance(plugin, AttackPlugin):
+                raise TypeError(f"Unexpected plugin type: {type(plugin)!r}")
             plugin.get_root_probability()
 
     def test_plugin_type_description(self):

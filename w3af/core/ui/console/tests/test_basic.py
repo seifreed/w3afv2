@@ -31,6 +31,8 @@ class TestBasicConsoleUI(ConsoleTestHelper):
     Basic test for the console UI.
     """
 
+    console: ConsoleUI
+
     def test_menu_browse_misc(self):
         commands_to_run = ["misc-settings", "back", "exit"]
 

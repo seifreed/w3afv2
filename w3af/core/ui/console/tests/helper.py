@@ -19,13 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from __future__ import annotations
+
 import os
 import re
 import unittest
 from contextlib import redirect_stdout
+from typing import TYPE_CHECKING
 
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.tests.helpers.home_dir import use_temporary_home
+
+if TYPE_CHECKING:
+    from w3af.core.ui.console.console_ui import ConsoleUI
 
 ANSI_ESCAPE = re.compile(r"\x1b[^m]*m")
 
@@ -56,7 +62,7 @@ class ConsoleTestHelper(unittest.TestCase):
     Helper class to build console UI tests.
     """
 
-    console = None
+    console: ConsoleUI | None = None
     OUTPUT_FILE = "output-w3af-unittest.txt"
     OUTPUT_HTTP_FILE = "output-w3af-unittest-http.txt"
 

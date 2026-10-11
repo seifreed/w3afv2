@@ -6436,3 +6436,14 @@ elimina una colisión de tipos sin cambiar los casos probados.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en la fixture;
 los filtros escalables y de fichero pasan **40 tests**. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: contratos de fixtures de consola y plugins
+
+Las suites de consola declaran `ConsoleUI` después de su inicialización en el
+helper común, y la suite de plugins conserva el tipo base `Plugin` con una
+comprobación explícita para las operaciones exclusivas de `AttackPlugin`.
+Esto elimina propagación de `None` y tipos demasiado amplios en los tests.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los cinco
+ficheros; consola básica pasa **8 tests**, interacción y perfiles **20** y
+plugins básicos **9**. El score global continúa en **9.99/10**.
