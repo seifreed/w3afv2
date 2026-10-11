@@ -27,6 +27,7 @@ import threading
 import time
 import unittest
 from datetime import UTC, datetime
+from typing import Any, cast
 
 import OpenSSL
 from cryptography.hazmat.primitives.serialization import Encoding
@@ -149,7 +150,7 @@ class TestWrapSocket(unittest.TestCase):
                 server,
                 cert_reqs=CERT_REQUIRED,
                 ca_certs=str(cert.cert_file),
-                timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+                timeout=cast(Any, socket)._GLOBAL_DEFAULT_TIMEOUT,
             )
         ssl_sock.close()
         self.assertEqual(body, b"trusted")
@@ -172,7 +173,11 @@ class TestWrapSocket(unittest.TestCase):
         self.assertEqual(peer_cert["subjectAltName"], [])
 
     def test_handshake_times_out_when_the_server_is_silent(self):
-        with RawServer(lambda sock: sock.recv(4096) and time.sleep(2)) as server:
+        def silent(sock):
+            sock.recv(4096)
+            time.sleep(2)
+
+        with RawServer(silent) as server:
             sock = socket.create_connection((LOCALHOST, server.port), 5)
             with sock, self.assertRaisesRegex(ssl.SSLError, "timed out"):
                 wrap_socket(sock, ssl_version=TLS, timeout=0.3)

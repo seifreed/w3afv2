@@ -26,7 +26,7 @@ import sys
 import time
 from functools import wraps
 from multiprocessing.dummy import Process
-from queue import Empty, Queue
+from queue import Empty
 
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
@@ -34,6 +34,7 @@ from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.helpers import pprint_plugins
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.misc.cached_queue import CachedQueue
+from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class BaseConsumer(Process):
         """
         super().__init__(name=f"{thread_name}Controller")
 
-        self.in_queue: Queue[object] = CachedQueue(
+        self.in_queue: CachedQueue | OrderedCachedQueue = CachedQueue(
             maxsize=max_in_queue_size,
             name=thread_name + "In",
             db=w3af_core.database,
@@ -139,7 +140,7 @@ class BaseConsumer(Process):
         # maxsize sent to this CachedQueue to 75
         #
         # But just in case I'm using a CachedQueue!
-        self._out_queue = CachedQueue(
+        self._out_queue: CachedQueue = CachedQueue(
             maxsize=75,
             name=thread_name + "Out",
             db=w3af_core.database,

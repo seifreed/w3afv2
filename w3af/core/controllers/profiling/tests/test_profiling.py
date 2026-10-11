@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import tracemalloc
 import unittest
+from typing import Any, cast
 
 import yappi
 
@@ -70,8 +71,9 @@ class TestProfiling(unittest.TestCase):
         for module, save_ptr in ALL_PROFILERS:
             module.cancel_thread(save_ptr)
 
-        yappi.stop()
-        yappi.clear_stats()
+        yappi_api = cast(Any, yappi)
+        yappi_api.stop()
+        yappi_api.clear_stats()
         tracemalloc.stop()
         self.remove_all_outputs()
 

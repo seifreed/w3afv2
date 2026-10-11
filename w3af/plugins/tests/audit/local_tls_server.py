@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socketserver
 import ssl
 import threading
+from typing import cast
 
 REQUEST_SIZE = 65536
 CLIENT_TIMEOUT = 5
@@ -45,7 +46,8 @@ class TlsHandler(socketserver.BaseRequestHandler):
         self.request.settimeout(CLIENT_TIMEOUT)
 
         try:
-            with self.server.tls_context.wrap_socket(
+            server = cast(LocalTlsServer, self.server)
+            with server.tls_context.wrap_socket(
                 self.request, server_side=True
             ) as tls_socket:
                 if tls_socket.recv(REQUEST_SIZE):

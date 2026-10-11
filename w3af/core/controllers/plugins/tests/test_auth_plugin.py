@@ -65,7 +65,7 @@ class TestAuditBlacklist(AuthPluginTestCase):
             URL("http://127.0.0.1/login?next=/home"), URL("http://127.0.0.1/auth")
         )
 
-        blacklist = [str(url) for url in cf.get("blacklist_audit")]
+        blacklist = [str(url) for url in (cf.get("blacklist_audit") or [])]
         self.assertEqual(blacklist, ["http://127.0.0.1/login", "http://127.0.0.1/auth"])
         message = recorder.messages_of("information")[0]
         self.assertIn(" - http://127.0.0.1/login\n - http://127.0.0.1/auth", message)
@@ -77,7 +77,7 @@ class TestAuditBlacklist(AuthPluginTestCase):
 
         plugin._configure_audit_blacklist(URL("http://127.0.0.1/login?again=1"))
 
-        self.assertEqual(len(cf.get("blacklist_audit")), 1)
+        self.assertEqual(len(cf.get("blacklist_audit") or []), 1)
         self.assertEqual(len(recorder.messages_of("information")), 1)
 
     def test_missing_blacklist_is_created(self):
@@ -85,7 +85,7 @@ class TestAuditBlacklist(AuthPluginTestCase):
 
         unit_auth()._configure_audit_blacklist(URL("http://127.0.0.1/login"))
 
-        self.assertEqual(len(cf.get("blacklist_audit")), 1)
+        self.assertEqual(len(cf.get("blacklist_audit") or []), 1)
 
 
 class TestHttpResponseLog(AuthPluginTestCase):
@@ -155,7 +155,9 @@ class TestLogMessages(AuthPluginTestCase):
 
         plugin._set_debugging_id(None)
 
-        self.assertRegex(plugin._debugging_id, r"^[a-zA-Z0-9]{8}$")
+        debugging_id = plugin._debugging_id
+        assert debugging_id is not None
+        self.assertRegex(debugging_id, r"^[a-zA-Z0-9]{8}$")
 
 
 class TestLoginResults(AuthPluginTestCase):

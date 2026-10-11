@@ -6817,3 +6817,16 @@ valores fraccionarios como usa el runtime.
 Verificación: Mypy pasa en los **10 archivos** modificados, Black y Ruff pasan
 globalmente, y `test_auth_plugins` pasa **26 tests**. El score global continúa
 en **9.99/10**.
+
+## Actualización verificada: contratos de plugins y colas de consumers
+
+`BaseConsumer` declara ahora la cola concreta que construye y admite la variante
+ordenada usada por `CrawlInfrastructure`, conservando el acceso al almacén en
+disco sin degradarlo a `Queue[object]`. Las fixtures de TLS, SGML, SSN,
+profiling y bruteforce estrechan sus objetos dinámicos, y la firma de `audit`
+mantiene el contrato completo de `AuditPlugin`.
+
+Verificación: Mypy, Black y Ruff pasan en los **8 archivos** modificados; la
+batería focalizada pasa **99 tests**. Mypy del proyecto queda en **39 errores de
+16 archivos**, todos localizados en fixtures aún pendientes; el score global
+continúa en **9.99/10**.

@@ -27,7 +27,7 @@ class unit_bruteforce(BruteforcePlugin):
         self.audited = []
         self._lock = threading.Lock()
 
-    def audit(self, freq, debugging_id=None):
+    def audit(self, freq, orig_resp=None, debugging_id=None):
         self.audited.append((freq, debugging_id))
         vuln = Vuln.from_fr(
             "Guessable credentials",

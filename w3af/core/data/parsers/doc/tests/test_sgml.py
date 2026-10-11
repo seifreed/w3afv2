@@ -27,6 +27,7 @@ from functools import partial
 from itertools import combinations
 from pathlib import Path
 from secrets import choice
+from typing import Any, cast
 
 import pytest
 
@@ -237,7 +238,7 @@ class TestSGMLParser(unittest.TestCase):
             p = SGMLParser(resp)
             orig_start = p.start
             wrapped_start = partial(start_wrapper, orig_start)
-            p.start = wrapped_start
+            cast(Any, p).start = wrapped_start
             p.parse()
 
     def test_parsed_references(self):

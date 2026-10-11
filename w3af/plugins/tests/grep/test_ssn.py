@@ -43,7 +43,6 @@ class test_ssn(unittest.TestCase):
         self.parser_cache = ParserCache()
         self.plugin.set_parser_cache(self.parser_cache)
         self.addCleanup(self.parser_cache.clear)
-        self.plugin._already_inspected = set()
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
@@ -54,7 +53,6 @@ class test_ssn(unittest.TestCase):
         body = ""
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
-        self.plugin._already_inspected = set()
         self.plugin.grep(self.request, response)
         self.assertEqual(len(kb.get("ssn", "ssn")), 0)
 
