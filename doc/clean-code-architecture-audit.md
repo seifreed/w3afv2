@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 8.9/10 | Alta |
-| Clean Architecture | 9.1/10 | Alta |
-| Global | 9.0/10 | Alta |
+| Clean Code | 9.0/10 | Alta |
+| Clean Architecture | 9.2/10 | Alta |
+| Global | 9.1/10 | Alta |
 
 La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
@@ -7969,3 +7969,13 @@ Verificación: **34 tests** del core y excepciones pasan; el controlador tiene
 **100% de cobertura (40 statements)**; Black, Ruff, mypy y Bandit dirigidos
 pasan. La medición de cobertura global sigue pendiente porque estos tests
 cargan módulos transitivos de profiling y parser.
+
+## Actualización verificada: contexto explícito para instancias de plugins
+
+`PluginInstanceFactory` depende ahora de `PluginCoreContext`, un Protocol que
+describe únicamente los siete servicios necesarios para crear y configurar un
+plugin. El core sigue proporcionando ese contexto en la composición raíz, pero
+la factoría ya no queda acoplada nominalmente a la clase completa `w3afCore`.
+
+Verificación: **38 tests** de plugins pasan; mypy y Ruff dirigidos no
+encuentran errores, y la factoría no introduce una dependencia nueva de capas.
