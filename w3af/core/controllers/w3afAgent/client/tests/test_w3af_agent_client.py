@@ -62,6 +62,18 @@ class TestW3afAgentClient(unittest.TestCase):
             client.close()
             server.close()
 
+    def test_run_closes_client_socket_when_handling_fails(self):
+        client, server = socket.socketpair()
+        try:
+            handler = SocksHandler(client, {})
+
+            with self.assertRaises(KeyError):
+                handler.run()
+
+            self.assertEqual(server.recv(1), b"")
+        finally:
+            server.close()
+
 
 if __name__ == "__main__":
     unittest.main()

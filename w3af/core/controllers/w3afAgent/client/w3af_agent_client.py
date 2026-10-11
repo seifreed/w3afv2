@@ -344,7 +344,10 @@ class SocksHandler(threading.Thread):
         self.request = request
 
     def run(self):
-        self.handle(self.request)
+        try:
+            self.handle(self.request)
+        finally:
+            self.client_socketet.close()
 
     def set_bind_address(self, bindAddy):
         self._bindAddy = bindAddy

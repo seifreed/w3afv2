@@ -7222,3 +7222,13 @@ de descriptores durante los intentos sucesivos de selección de puerto.
 
 Verificación: agent manager, extrusión y cliente pasan **7 tests y 2 omitidos**;
 Black, Ruff, Mypy y Bandit de producción pasan en los archivos modificados.
+
+## Actualización verificada: lifecycle del cliente SOCKS
+
+`SocksHandler` recibía un socket retirado del pool de conexiones, pero no tenía
+ownership de cierre al terminar el hilo. Ahora `run()` lo cierra en `finally`,
+incluida la ruta de error, evitando descriptores y conexiones retenidos por
+cada solicitud SOCKS procesada.
+
+Verificación: el cliente del agente pasa **4 tests**; Black, Ruff, Mypy y
+Bandit de producción pasan en el cliente y su regresión de lifecycle.
