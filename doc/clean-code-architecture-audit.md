@@ -4280,3 +4280,18 @@ Verificación: la batería combinada de 404, core, plugins, grep, GHDB y
 **9.99/10** en Clean Architecture y **9.98/10** global. Aún queda retirar
 otros estados globales de producción, especialmente el generador de IDs, la
 cache DNS y el parser compartido, antes de poder declarar 10/10.
+
+## Actualización verificada: métricas de requests aisladas por scan
+
+`CoreStatus` captura la línea base del generador de IDs al crearse y calcula
+los requests enviados relativos a esa línea base. `get_rpm()` usa esa métrica
+local, por lo que un core no cuenta los requests de otro core ni depende de
+un contador reiniciado por un scan ajeno. `w3afCore` ya no llama a
+`consecutive_number_generator.reset()` al iniciar un scan.
+
+Verificación: **39 tests** de status y profiling pasan, incluyendo dos cores
+con actividad intercalada; Ruff, Black y mypy focal pasan. El generador global
+sigue asignando IDs, pero ya no controla las métricas ni se reinicia desde el
+ciclo de vida de otro core. Sustituirlo por un generador inyectado y retirar
+el parser compartido son trabajos posteriores para cerrar los últimos puntos
+de aislamiento.
