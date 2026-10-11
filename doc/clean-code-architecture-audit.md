@@ -6126,3 +6126,14 @@ Verificación: PhishTank pasa **7 tests**; **3 tests históricos de memoria**
 siguen omitidos por su propia marca de consumo excesivo. Mypy con cuerpos no
 tipados, Ruff y Black pasan en producción y tests modificados. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: contrato dinámico de `dotdict`
+
+`dotdict.__getattr__` deja de ser un alias opaco a `dict.get` y pasa a declarar
+su comportamiento dinámico con una firma tipada, conservando el retorno
+`None` para atributos ausentes. Esto elimina accesos no verificables en los
+modelos XML sin añadir conversiones ni duplicar campos.
+
+Verificación: `dotdict` pasa **2 tests** y XML output **32 tests**; Mypy con
+cuerpos no tipados, Ruff y Black pasan en los módulos relacionados. El score
+global continúa en **9.99/10**.

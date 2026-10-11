@@ -1,3 +1,5 @@
+from typing import Any
+
 from w3af.core.data.misc.encoding import smart_unicode
 
 
@@ -17,6 +19,7 @@ class dotdict(dict):
 
         self[key] = value
 
-    # __setattr__ = dict.__setitem__
-    __getattr__ = dict.get
+    def __getattr__(self, key: str) -> Any:
+        return self.get(key)
+
     __delattr__ = dict.__delitem__
