@@ -104,11 +104,11 @@ class email_report(OutputPlugin):
             server.sendmail(self.fromAddr, self.toAddrs, msg.as_string())
             server.quit()
         except (smtplib.SMTPException, OSError) as e:
-            msg = (
+            error_message = (
                 "The SMTP settings in email_report plugin seem to be"
                 ' incorrect. Original error: "%s".'
             )
-            self._output.error(msg % e)
+            self._output.error(error_message % e)
 
     def get_long_desc(self):
         return """

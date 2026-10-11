@@ -6159,3 +6159,12 @@ de perfiles conserva mayúsculas mediante una subclase explícita de
 Verificación: plantillas de vulnerabilidad y perfiles pasan **38 tests**;
 Mypy con cuerpos no tipados, Ruff y Black pasan en los tres módulos. El score
 global continúa en **9.99/10**.
+
+## Actualización verificada: tipos separados en email report
+
+`email_report` conserva el objeto `MIMEText` para el envío SMTP y usa un
+nombre independiente para el mensaje de error. Se elimina la reasignación de
+tipos sin alterar destinatarios, contenido ni manejo de fallos.
+
+Verificación: output email pasa **5 tests**; Mypy con cuerpos no tipados, Ruff
+y Black pasan en el módulo. El score global continúa en **9.99/10**.
