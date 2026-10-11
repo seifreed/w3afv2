@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -37,6 +38,8 @@ class test_blank_body(unittest.TestCase):
         create_temp_dir()
         kb.cleanup()
         self.plugin = blank_body()
+        self.plugin.set_output(om._get_default_output())
+        self.plugin.set_knowledge_base(kb)
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
