@@ -25,6 +25,8 @@ from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 from w3af.core.data.misc.serialize import loads
 
+_MISSING = object()
+
 
 class DiskDict:
     """
@@ -116,16 +118,16 @@ class DiskDict:
         r = self.db.select_one(query % self.table_name)
         return r[0]
 
-    def get(self, key, default=-456):
+    def get(self, key, default=_MISSING):
         try:
             return self[key]
         except KeyError:
-            if default is not -456:
+            if default is not _MISSING:
                 return default
 
         raise KeyError()
 
-    def pop(self, key, default=-456):
+    def pop(self, key, default=_MISSING):
         value = self.get(key, default=default)
         del self[key]
         return value

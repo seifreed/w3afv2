@@ -4543,6 +4543,17 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: sentinels correctos en diccionarios de disco
+
+`DiskDict` y `CachedDiskDict` ya no comparan un entero con `is` para distinguir
+la ausencia de un valor por defecto. Usan objetos sentinel privados, por lo que
+`get()` y `pop()` respetan también valores por defecto como `-456` sin depender
+del internado de enteros del intérprete.
+
+Verificación: **19 tests** de ambos diccionarios pasan; Black, Ruff, mypy y
+Bandit focales pasan. El score global continúa en **9.99/10**, con los gates
+heredados, el fallback standalone y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: filtro de severidad centralizado en la KB
 
 `get_all_vulns()` y `get_all_infos()` comparten ahora `_get_all_by_severity()`.

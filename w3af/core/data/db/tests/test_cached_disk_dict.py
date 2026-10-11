@@ -130,6 +130,7 @@ class TestCachedDiskDict(unittest.TestCase):
 
         self.assertEqual(self.cdd.get(1), "one")
         self.assertEqual(self.cdd.get(2, None), None)
+        self.assertEqual(self.cdd.get(2, -456), -456)
         self.assertRaises(KeyError, self.cdd.get, 2)
 
     def test_key_already_moved_to_memory(self):

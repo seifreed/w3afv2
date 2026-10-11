@@ -112,6 +112,7 @@ class TestDiskDict(unittest.TestCase):
 
         self.assertRaises(KeyError, disk_dict.get, "missing")
         self.assertEqual(disk_dict.get("missing", None), None)
+        self.assertEqual(disk_dict.get("missing", -456), -456)
 
     def test_pop(self):
         disk_dict = DiskDict()
@@ -120,6 +121,7 @@ class TestDiskDict(unittest.TestCase):
         self.assertEqual(disk_dict.pop("a"), "abc")
         self.assertNotIn("a", disk_dict)
         self.assertEqual(disk_dict.pop("a", None), None)
+        self.assertEqual(disk_dict.pop("a", -456), -456)
         self.assertRaises(KeyError, disk_dict.pop, "a")
 
     def test_len_very_large_dict(self):

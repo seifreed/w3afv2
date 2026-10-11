@@ -66,11 +66,11 @@ class CachedDiskDict:
 
         return table_prefix
 
-    def get(self, key, default=-456):
+    def get(self, key, default=_MISSING):
         try:
             return self[key]
         except KeyError:
-            if default is not -456:
+            if default is not _MISSING:
                 return default
 
         raise KeyError()
