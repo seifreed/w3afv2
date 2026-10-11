@@ -4849,3 +4849,15 @@ Verificación: los tests funcionales de `click_jacking` y `web_spider` pasan
 **19 tests**; Black, Ruff, mypy y Bandit focales están limpios. El score global
 continúa en **9.99/10**, con los fallbacks standalone y los gates globales
 heredados todavía pendientes.
+
+## Actualización verificada: propiedad explícita de la DB del core
+
+`w3afCore` ya no crea una segunda SQLite cuando recibe una `DBKnowledgeBase`
+externa. En ese caso reutiliza la DB de la KB y no la cierra al finalizar; solo
+el core que compone su propia DB conserva la responsabilidad de cerrarla. Así
+parser, URL, plugins y KB quedan dentro del mismo contexto de persistencia.
+
+Verificación: **3 tests** del ciclo de vida de `w3afCore` y **33 tests** de
+composición/plugins pasan; Black, Ruff, mypy y Bandit focales están limpios. El
+score global continúa en **9.99/10**, con los fallbacks standalone y los gates
+globales heredados todavía pendientes.

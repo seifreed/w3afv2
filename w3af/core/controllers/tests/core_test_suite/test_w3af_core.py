@@ -147,10 +147,12 @@ class TestW3afCore(unittest.TestCase):
             self.core.database,
         )
 
-    def test_parser_cache_is_local_with_external_knowledge_base(self):
-        core = w3afCore(knowledge_base=DBKnowledgeBase())
+    def test_external_knowledge_base_owns_core_database(self):
+        knowledge_base = DBKnowledgeBase()
+        core = w3afCore(knowledge_base=knowledge_base)
         self.addCleanup(core.quit)
 
+        self.assertIs(core.database, knowledge_base.db)
         self.assertIs(core.parser_cache._parser_blacklist.db, core.database)
 
     def test_unreferenced_core_does_not_mutate_dns_resolver(self):

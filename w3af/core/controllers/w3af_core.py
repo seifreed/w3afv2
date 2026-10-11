@@ -148,7 +148,15 @@ class w3afCore:
         manager, output = create_output_manager()
         configure_data_logging(output)
         log_queue_provider, worker_initializer = get_parser_worker_bootstrap(manager)
-        self._database = create_temp_db_instance()
+        if knowledge_base is None:
+            self._owns_database = True
+            self._database = create_temp_db_instance()
+            self.knowledge_base = DBKnowledgeBase(db=self._database)
+        else:
+            self._owns_database = False
+            knowledge_base.setup()
+            self._database = knowledge_base.db
+            self.knowledge_base = knowledge_base
         self._dns_cache = DNSCache(output)
         self._parser_cache = ParserCache(
             mp_parser=MultiProcessingDocumentParser(
@@ -164,16 +172,11 @@ class w3afCore:
             manager,
             self._dns_cache,
             self._parser_cache,
-            self._database,
+            self._database if self._owns_database else None,
         )
         self._output = output
         self._output_manager = manager
         self._fingerprint_404 = None
-        self.knowledge_base = (
-            DBKnowledgeBase(db=self._database)
-            if knowledge_base is None
-            else knowledge_base
-        )
         self._worker_pool_manager = WorkerPoolManager(
             output,
             self.WORKER_THREADS,
