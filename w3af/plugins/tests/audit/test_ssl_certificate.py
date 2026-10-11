@@ -24,6 +24,7 @@ import tempfile
 import threading
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -171,6 +172,8 @@ class SslCertificatePluginTest(unittest.TestCase):
         kb.cleanup()
         self.addCleanup(kb.cleanup)
         self.plugin = ssl_certificate()
+        self.plugin.set_output(om.out)
+        self.plugin.set_knowledge_base(kb)
 
     def audit(self, url):
         self.plugin.audit(FuzzableRequest(URL(url)), None, "plugin-test")

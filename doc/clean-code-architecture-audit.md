@@ -7450,3 +7450,13 @@ verificación estable de que todos los elementos insertados se recuperan.
 
 Verificación: la suite de Bloom filter pasa **55 tests**; Black, Ruff y mypy
 pasan en el test modificado.
+
+## Actualización verificada: fixture standalone de SSL completo
+
+El test standalone de `ssl_certificate` creaba el plugin sin inyectar el sink
+de output ni la base de conocimiento que el runtime configura antes de auditar.
+El fixture ahora usa ambas dependencias reales, sin relajar el contrato del
+plugin ni añadir fallback global.
+
+Verificación: la suite de SSL pasa **21 tests**; Black, Ruff y mypy pasan en el
+test modificado.
