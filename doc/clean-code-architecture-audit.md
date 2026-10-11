@@ -21,14 +21,14 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.99/10 | Alta |
-| Clean Architecture | 9.99/10 | Alta |
-| Global | 9.99/10 | Media |
+| Clean Code | 8.5/10 | Alta |
+| Clean Architecture | 8.5/10 | Alta |
+| Global | 8.5/10 | Alta |
 
-La puntuación refleja el estado revalidado: Black y Ruff globales pasan,
-`pip-audit` no encuentra vulnerabilidades conocidas y `core.data` no importa
-`controllers` desde producción; las 13 referencias restantes están en tests.
-No es 10/10 todavía: la cobertura global al 100% no está demostrada, `mypy .`
+La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
+regla de capas pasa y `core.data` no importa `controllers` desde producción.
+No es 10/10 todavía: `w3afCore` y `ExtendedUrllib` siguen concentrando varias
+responsabilidades, la cobertura global al 100% no está demostrada, `mypy .`
 incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 `venv`, vendor, extras y tests externos al código de producción.
 
@@ -47,10 +47,10 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Responsabilidades concentradas
 
-- `w3af/core/controllers/w3af_core.py` (655 líneas) construye varios servicios,
+- `w3af/core/controllers/w3af_core.py` (648 líneas) construye varios servicios,
   configura estado global y coordina inicialización, estrategia, perfiles,
   estado, objetivos y ejecución.
-- `w3af/core/controllers/core_helpers/plugins.py` (259 líneas) mezcla
+- `w3af/core/controllers/core_helpers/plugins.py` (239 líneas) mezcla
   descubrimiento del filesystem, importación dinámica, configuración, orden de
   dependencias, creación de instancias y coordinación con output.
 - `w3af/core/data/url/extended_urllib.py` (838 líneas) concentra transporte,
@@ -7516,3 +7516,24 @@ fichero de los tests fuerza además el flush antes de inspeccionar el archivo.
 
 Verificación: **101 tests** de output manager, crawling e infraestructura pasan;
 Black, Ruff y mypy pasan en los módulos modificados.
+
+## Actualización verificada: runtime de plugins separado del catálogo
+
+`CorePlugins` conserva la fachada pública de selección y configuración, pero la
+resolución de dependencias y la creación/reutilización de instancias viven ahora
+en `PluginRuntime`. La coordinación de runtime ya no mezcla directamente la
+metadata del catálogo con el ensamblado de objetos, sin cambiar el orden de
+dependencias ni los contratos existentes.
+
+Verificación: **59 tests** de plugins y core pasan; la regla de capas pasa;
+Black y Ruff pasan en los módulos modificados.
+
+## Actualización verificada: lifecycle explícito del detector 404
+
+`w3afCore` ya no crea y libera directamente la caché de `Fingerprint404` en
+varios puntos. `Fingerprint404Lifecycle` concentra la creación lazy, el
+reinicio por scan y la liberación, evitando que una caché de detector sobreviva
+al cleanup o al cierre del core.
+
+Verificación: **34 tests** de core, estrategia y lifecycle pasan; Black y Ruff
+pasan en los módulos modificados.

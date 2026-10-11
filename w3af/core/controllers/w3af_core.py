@@ -30,7 +30,9 @@ from w3af.core.controllers.core_helpers.core_resource_lifecycle import (
     CoreResourceLifecycle,
 )
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
-from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
+from w3af.core.controllers.core_helpers.fingerprint_404_lifecycle import (
+    Fingerprint404Lifecycle,
+)
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.core_helpers.profiles import CoreProfiles
 from w3af.core.controllers.core_helpers.runtime_directories import (
@@ -180,7 +182,6 @@ class w3afCore:
         )
         self._output = output
         self._output_manager = manager
-        self._fingerprint_404: Fingerprint404 | None = None
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager
         # object should take a w3afCore object as a parameter in its __init__
@@ -235,6 +236,12 @@ class w3afCore:
             lambda: self.worker_pool,
             self.MIN_WORKER_THREADS,
             self.MAX_WORKER_THREADS,
+        )
+        self._fingerprint_404_lifecycle = Fingerprint404Lifecycle(
+            output,
+            self._configuration,
+            self._database,
+            self.uri_opener,
         )
         self._stop_controller = ScanStopController(
             output,
@@ -293,21 +300,11 @@ class w3afCore:
         self.strategy.add_observer(ThreadStateObserver(self._output))
 
         # Init the 404 detection for this core and scan.
-        if self._fingerprint_404 is not None:
-            self._fingerprint_404.cleanup()
-        self._fingerprint_404 = Fingerprint404(
-            self._output, self._configuration, db=self._database
-        )
-        self._fingerprint_404.set_url_opener(self.uri_opener)
+        self._fingerprint_404_lifecycle.start()
 
     def is_404(self, http_response):
         """Return whether a response matches this core's 404 fingerprint."""
-        if self._fingerprint_404 is None:
-            self._fingerprint_404 = Fingerprint404(
-                self._output, self._configuration, db=self._database
-            )
-            self._fingerprint_404.set_url_opener(self.uri_opener)
-        return self._fingerprint_404.is_404(http_response)
+        return self._fingerprint_404_lifecycle.is_404(http_response)
 
     def start(self):
         """
@@ -485,9 +482,7 @@ class w3afCore:
         # Stop the parser subprocess
         self._parser_cache.clear()
 
-        if self._fingerprint_404 is not None:
-            self._fingerprint_404.cleanup()
-            self._fingerprint_404 = None
+        self._fingerprint_404_lifecycle.cleanup()
 
         self._dns_cache.clear()
 
@@ -531,9 +526,7 @@ class w3afCore:
         self.uri_opener.end()
         self._dns_cache.clear()
 
-        if self._fingerprint_404 is not None:
-            self._fingerprint_404.cleanup()
-            self._fingerprint_404 = None
+        self._fingerprint_404_lifecycle.cleanup()
 
         remove_data_logging(self._output)
         self._resource_finalizer()
