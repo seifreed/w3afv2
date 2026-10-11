@@ -51,7 +51,7 @@ class cross_domain_js(GrepPlugin):
         )
 
         # Internal variables
-        self._secure_domain_multi_in = None
+        self._secure_domain_multi_in: MultiIn | None = None
         self._load_secure_js_file(self._secure_js_file)
 
     def grep(self, request, response):
@@ -91,11 +91,14 @@ class cross_domain_js(GrepPlugin):
         """
         response_url = response.get_url()
         script_domain = script_full_url.get_domain()
+        secure_domain_multi_in = self._secure_domain_multi_in
+        if secure_domain_multi_in is None:
+            return
 
         if script_domain == response_url.get_domain():
             return
 
-        for _ in self._secure_domain_multi_in.query(script_domain):
+        for _ in secure_domain_multi_in.query(script_domain):
             # Query the multi in to check if any if the domains we loaded
             # previously match against the script domain we found in the
             # HTML.

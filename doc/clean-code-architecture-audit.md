@@ -5919,6 +5919,17 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: estado opcional de cross-domain JavaScript
+
+`cross_domain_js` conserva el modo desactivado cuando no existe el fichero de
+dominios seguros y valida el `MultiIn` antes de consultarlo desde el método
+delegado. Sus tests directos configuran KB, parser cache y output reales para
+ejecutar el análisis completo.
+
+Verificación: cross-domain JavaScript pasa **4 tests**; Mypy con cuerpos no
+tipados, Ruff y Black pasan en producción y fixture. El score global continúa
+en **9.99/10**.
+
 ## Actualización verificada: ciclo de vida de path disclosure
 
 `path_disclosure` valida el `MultiRE` y la vulnerabilidad seleccionada antes

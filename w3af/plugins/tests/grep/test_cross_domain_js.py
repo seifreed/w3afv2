@@ -20,13 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from queue import Queue
 from typing import ClassVar
 
 import pytest
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
@@ -116,6 +119,9 @@ class TestCrossDomainJSRaw(unittest.TestCase):
         create_temp_dir()
         kb.cleanup()
         self.plugin = cross_domain_js()
+        self.plugin.set_knowledge_base(kb)
+        self.plugin.set_output(LogSink(Queue()))
+        self.plugin.set_parser_cache(ParserCache())
 
     def tearDown(self):
         kb.cleanup()
