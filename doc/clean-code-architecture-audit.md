@@ -6597,3 +6597,12 @@ la inferencia de un diccionario vacío se propague al helper de deserialización
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **19 tests**
 de `FormID` pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: colas y futures de SQLite en tests
+
+La fixture de `SQLiteDBMS` declara el resultado cancelado como `Future[object]`
+y la cola de capacidad limitada como `Queue[object]`, reflejando los valores
+que realmente intercambia el test.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **23 tests**
+de DBMS pasan. El score global continúa en **9.99/10**.

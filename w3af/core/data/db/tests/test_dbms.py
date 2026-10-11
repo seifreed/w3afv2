@@ -218,7 +218,7 @@ class TestDBMS(unittest.TestCase):
     def test_cancelled_request_is_skipped(self):
         db = self.new_db()
 
-        cancelled = Future()
+        cancelled: Future[object] = Future()
         cancelled.cancel()
         db.sql_executor._in_queue.put((SELECT, ("SELECT 1", ()), {}, cancelled))
 
@@ -226,7 +226,7 @@ class TestDBMS(unittest.TestCase):
         self.assertTrue(cancelled.cancelled())
 
     def test_report_qsize_limit_reached(self):
-        in_queue = Queue(11)
+        in_queue: Queue[object] = Queue(11)
         in_queue.put(None)
         executor = SQLiteExecutor(in_queue)
 
