@@ -127,9 +127,8 @@ class StartUpConfig:
 
         # E1103: Instance of '_Chainmap' has no 'lower' member
         #        (but some types could not be inferred)",
-        val = self._config.get(self._start_section, key, raw=True)
-        val = bool(boolvals.get(val.lower(), default))
-        return val
+        value = self._config.get(self._start_section, key, raw=True)
+        return bool(boolvals.get(value.lower(), default))
 
     def _load_cfg(self):
         """

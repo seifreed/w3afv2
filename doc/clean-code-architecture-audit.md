@@ -4981,6 +4981,18 @@ pasan **37 tests**; Ruff y Black están limpios. El score global continúa en
 **9.99/10**, con los gates globales heredados y la cobertura global todavía
 pendientes.
 
+## Actualización verificada: tipos explícitos en configuración y estadísticas
+
+`StartUpConfig` ya no reutiliza una variable de texto como booleano al
+interpretar opciones, y `CacheStats` inicializa su cache con un contenedor
+dimensionable. Esto conserva el comportamiento existente y elimina dos
+errores de mypy estricto sin introducir conversiones ni excepciones ocultas.
+
+Verificación: configuración de arranque y estadísticas pasan **9 tests**;
+mypy estricto, Ruff y Black están limpios. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
+
 ## Actualización verificada: cierre explícito del `LogSink`
 
 `OutputManager` registra el sink que posee, lo cierra de forma idempotente antes

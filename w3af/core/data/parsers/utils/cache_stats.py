@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
+from collections.abc import Sized
 
 LOGGER = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class CacheStats:
         self._from_LRU = 0.0
         self._do_not_cache = 0.0
         self._total = 0.0
-        self._cache = None
+        self._cache: Sized = {}
 
     def inc_query_count(self):
         self._total += 1
