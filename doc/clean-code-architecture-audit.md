@@ -5919,6 +5919,15 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: lectura robusta del GHDB
+
+`ghdb` separa los nodos XML de sus textos y usa iteradores para tratar de forma
+explícita las firmas sin contenido. Se conserva el fallback de descripción y
+el descarte de consultas corruptas, sin mezclar nodos DOM con cadenas.
+
+Verificación: GHDB pasa **13 tests**; Mypy con cuerpos no tipados, Ruff y Black
+pasan en el módulo. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: importación streaming de resultados
 
 `import_results` procesa el fichero Base64 línea a línea, evitando cargar todas

@@ -148,7 +148,8 @@ class ghdb(CrawlPlugin):
         res = []
 
         for signature in dom.getElementsByTagName("signature"):
-            if len(signature.childNodes) != 6:
+            child_nodes = list(signature.childNodes)
+            if len(child_nodes) != 6:
                 msg = (
                     "There is a corrupt signature in the GHDB. The error was"
                     ' found in the following XML code: "%s".'
@@ -157,9 +158,17 @@ class ghdb(CrawlPlugin):
                 continue
 
             try:
-                query_string = signature.childNodes[4].childNodes[0].data
+                query_node = next(iter(child_nodes[4].childNodes))
+            except StopIteration:
+                msg = (
+                    "There is a corrupt signature in the GHDB. No query "
+                    ' string was found in the following XML code: "%s".'
+                )
+                self._output.debug(msg % signature.toxml())
+                continue
 
-            except (IndexError, AttributeError):
+            query_string = getattr(query_node, "data", None)
+            if not isinstance(query_string, str):
                 msg = (
                     "There is a corrupt signature in the GHDB. No query "
                     ' string was found in the following XML code: "%s".'
@@ -168,9 +177,16 @@ class ghdb(CrawlPlugin):
                 continue
 
             try:
-                desc = signature.childNodes[5].childNodes[0].data
-            except (IndexError, AttributeError):
+                description_node = next(iter(child_nodes[5].childNodes))
+            except StopIteration:
                 desc = "No description provided by GHDB."
+            else:
+                description = getattr(description_node, "data", None)
+                desc = (
+                    description
+                    if isinstance(description, str)
+                    else "No description provided by GHDB."
+                )
 
             gh = GoogleHack(query_string, desc)
             res.append(gh)
