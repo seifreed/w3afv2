@@ -20,14 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-
-from w3af.core.controllers.misc.get_file_list import get_file_list
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc_settings import MiscSettings
-from w3af.core.data.profile.profile import profile
+from w3af.core.controllers.core_helpers.profile_repository import ProfileRepository
 from w3af.core.exceptions import BaseFrameworkException
-from w3af.core.paths import get_home_dir
 
 
 class CoreProfiles:
@@ -35,6 +31,7 @@ class CoreProfiles:
     def __init__(self, w3af_core, configuration=None):
         self._w3af_core = w3af_core
         self._configuration = configuration
+        self._profile_repository = ProfileRepository()
 
     def save_current_to_new_profile(
         self, profile_name, profile_desc="", self_contained=False
@@ -49,10 +46,7 @@ class CoreProfiles:
                  Else, raise a BaseFrameworkException.
         """
         # Create the new profile.
-        profile_inst = profile()
-        profile_inst.set_desc(profile_desc)
-        profile_inst.set_name(profile_name)
-        profile_inst.save(profile_name)
+        self._profile_repository.create(profile_name, profile_desc)
 
         # Save current to profile
         return self.save_current_to_profile(
@@ -70,7 +64,7 @@ class CoreProfiles:
                  Otherwise raise a BaseFrameworkException.
         """
         # Open the already existing profile
-        new_profile = profile(profile_name, workdir=os.path.dirname(prof_path))
+        new_profile = self._profile_repository.load_for_path(profile_name, prof_path)
 
         self._save_plugin_configuration(new_profile, self_contained)
         self._save_target(new_profile)
@@ -138,7 +132,7 @@ class CoreProfiles:
 
         # This might raise an exception (which we don't want to handle) when
         # the profile does not exist
-        profile_inst = profile(profile_name, workdir)
+        profile_inst = self._profile_repository.load(profile_name, workdir)
 
         self._load_target(profile_inst)
 
@@ -262,32 +256,11 @@ class CoreProfiles:
         >>> 'owasp_top10' in valid_lower
         True
         """
-        directory = directory or get_home_dir()
-
-        profile_home = os.path.join(directory, "profiles")
-        str_profile_list = get_file_list(profile_home, extension=profile.EXTENSION)
-
-        instance_list = []
-        invalid_profiles = []
-
-        for profile_name in str_profile_list:
-            profile_filename = os.path.join(
-                profile_home, profile_name + profile.EXTENSION
-            )
-            try:
-                profile_instance = profile(profile_filename)
-            except BaseFrameworkException:
-                invalid_profiles.append(profile_filename)
-            else:
-                instance_list.append(profile_instance)
-
-        return instance_list, invalid_profiles
+        return self._profile_repository.list_profiles(directory)
 
     def remove_profile(self, profile_name):
         """
         :return: True if the profile was successfully removed.
                  Else, raise a BaseFrameworkException.
         """
-        profile_inst = profile(profile_name)
-        profile_inst.remove()
-        return True
+        return self._profile_repository.remove(profile_name)

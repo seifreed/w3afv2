@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 8.7/10 | Alta |
-| Clean Architecture | 8.8/10 | Alta |
-| Global | 8.75/10 | Alta |
+| Clean Code | 8.8/10 | Alta |
+| Clean Architecture | 8.9/10 | Alta |
+| Global | 8.85/10 | Alta |
 
 La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
@@ -57,6 +57,8 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
   reintentos, pausas, métricas, evasiones y estado de requests.
 - La inicialización de plugins contiene mapas de tipos repetidos; su conjunto
   se mantenía manualmente y podía desincronizarse del filesystem.
+- `CoreProfiles` coordinaba persistencia de ficheros y aplicación de opciones al
+  runtime; esa frontera se ha separado en `ProfileRepository`.
 
 ### Calidad y verificabilidad
 
@@ -7944,3 +7946,14 @@ depender de un reexport incidental de la fachada HTTP.
 Verificación: **72 tests** HTTP y de historial pasan; `ScanErrorPolicy` tiene
 **100% de cobertura (35 statements)**; Black, Ruff, mypy y Bandit dirigidos
 pasan.
+
+## Actualización verificada: persistencia de perfiles aislada
+
+Las operaciones de filesystem de perfiles (`create`, `load`, enumeración y
+eliminación) viven ahora en `ProfileRepository`. `CoreProfiles` mantiene la
+aplicación de targets, settings y plugins al runtime, y conserva sin cambios
+su API pública para las interfaces de consola y API.
+
+Verificación: **12 tests** de perfiles pasan; `ProfileRepository` tiene **100%
+de cobertura (34 statements)**; Black, Ruff, mypy, Bandit dirigido y la prueba
+de capas pasan.
