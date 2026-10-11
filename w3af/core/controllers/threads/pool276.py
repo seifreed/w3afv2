@@ -385,7 +385,13 @@ class IMapUnorderedIterator:
 
         if success:
             return value
+        self._discard_pending_results()
         raise value
+
+    def _discard_pending_results(self):
+        with self._cond:
+            self._items.clear()
+            self._cache.pop(self.job, None)
 
     def _remove_from_cache_when_done(self):
         if self._index == self._length:

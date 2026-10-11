@@ -4991,6 +4991,17 @@ Ruff y Black están limpios. El test de payload que requiere el host externo
 **9.99/10**, con los gates globales heredados y la cobertura global todavía
 pendientes.
 
+## Actualización verificada: liberación de resultados pendientes en iteradores
+
+`imap_unordered` ya no conserva en su `deque` los resultados que llegan después
+de una excepción que detiene al consumidor. Al propagar el error, vacía las
+referencias pendientes y elimina el iterador del cache del pool, evitando que
+una suite o un escaneo fallido retenga respuestas y excepciones innecesarias.
+
+Verificación: la suite de pools pasa **45 tests**; Ruff y Black están limpios.
+El score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.
+
 ## Actualización verificada: contrato del request mixin
 
 `RequestMixIn` declara mediante un protocolo privado los métodos que aportan

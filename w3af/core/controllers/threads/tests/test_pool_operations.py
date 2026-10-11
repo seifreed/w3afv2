@@ -129,6 +129,22 @@ class TestPoolOperations(unittest.TestCase):
 
         self.assertEqual(list(results), [])
 
+    def test_imap_unordered_discards_pending_results_after_error(self):
+        pool = self.new_pool()
+
+        def fail_after_first_result(number):
+            if number == 0:
+                raise ValueError("result failed")
+            return number
+
+        results = pool.imap_unordered(fail_after_first_result, range(100))
+
+        with self.assertRaisesRegex(ValueError, "result failed"):
+            list(results)
+
+        self.assertNotIn(results.job, pool._cache)
+        self.assertEqual(len(results._items), 0)
+
     def test_one_to_many_and_return_args(self):
         pool = self.new_pool()
         func = return_args(one_to_many(pow))
