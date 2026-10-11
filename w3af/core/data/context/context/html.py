@@ -141,6 +141,7 @@ class HtmlProcessingInstruction(BaseContext):
 
 class HTMLAttrQuoteGeneric(BaseContext):
 
+    ATTR_DELIMITER: ClassVar[str] = ""
     JS_PATTERN = re.compile("^ *javascript:", re.IGNORECASE)
     VB_PATTERN = re.compile("^ *vbscript:", re.IGNORECASE)
 

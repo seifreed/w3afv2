@@ -145,6 +145,8 @@ class ContextDetectorHTMLParser(HTMLParser):
         """
         # Get the raw text string that triggered this parse event
         full_tag_text = self.get_starttag_text()
+        if full_tag_text is None:
+            return HtmlAttrNoQuote(self.payload, attr_name, self.untidy(attr_value))
 
         # Since it's the raw text value and the attr_value was unescaped, we
         # need to unescape it too to be able to compare them

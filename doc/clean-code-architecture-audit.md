@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contrato del parser de contexto HTML
+
+El parser trata explícitamente la ausencia de texto bruto de la etiqueta y la
+clase base de atributos declara el delimitador que comparten sus variantes.
+Esto elimina estados implícitos en el análisis de contexto sin modificar la
+clasificación de payloads HTML existente.
+
+Verificación: el paquete de contexto pasa **125 tests**, y mypy estricto,
+Ruff y Black están limpios. El score global continúa en **9.99/10**, con los
+gates globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: estado explícito de `CorePlugins`
 
 `CorePlugins` declara ahora sus mapas de nombres, opciones e instancias desde
