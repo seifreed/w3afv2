@@ -52,6 +52,7 @@ class OpenerSettings(Configurable):
         configuration=None,
         resolver=None,
         id_generator=None,
+        db=None,
     ):
 
         self._configuration = Config() if configuration is None else configuration
@@ -62,7 +63,7 @@ class OpenerSettings(Configurable):
         # Set the openers to None
         self._proxy = ProxySettings(cfg, LOGGER.debug)
         self._url_parameter = URLParameterSettings(cfg)
-        self._lifecycle = OpenerLifecycle(cfg, self._id_generator)
+        self._lifecycle = OpenerLifecycle(cfg, self._id_generator, db=db)
         self._request_limits = RequestLimitsSettings(cfg)
         self._defaults = OpenerDefaults(cfg)
         self._options = OpenerOptions(cfg)

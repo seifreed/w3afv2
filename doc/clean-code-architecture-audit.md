@@ -4426,3 +4426,19 @@ pasan. Una medición de ocho ciclos core/quit terminó con `sqlite_threads_end=0
 y RSS máximo de **79.6 MiB**. Ruff y Black pasan en los módulos tocados. El
 score global continúa en **9.99/10** hasta resolver el fallback global standalone,
 los gates completos y los módulos heredados de gran tamaño.
+
+## Actualización verificada: caché HTTP con DB explícita
+
+La dependencia de SQLite se propaga ahora por `ExtendedUrllib`,
+`OpenerSettings`, `OpenerLifecycle`, `OpenerBuilder` y `CacheHandler`. El
+backend `SQLCachedResponse` y `HistoryItem` reciben esa DB, y los objetos
+devueltos por `HistoryItem.find()` conservan la misma dependencia. El camino
+principal de un core ya no usa el singleton temporal global para la KB, el
+parser blacklist ni el caché HTTP.
+
+La regresión verifica dos bases aisladas y una fila real de History, además del
+flujo de opener construido de forma perezosa. Verificación: **52 tests** de
+History, cache HTTP y core pasan; Black, Ruff y mypy pasan en los módulos
+modificados. El fallback global sigue limitado a componentes standalone que no
+reciben una DB explícita, por lo que el score global permanece en **9.99/10**
+hasta completar esa migración y cerrar los gates globales.

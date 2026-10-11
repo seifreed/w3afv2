@@ -88,6 +88,7 @@ class ExtendedUrllib:
         resolver=None,
         parser_cache=None,
         id_generator=None,
+        db=None,
     ):
         self._configuration = Config() if configuration is None else configuration
         self._id_generator = NumberGenerator() if id_generator is None else id_generator
@@ -96,6 +97,7 @@ class ExtendedUrllib:
             configuration=self._configuration,
             resolver=resolver,
             id_generator=self._id_generator,
+            db=db,
         )
         self._sleep = sleep
         self._average_rtt_mutant = GetAverageRTTForMutant(self)

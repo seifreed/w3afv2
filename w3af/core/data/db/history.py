@@ -108,8 +108,8 @@ class HistoryItem:
     history_lock = threading.RLock()
     compression_lock = HistoryTraceCompressor.compression_lock
 
-    def __init__(self):
-        self._db = get_default_temp_db_instance()
+    def __init__(self, db=None):
+        self._db = get_default_temp_db_instance() if db is None else db
 
         self._session_dir = os.path.join(
             get_temp_dir(), self._db.get_file_name() + "_traces"
@@ -183,7 +183,7 @@ class HistoryItem:
 
         result = []
         for row in rows:
-            item = self.__class__()
+            item = self.__class__(db=self._db)
             item._load_from_row(row)
             result.append(item)
         return result

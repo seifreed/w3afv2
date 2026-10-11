@@ -29,6 +29,7 @@ import OpenSSL
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.mutants.tests.test_mutant import FakeMutant
+from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
@@ -59,8 +60,9 @@ class TestNoContentResponse(unittest.TestCase):
         self.assertTrue(is_no_content_response(response))
 
     def test_new_no_content_resp_with_id(self):
-        first = new_no_content_resp(URI, add_id=True)
-        second = new_no_content_resp(URI, add_id=True)
+        id_generator = NumberGenerator()
+        first = new_no_content_resp(URI, add_id=True, id_generator=id_generator)
+        second = new_no_content_resp(URI, add_id=True, id_generator=id_generator)
 
         self.assertEqual(second.id, first.id + 1)
 

@@ -56,8 +56,9 @@ def store_error(error, request, response):
 
 class SQLCachedResponse(CachedResponse):
 
-    def __init__(self, req):
+    def __init__(self, req, db=None):
         self._hist_obj = None
+        self._db = db
         CachedResponse.__init__(self, req)
 
     def _get_from_response(self, part):
@@ -84,18 +85,18 @@ class SQLCachedResponse(CachedResponse):
     def _get_hist_obj(self):
         hist_obj = self._hist_obj
         if hist_obj is None:
-            historyobjs = HistoryItem().find([("alias", self._hash_id, "=")])
+            historyobjs = HistoryItem(db=self._db).find([("alias", self._hash_id, "=")])
             self._hist_obj = hist_obj = historyobjs[0] if historyobjs else None
         return hist_obj
 
     @staticmethod
-    def store_in_cache(request, response):
+    def store_in_cache(request, response, db=None):
         # Create the http response object
         resp = HTTPResponse.from_httplib_resp(response, original_url=request.url_object)
         resp.set_id(response.id)
         resp.set_alias(gen_hash(request))
 
-        hi = HistoryItem()
+        hi = HistoryItem(db=db)
         hi.request = request
         hi.response = resp
 
@@ -106,13 +107,13 @@ class SQLCachedResponse(CachedResponse):
             raise store_error(ex, request, resp) from ex
 
     @staticmethod
-    def init():
+    def init(db=None):
         create_temp_dir()
-        HistoryItem().init()
+        HistoryItem(db=db).init()
 
     @staticmethod
-    def clear():
+    def clear(db=None):
         """
         Clear the cache (remove all files and directories associated with it).
         """
-        return HistoryItem().clear()
+        return HistoryItem(db=db).clear()

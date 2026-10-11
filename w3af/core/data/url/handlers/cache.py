@@ -46,15 +46,16 @@ class CacheHandler(urllib.request.BaseHandler):
     :author: Version 0.3 by Javier Andalia <jandalia =at= gmail.com>
     """
 
-    def __init__(self, id_generator=None):
+    def __init__(self, id_generator=None, db=None):
         self._id_generator = NumberGenerator() if id_generator is None else id_generator
-        CacheClass.init()
+        self._db = db
+        CacheClass.init(db=self._db)
 
     def clear(self):
         """
         Clear the cache (remove all files and directories associated with it).
         """
-        return CacheClass.clear()
+        return CacheClass.clear(db=self._db)
 
     def default_open(self, request):
         """
@@ -70,7 +71,7 @@ class CacheHandler(urllib.request.BaseHandler):
             return None
 
         try:
-            cache_response_obj = CacheClass(request)
+            cache_response_obj = CacheClass(request, db=self._db)
         except (AttributeError, TypeError, ValueError, DBException):
             # The request might not be in the cache, the cache gets corrupted,
             # or the initial HTTP request that's saved to disk doesn't completely respect the
@@ -86,7 +87,7 @@ class CacheHandler(urllib.request.BaseHandler):
     def http_response(self, request, response):
         # Set unique numeric identifier
         request.id = response.id = self._id_generator.inc()
-        CacheClass.store_in_cache(request, response)
+        CacheClass.store_in_cache(request, response, db=self._db)
         return response
 
     https_response = http_response

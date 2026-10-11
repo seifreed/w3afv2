@@ -229,6 +229,7 @@ class w3afCore:
             resolver=self._dns_cache.getaddrinfo,
             parser_cache=self._parser_cache,
             id_generator=self._id_generator,
+            db=self._database,
         )
         self.uri_opener.set_worker_pool_provider(
             lambda: self.worker_pool,

@@ -28,7 +28,11 @@ import zipfile
 import msgpack
 import pytest
 
-from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.dbms import (
+    SQLiteDBMS,
+    create_temp_db_instance,
+    get_default_temp_db_instance,
+)
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import (
     HistoryItem,
@@ -62,6 +66,45 @@ class TestHistoryItem(unittest.TestCase):
         h1 = HistoryItem()
         h2 = HistoryItem()
         self.assertEqual(h1._db, h2._db)
+
+    def test_injected_database_is_preserved_by_find(self):
+        first_db = create_temp_db_instance()
+        second_db = create_temp_db_instance()
+        first = HistoryItem(db=first_db)
+        second = HistoryItem(db=second_db)
+        self.addCleanup(self.close_db, first_db)
+        self.addCleanup(self.close_db, second_db)
+
+        first.init()
+        second.init()
+        first._history_repository.insert(
+            [
+                1,
+                "http://w3af.org/",
+                200,
+                "",
+                0,
+                "",
+                0.1,
+                "OK",
+                "text/html",
+                "utf-8",
+                "GET",
+                0,
+                2,
+                "first",
+                0,
+            ]
+        )
+
+        self.assertIs(first.find([])[0]._db, first_db)
+        self.assertEqual(second.find([]), [])
+        self.assertIsNot(first._db, second._db)
+
+    @staticmethod
+    def close_db(db: SQLiteDBMS):
+        if not db.sql_executor.get_received_poison_pill():
+            db.close()
 
     def test_find(self):
         find_id = secrets.randbelow(499) + 1

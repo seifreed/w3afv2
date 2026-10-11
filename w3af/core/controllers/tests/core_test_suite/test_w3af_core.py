@@ -141,6 +141,11 @@ class TestW3afCore(unittest.TestCase):
         self.assertIsNot(self.core.database, other_core.database)
         self.assertIs(self.core.knowledge_base.db, self.core.database)
         self.assertIs(other_core.knowledge_base.db, other_core.database)
+        self.core.uri_opener.settings.build_openers()
+        self.assertIs(
+            self.core.uri_opener.settings._cache_handler._db,
+            self.core.database,
+        )
 
     def test_parser_cache_is_local_with_external_knowledge_base(self):
         core = w3afCore(knowledge_base=DBKnowledgeBase())
