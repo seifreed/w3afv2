@@ -26,6 +26,7 @@ from unittest import TestCase
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.audit.global_redirect import global_redirect
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -135,9 +136,7 @@ class TestGlobalRedirect(PluginTest):
     ]
 
     def test_found_redirect(self):
-        cfg = SCAN_CONFIG["cfg"]
-        cfg["target"] = self.target_url
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, SCAN_CONFIG["cfg"]["plugins"])
 
         vulns = self.kb.get("global_redirect", "global_redirect")
 
@@ -170,10 +169,7 @@ class TestGlobalRedirectBasic(PluginTest):
     ]
 
     def test_original_response_has_no_redirect(self):
-        cfg = SCAN_CONFIG["cfg"]
-        cfg["target"] = self.target_url
-
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, SCAN_CONFIG["cfg"]["plugins"])
 
         vulns = self.kb.get("global_redirect", "global_redirect")
         expected = [("redir", "target")]
@@ -199,10 +195,7 @@ class TestGlobalRedirectBasicWithMetaRedir(PluginTest):
     ]
 
     def test_original_response_has_meta_redirect(self):
-        cfg = SCAN_CONFIG["cfg"]
-        cfg["target"] = self.target_url
-
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, SCAN_CONFIG["cfg"]["plugins"])
 
         vulns = self.kb.get("global_redirect", "global_redirect")
         expected = [("redir", "target")]
@@ -232,10 +225,7 @@ class TestGlobalRedirectExtendedPayloadSet(PluginTest):
     ]
 
     def test_original_response_has_redirect(self):
-        cfg = SCAN_CONFIG["cfg"]
-        cfg["target"] = self.target_url
-
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, SCAN_CONFIG["cfg"]["plugins"])
 
         vulns = self.kb.get("global_redirect", "global_redirect")
         expected = [("redir", "target")]
@@ -295,8 +285,13 @@ class TestGlobalRedirectUnitJSRedirect(TestCase):
 
 
 class TestGlobalRedirectUnitResponseHasRedirect(TestCase):
+    def setUp(self):
+        self.parser_cache = ParserCache()
+        self.addCleanup(self.parser_cache.clear)
+
     def test_response_has_redirect_headers(self):
         plugin = global_redirect()
+        plugin.set_parser_cache(self.parser_cache)
 
         body = ""
         url = URL("http://www.w3af.com/")
@@ -309,6 +304,7 @@ class TestGlobalRedirectUnitResponseHasRedirect(TestCase):
 
     def test_response_has_redirect_meta(self):
         plugin = global_redirect()
+        plugin.set_parser_cache(self.parser_cache)
 
         body = '<meta http-equiv="refresh" content="0; url=">'
         url = URL("http://www.w3af.com/")
@@ -319,6 +315,7 @@ class TestGlobalRedirectUnitResponseHasRedirect(TestCase):
 
     def test_response_has_redirect_js_1(self):
         plugin = global_redirect()
+        plugin.set_parser_cache(self.parser_cache)
 
         body = '<script>window.location.assign("http://www.w3af.org")</script>'
         url = URL("http://www.w3af.com/")
@@ -329,6 +326,7 @@ class TestGlobalRedirectUnitResponseHasRedirect(TestCase):
 
     def test_response_has_redirect_js_2(self):
         plugin = global_redirect()
+        plugin.set_parser_cache(self.parser_cache)
 
         body = '<script>window.location.href = "http://www.w3af.org"</script>'
         url = URL("http://www.w3af.com/")
@@ -339,6 +337,7 @@ class TestGlobalRedirectUnitResponseHasRedirect(TestCase):
 
     def test_response_has_redirect_js_false(self):
         plugin = global_redirect()
+        plugin.set_parser_cache(self.parser_cache)
 
         body = "<script>alert(window.location)</script>"
         url = URL("http://www.w3af.com/")
@@ -349,6 +348,7 @@ class TestGlobalRedirectUnitResponseHasRedirect(TestCase):
 
     def test_response_has_redirect_headers_false(self):
         plugin = global_redirect()
+        plugin.set_parser_cache(self.parser_cache)
 
         body = '<meta generator="">'
         url = URL("http://www.w3af.com/")

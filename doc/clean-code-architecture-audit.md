@@ -6729,3 +6729,12 @@ nivel. La cola del proxy interceptador declara sus respuestas HTTP reales.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; CSRF pasa **23
 tests** y el proxy **14 tests**. El score global continúa en **9.99/10**.
+
+## Actualización verificada: configuración aislada de global redirect
+
+Los tests unitarios de `global_redirect` crean un `ParserCache` real por caso y
+lo limpian en teardown antes de analizar respuestas HTML. Además, las pruebas
+de integración dejan de mutar el diccionario global de configuración.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **14 tests**
+de global redirect pasan. El score global continúa en **9.99/10**.
