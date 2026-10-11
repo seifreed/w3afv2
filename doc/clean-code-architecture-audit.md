@@ -4956,6 +4956,19 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: comandos Docker sin shell injection
+
+Los helpers Docker propios dejaron de interpolar comandos en `shell=True`.
+Ahora construyen argumentos estructurados, expanden los volúmenes de forma
+explícita y restauran el modo original de la clave SSH en lugar de imponer un
+modo decimal incorrecto. La compilación de los tres scripts pasa y el análisis
+focal elimina los hallazgos altos y medios; quedan cinco avisos bajos de
+Bandit por invocaciones legítimas de procesos externos.
+
+El score global continúa en **9.99/10**: los gates globales siguen incluyendo
+vendor, `venv`, tests y extras heredados, y la cobertura global aún no está
+demostrada.
+
 ## Actualización verificada: DB obligatoria dentro del builder HTTP
 
 La opcionalidad de la DB queda ahora limitada a `OpenerSettings`, que es el

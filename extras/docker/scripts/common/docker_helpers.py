@@ -1,17 +1,22 @@
 import json
 import os
+import stat
 import subprocess
 import sys
 import time
 
 ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 DOCKER_RUN = (
-    "docker run"
-    " -d"
-    " -v ~/.w3af:/root/.w3af"
-    " -v ~/w3af-shared:/root/w3af-shared"
-    " -p 44444:44444"
-    " andresriancho/w3af"
+    "docker",
+    "run",
+    "-d",
+    "-v",
+    f"{os.path.expanduser('~/.w3af')}:/root/.w3af",
+    "-v",
+    f"{os.path.expanduser('~/w3af-shared')}:/root/w3af-shared",
+    "-p",
+    "44444:44444",
+    "andresriancho/w3af",
 )
 
 
@@ -22,13 +27,12 @@ def start_container(tag, command=DOCKER_RUN):
     :return: The container id we just started
     """
 
-    if tag is not None:
-        docker_run = command + f":{tag}"
-    else:
-        docker_run = command + ":latest"
+    image = command[-1]
+    image_tag = tag if tag is not None else "latest"
+    docker_run = (*command[:-1], f"{image}:{image_tag}")
 
     try:
-        container_id = subprocess.check_output(docker_run, shell=True)
+        container_id = subprocess.check_output(docker_run)
     except subprocess.CalledProcessError as cpe:
         print(f'w3af container failed to start: "{cpe}"')
         sys.exit(1)
@@ -43,7 +47,7 @@ def stop_container(container_id):
     Stop a running w3af container
     """
     try:
-        subprocess.check_output(f"docker stop {container_id}", shell=True)
+        subprocess.check_output(("docker", "stop", container_id))
     except subprocess.CalledProcessError as cpe:
         print(f'w3af container failed to stop: "{cpe}"')
         sys.exit(1)
@@ -68,9 +72,7 @@ def connect_to_container(container_id, cmd, extra_ssh_flags=()):
     Connect to a running container, start one if not running.
     """
     try:
-        cont_data = subprocess.check_output(
-            f"docker inspect {container_id}", shell=True
-        )
+        cont_data = subprocess.check_output(("docker", "inspect", container_id))
     except subprocess.CalledProcessError:
         print(f"Failed to inspect container with id {container_id}")
         sys.exit(1)
@@ -85,7 +87,8 @@ def connect_to_container(container_id, cmd, extra_ssh_flags=()):
 
     # git can't store this
     # https://stackoverflow.com/questions/11230171
-    os.chmod(ssh_key, 600)
+    original_mode = stat.S_IMODE(os.stat(ssh_key).st_mode)
+    os.chmod(ssh_key, 0o600)
 
     # Create the SSH connection command
     ssh_cmd = [
@@ -106,10 +109,10 @@ def connect_to_container(container_id, cmd, extra_ssh_flags=()):
     ssh_cmd.append(cmd)
 
     try:
-        subprocess.call(ssh_cmd)
+        subprocess.run(ssh_cmd, check=False)
     finally:
         # revert previous chmod to avoid annoying git change
-        os.chmod(ssh_key, 436)
+        os.chmod(ssh_key, original_mode)
 
 
 def check_root():
