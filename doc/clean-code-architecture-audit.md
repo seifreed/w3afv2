@@ -4543,6 +4543,16 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: filtro de severidad centralizado en la KB
+
+`get_all_vulns()` y `get_all_infos()` comparten ahora `_get_all_by_severity()`.
+La consulta sigue usando `select_in_batches()`, por lo que la reducción de
+duplicación no reintroduce lecturas completas de la tabla en memoria.
+
+Verificación: **68 tests** de Knowledge Base pasan; Black, Ruff, mypy y Bandit
+focales pasan. El score global continúa en **9.99/10**, con los gates heredados,
+el fallback standalone y otros módulos grandes todavía pendientes.
+
 ## Actualización verificada: parser de query strings separado de `URL`
 
 `parse_qsl()` y `parse_qs()` viven ahora en `url_query.py`, donde solo dependen
