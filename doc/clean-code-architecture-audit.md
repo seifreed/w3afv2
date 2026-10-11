@@ -4978,6 +4978,19 @@ Verificación: las suites afectadas pasan **30 tests**; mypy focal, Ruff y
 Black están limpios. El score global continúa en **9.99/10**, con los gates
 globales heredados y la cobertura global todavía pendientes.
 
+## Actualización verificada: AST dinámico del analizador PHP
+
+El recorrido SCA declara explícitamente el contrato dinámico que phply usa para
+adjuntar referencias a los nodos padre. También tipa el resultado agrupado de
+vulnerabilidades y el objeto temporal del visitante, manteniendo el recorrido
+y la detección existentes.
+
+Verificación: la suite SCA pasa **15 tests** con un skip esperado; mypy focal,
+Ruff y Black están limpios. El test de payload que requiere el host externo
+`fallback` no se pudo ejecutar en este entorno. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
+
 ## Actualización verificada: contrato del request mixin
 
 `RequestMixIn` declara mediante un protocolo privado los métodos que aportan

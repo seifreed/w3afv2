@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import itertools
 import sys
 import threading
-from typing import ClassVar
+from typing import ClassVar, Protocol, cast
 
 from phply import phpast, phplex, phpparse
 from ply import yacc
@@ -45,6 +45,10 @@ parser = yacc.yacc(module=phpparse, write_tables=0, debug=0)
 Node = phpast.Node
 
 
+class _NodeWithParent(Protocol):
+    _parent_node: Node
+
+
 def accept_with_parents(nodeinst, visitor):
     skip = visitor(nodeinst)
     if skip:
@@ -54,13 +58,13 @@ def accept_with_parents(nodeinst, visitor):
         value = getattr(nodeinst, field)
 
         if isinstance(value, Node):
-            value._parent_node = nodeinst
+            cast(_NodeWithParent, value)._parent_node = nodeinst
             accept_with_parents(value, visitor)
 
         elif isinstance(value, list):
             for item in value:
                 if isinstance(item, Node):
-                    item._parent_node = nodeinst
+                    cast(_NodeWithParent, item)._parent_node = nodeinst
                     accept_with_parents(item, visitor)
 
 
@@ -125,7 +129,7 @@ class PhpSCA:
 
                 # Set parent
                 for node in self._ast_code:
-                    node._parent_node = global_pnode
+                    cast(_NodeWithParent, node)._parent_node = global_pnode
 
                 # Start AST traversal!
                 accept_with_parents(global_pnode, self._visitor)
@@ -139,7 +143,7 @@ class PhpSCA:
              'OS_COMMANDING': [<'system' call at line 6>]}
         """
         self._start()
-        resdict = {}
+        resdict: dict[str, list[FuncCall]] = {}
         for f in self.get_func_calls(vuln=True):
             for vulnty in f.vulntypes:
                 flist = resdict.setdefault(vulnty, [])
@@ -178,7 +182,7 @@ class PhpSCA:
 
         nodety = type(node)
         stoponthis = False
-        newobj = None
+        newobj: FuncCall | VariableDef | None = None
 
         # Create FuncCall nodes.
         # PHP special functions: echo, print, include, require
@@ -268,7 +272,7 @@ class NodeRep:
                     val = [val]
                 if type(val) is list:
                     for el in val:
-                        el._parent_node = node
+                        cast(_NodeWithParent, el)._parent_node = node
                         yield from NodeRep.parse(el, currlevel + 1, maxlevel)
 
     @property
