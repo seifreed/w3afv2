@@ -7827,3 +7827,17 @@ Verificación: **108 tests** de output, recording, plugins, core y múltiples
 instancias pasan; el mypy dirigido del manager y registry no tiene errores,
 Black/Ruff pasan y la prueba de capas se mantiene verde. Persisten únicamente
 warnings deprecados de dependencias externas.
+
+## Actualización verificada: estado de plugins aislado
+
+`PluginSetup` y `PluginRuntime` ya no reciben ni mutan los diccionarios privados
+de `CorePlugins` mediante callbacks. `PluginState` es ahora dueño explícito de
+las opciones y de las instancias activas, entrega snapshots para lectura y
+centraliza el reset y la liberación de referencias. La fachada conserva las
+APIs públicas existentes, pero la coordinación ya no conoce la representación
+interna del catálogo.
+
+Verificación: **79 tests**, **7 subtests**, la prueba de capas, Black y Ruff
+globales pasan; Bandit dirigido sobre los módulos modificados no encuentra
+hallazgos. `mypy` transitivo sigue limitado por stubs ausentes de dependencias
+externas (`defusedxml`).

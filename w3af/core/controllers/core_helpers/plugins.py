@@ -20,14 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from typing import Any
-
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
 from w3af.core.controllers.core_helpers.plugin_instance_factory import (
     PluginInstanceFactory,
 )
 from w3af.core.controllers.core_helpers.plugin_runtime import PluginRuntime
 from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
+from w3af.core.controllers.core_helpers.plugin_state import PluginState
 from w3af.core.controllers.core_helpers.plugin_setup import PluginSetup
 from w3af.core.controllers.plugins.plugin import Plugin
 
@@ -40,6 +39,7 @@ class CorePlugins(PluginCatalog):
         self._output_manager = output_manager
         self._plugin_instance_factory = PluginInstanceFactory(w3af_core, output)
         self._plugin_selection = PluginSelection(self.get_plugin_list)
+        self._plugin_state = PluginState()
         self._plugin_runtime = PluginRuntime(
             self.get_plugin_inst,
             self.get_quick_instance,
@@ -49,15 +49,11 @@ class CorePlugins(PluginCatalog):
             output_manager,
             self._plugin_selection,
             self._plugin_runtime,
-            lambda: self._plugins_options,
-            lambda: self._plugins,
-            self.get_plugin_instances,
+            self._plugin_state,
             self._set_mangle_plugins,
         )
 
         self.initialized = False
-        self._plugins_options: dict[str, dict[str, Any]]
-        self._plugins: dict[str, list[Plugin]] = {}
         self.zero_enabled_plugins()
 
     def zero_enabled_plugins(self):
@@ -65,12 +61,10 @@ class CorePlugins(PluginCatalog):
         Init some internal variables; this method is called when the whole
         process starts, and when the user loads a new profile.
         """
-        self._plugin_runtime.release_instances(self._plugins)
+        self._plugin_runtime.release_instances(self._plugin_state)
         plugin_types = self.get_plugin_types()
         self._plugin_selection.reset(plugin_types)
-        self._plugins_options = {plugin_type: {} for plugin_type in plugin_types}
-        self._plugins_options["attack"] = {}
-        self._plugins = {plugin_type: [] for plugin_type in plugin_types}
+        self._plugin_state.reset(plugin_types)
 
         # After we zero all options and enabled plugins we need to call
         # init_plugins again
@@ -82,11 +76,11 @@ class CorePlugins(PluginCatalog):
 
     def get_plugin_instances(self, plugin_type: str) -> list[Plugin]:
         """Return the active instances for a plugin type."""
-        return list(self._plugins[plugin_type])
+        return self._plugin_state.get_instances(plugin_type)
 
     def set_plugin_instances(self, plugin_type: str, plugins: list[Plugin]) -> None:
         """Replace the active instances for a plugin type."""
-        self._plugins[plugin_type] = plugins
+        self._plugin_state.set_instances(plugin_type, plugins)
 
     def set_enabled_plugin_names(
         self, plugin_type: str, plugin_names: list[str]
@@ -129,7 +123,7 @@ class CorePlugins(PluginCatalog):
         #     to start the scan init_plugins will fail, this is:
         #     https://github.com/andresriancho/w3af/issues/7477
         #
-        self._plugins_options[plugin_type][plugin_name] = plugin_options
+        self._plugin_state.set_plugin_options(plugin_type, plugin_name, plugin_options)
 
         # The following lines make sure that the plugin will accept the options
         # that the user is setting
@@ -147,13 +141,10 @@ class CorePlugins(PluginCatalog):
 
         :return: An OptionList with the plugin options.
         """
-        return self._plugins_options.get(plugin_type, {}).get(plugin_name, None)
+        return self._plugin_state.get_plugin_options(plugin_type, plugin_name)
 
     def get_all_plugin_options(self):
-        return {
-            plugin_type: dict(plugin_options)
-            for plugin_type, plugin_options in self._plugins_options.items()
-        }
+        return self._plugin_state.get_all_plugin_options()
 
     def get_all_enabled_plugins(self):
         return self._plugin_selection.get_all()
@@ -193,7 +184,7 @@ class CorePlugins(PluginCatalog):
         """
         :return: An instance of a plugin.
         """
-        custom_options = self._plugins_options[plugin_type].get(plugin_name)
+        custom_options = self._plugin_state.get_plugin_options(plugin_type, plugin_name)
         plugin_inst = self._plugin_instance_factory.create(
             plugin_type, plugin_name, custom_options
         )
