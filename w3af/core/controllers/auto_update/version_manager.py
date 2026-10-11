@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from collections.abc import Callable
 from datetime import datetime
 
 from w3af.core.controllers.auto_update.git_client import GitClient, GitClientError
@@ -73,7 +74,7 @@ class VersionMgr:
     ON_PROGRESS = 7
 
     # Callbacks
-    callback_onupdate_confirm = None
+    callback_onupdate_confirm: Callable[[str], bool] | None = None
     callback_onupdate_show_log = None
     callback_onupdate_error = None
 

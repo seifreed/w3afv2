@@ -6652,3 +6652,13 @@ del primer branch sin cambiar las mutaciones comprobadas.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **10 tests**
 de JSON iter setters pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: callback de confirmación de VersionMgr
+
+`VersionMgr.callback_onupdate_confirm` declara su contrato opcional como
+`Callable[[str], bool]`. La firma coincide con la UI de actualización y con
+los callbacks reales usados en las pruebas, eliminando inferencia de `None`.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en producción y
+su fixture; los **11 tests** de VersionMgr pasan. El score global continúa en
+**9.99/10**.
