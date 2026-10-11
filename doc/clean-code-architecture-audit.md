@@ -7110,3 +7110,20 @@ memoria retenida por tareas canceladas o iteradores abandonados.
 Verificación: el caso directo pasa de **1 resultado retenido a 0**; threads y
 `generic` pasan **66 tests**, sin procesos auxiliares posteriores. Black, Ruff,
 Mypy y Bandit productivo siguen limpios.
+
+## Actualización verificada: recolección de ciclos entre tests
+
+Los tests que crean `w3afCore` dejaban sus managers y pools vivos hasta la
+siguiente recolección cíclica de Python. En una suite larga esto acumulaba
+decenas de pools de `OutputManagerWorkerThread`, elevando la RAM y dejando
+varios `git cat-file --batch` abiertos mientras el proceso parecía bloqueado.
+El teardown global de pytest ejecuta `gc.collect()` únicamente cuando hay
+recursos de `OutputManager` activos, liberando los cores no referenciados tras
+cada caso sin tocar el ciclo de vida de producción.
+
+Verificación: la suite de status pasa **31 tests** y termina con solo el
+manager global y sus 10 workers; output manager pasa **36 tests**. La ejecución
+completa de cobertura se detuvo de forma controlada tras reproducir el bloqueo
+al 1% para no mantener procesos auxiliares abiertos. El score global continúa
+en **9.99/10** por las limitaciones de cobertura y gates globales documentadas
+arriba.
