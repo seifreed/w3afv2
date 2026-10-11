@@ -23,7 +23,7 @@ class PluginCatalog:
         try:
             __import__(f"w3af.plugins.{plugin_type}")
             plugin_module = sys.modules[f"w3af.plugins.{plugin_type}"]
-        except Exception as exception:
+        except ImportError as exception:
             msg = 'Unknown plugin type: "%s".'
             raise BaseFrameworkException(msg % plugin_type) from exception
         return plugin_module.get_long_description()

@@ -7376,6 +7376,15 @@ Verificación: la suite completa de keep-alive pasa **58 tests**, incluida una
 regresión con varios hosts; Black, Ruff y mypy pasan en los dos módulos
 modificados.
 
+## Actualización verificada: errores de importación visibles
+
+El catálogo de plugins ya no convierte cualquier excepción interna del módulo
+en un falso “tipo desconocido”; sólo traduce errores de importación, mientras
+los fallos reales del plugin siguen propagándose con su causa original.
+
+Verificación: la suite de catálogo y plugins mantiene sus pruebas de tipo
+desconocido; Black, Ruff y mypy pasan en el módulo modificado.
+
 ## Actualización verificada: construcción única de plugins
 
 `PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica
