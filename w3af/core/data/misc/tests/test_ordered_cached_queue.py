@@ -26,6 +26,7 @@ import time
 import unittest
 from queue import Empty
 
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
@@ -34,6 +35,12 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class TestOrderedCachedQueue(unittest.TestCase):
+    def test_uses_injected_database(self):
+        db = create_temp_db_instance()
+        self.addCleanup(db.close)
+        queue = OrderedCachedQueue(db=db)
+
+        self.assertIs(queue.disk.db, db)
 
     def test_uses_injected_debug_logger(self):
         logger = logging.getLogger("ordered-cached-queue-test")

@@ -92,7 +92,11 @@ class BaseConsumer(Process):
         """
         super().__init__(name=f"{thread_name}Controller")
 
-        self.in_queue = CachedQueue(maxsize=max_in_queue_size, name=thread_name + "In")
+        self.in_queue = CachedQueue(
+            maxsize=max_in_queue_size,
+            name=thread_name + "In",
+            db=w3af_core.database,
+        )
 
         #
         # Crawl and infrastructure plugins write to this queue using:
@@ -135,7 +139,11 @@ class BaseConsumer(Process):
         # maxsize sent to this CachedQueue to 75
         #
         # But just in case I'm using a CachedQueue!
-        self._out_queue = CachedQueue(maxsize=75, name=thread_name + "Out")
+        self._out_queue = CachedQueue(
+            maxsize=75,
+            name=thread_name + "Out",
+            db=w3af_core.database,
+        )
 
         self._thread_name = thread_name
         self._consumer_plugins = consumer_plugins

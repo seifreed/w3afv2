@@ -25,10 +25,17 @@ import threading
 import time
 import unittest
 
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.misc.cached_queue import CachedQueue
 
 
 class TestCachedQueue(unittest.TestCase):
+    def test_uses_injected_database(self):
+        db = create_temp_db_instance()
+        self.addCleanup(db.close)
+        queue = CachedQueue(maxsize=1, db=db)
+
+        self.assertIs(queue.disk.db, db)
 
     def test_prefer_memory_over_disk(self):
         q = CachedQueue(maxsize=2)

@@ -58,9 +58,11 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         name="Unknown",
         *,
         debug_log: Callable[[str], None] | None = None,
+        db=None,
     ):
         self.name = name
         self.max_in_memory = maxsize
+        self._db = db
         self.processed_tasks = 0
         self._debug_log = debug_log or LOGGER.debug
 
@@ -90,7 +92,7 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         self.queue_order = []
         self.hash_to_uuid = {}
         self.memory = {}
-        self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue")
+        self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue", db=self._db)
 
     def _qsize(self, _len=len):
         return _len(self.memory) + _len(self.disk)

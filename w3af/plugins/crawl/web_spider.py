@@ -357,7 +357,7 @@ class web_spider(CrawlPlugin):
             w3af_core = self.get_w3af_core()
             if w3af_core is None:
                 raise RuntimeError("web_spider requires a configured w3af core")
-            self._variant_db = VariantDB(w3af_core.configuration)
+            self._variant_db = VariantDB(w3af_core.configuration, db=w3af_core.database)
         return self._variant_db
 
     def _extract_links_and_verify(self, resp, fuzzable_req):

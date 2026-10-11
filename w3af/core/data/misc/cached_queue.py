@@ -60,9 +60,10 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
     Which allows users to understand how fast a queue is moving.
     """
 
-    def __init__(self, maxsize=0, name="Unknown"):
+    def __init__(self, maxsize=0, name="Unknown", db=None):
         self.name = name
         self.max_in_memory = maxsize
+        self._db = db
         self.processed_tasks = 0
 
         QueueSpeedMeasurement.__init__(self)
@@ -83,7 +84,7 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
         :param maxsize: The max size for the queue
         """
         self.memory = {}
-        self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue")
+        self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue", db=self._db)
         self.get_pointer = 0
         self.put_pointer = 0
 

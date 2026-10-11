@@ -114,6 +114,10 @@ class TestBaseConsumer(unittest.TestCase):
         self.assertEqual(exception_data.plugin, "sqli")
         self.assertEqual(exception_data.exception, raised)
 
+    def test_queues_use_core_database(self):
+        self.assertIs(self.bc.in_queue.disk.db, self.core.database)
+        self.assertIs(self.bc.out_queue.disk.db, self.core.database)
+
     def test_terminate(self):
         self.bc.start()
         self.bc.terminate()

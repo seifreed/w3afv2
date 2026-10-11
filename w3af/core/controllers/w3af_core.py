@@ -295,13 +295,17 @@ class w3afCore:
         # Init the 404 detection for this core and scan.
         if self._fingerprint_404 is not None:
             self._fingerprint_404.cleanup()
-        self._fingerprint_404 = Fingerprint404(self._output, self._configuration)
+        self._fingerprint_404 = Fingerprint404(
+            self._output, self._configuration, db=self._database
+        )
         self._fingerprint_404.set_url_opener(self.uri_opener)
 
     def is_404(self, http_response):
         """Return whether a response matches this core's 404 fingerprint."""
         if self._fingerprint_404 is None:
-            self._fingerprint_404 = Fingerprint404(self._output, self._configuration)
+            self._fingerprint_404 = Fingerprint404(
+                self._output, self._configuration, db=self._database
+            )
             self._fingerprint_404.set_url_opener(self.uri_opener)
         return self._fingerprint_404.is_404(http_response)
 
@@ -527,6 +531,10 @@ class w3afCore:
         self.uri_opener.end()
         self._dns_cache.clear()
 
+        if self._fingerprint_404 is not None:
+            self._fingerprint_404.cleanup()
+            self._fingerprint_404 = None
+
         remove_data_logging(self._output)
         self._output_manager_finalizer()
 
@@ -536,10 +544,6 @@ class w3afCore:
         # these files (mostly the HTTP request/response data) for the user to
         # analyze in the GUI after the scan has finished
         remove_temp_dir(ignore_errors=True)
-
-        if self._fingerprint_404 is not None:
-            self._fingerprint_404.cleanup()
-            self._fingerprint_404 = None
 
     def pause(self, pause_yes_no):
         """

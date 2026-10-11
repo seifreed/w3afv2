@@ -50,7 +50,7 @@ class Fingerprint404:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, output, configuration):
+    def __init__(self, output, configuration, db=None):
         #
         #   Set the opener, I need it to perform some tests and gain
         #   the knowledge about the server's 404 response bodies.
@@ -67,7 +67,7 @@ class Fingerprint404:
         #   while the least commonly used are stored in SQLite
         #
         self._404_responses = CachedDiskDict(
-            max_in_memory=MAX_404_IN_MEMORY, table_prefix="is_404"
+            max_in_memory=MAX_404_IN_MEMORY, table_prefix="is_404", db=db
         )
 
         #

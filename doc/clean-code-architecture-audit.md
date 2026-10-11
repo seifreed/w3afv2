@@ -4487,3 +4487,16 @@ Verificación: **50 tests** de DB y registro de plugins pasan; Black y Ruff
 focales pasan. El score global continúa en **9.99/10**, con los gates globales,
 el fallback standalone y los módulos heredados de gran tamaño todavía
 pendientes.
+
+## Actualización verificada: colas y detectores del scan alineados con el core
+
+`CachedQueue`, `OrderedCachedQueue`, `VariantDB` y `Fingerprint404` aceptan ya
+la DB del core. Los consumidores de auditoría, grep y crawl, junto con el
+`web_spider`, pasan esa dependencia de forma explícita; los constructores
+standalone mantienen su fallback. También se corrigió el orden de `quit()`: el
+detector 404 se limpia antes de cerrar el executor SQLite del core.
+
+La regresión cubre colas, variantes, consumidores y el ciclo real de cierre.
+Verificación: **99 tests** pasan; Black, Ruff y mypy focales pasan. El score
+global continúa en **9.99/10**, con los gates globales, el fallback standalone
+y los módulos heredados de gran tamaño todavía pendientes.

@@ -83,7 +83,7 @@ class CrawlInfrastructure(BaseConsumer):
         self._configuration = configuration
 
         # For filtering fuzzable requests found by plugins:
-        self._variant_db = VariantDB(self._configuration)
+        self._variant_db = VariantDB(self._configuration, db=w3af_core.database)
 
         self._disabled_plugins = set()
         self._running = True
@@ -100,6 +100,7 @@ class CrawlInfrastructure(BaseConsumer):
             maxsize=10,
             name=self.get_name() + "In",
             debug_log=self._output.debug,
+            db=w3af_core.database,
         )
 
     def get_name(self):

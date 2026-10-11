@@ -29,7 +29,7 @@ from w3af.core.data.db.clean_dc import (
     clean_fuzzable_request,
     clean_fuzzable_request_form,
 )
-from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.dbms import create_temp_db_instance, get_default_temp_db_instance
 from w3af.core.data.db.variant_db import (
     MAX_EQUAL_FORM_VARIANTS,
     PARAMS_MAX_VARIANTS,
@@ -78,6 +78,15 @@ class TestVariantDB(unittest.TestCase):
 
         self.assertTrue(variant_db.append(fr(URL("http://w3af.org/foo.htm?id=1"))))
         self.assertFalse(variant_db.append(fr(URL("http://w3af.org/foo.htm?id=2"))))
+
+    def test_uses_injected_database(self):
+        db = create_temp_db_instance()
+        self.addCleanup(db.close)
+        variant_db = VariantDB(self.configuration, db=db)
+        self.addCleanup(variant_db.cleanup)
+
+        self.assertIs(variant_db._variants._disk_dict.db, db)
+        self.assertIs(variant_db._variants_form._disk_dict.db, db)
 
     def test_cleanup_releases_all_state(self):
         self.assertTrue(self.vdb.append(fr(URL("http://w3af.org/foo.htm"))))
