@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
-import time
 
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
@@ -29,7 +28,6 @@ from w3af.core.controllers.core_helpers.consumers.base_consumer import (
 )
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.threads.threadpool import return_args
-from w3af.core.exceptions import ScanMustStopException
 
 logger = logging.getLogger(__name__)
 
@@ -56,47 +54,7 @@ class bruteforce(BaseConsumer):
         return "Bruteforcer"
 
     def _teardown(self):
-        msg = "Starting Bruteforce consumer _teardown() with %s plugins"
-        self._output.debug(msg % len(self._consumer_plugins))
-
-        for plugin in self._consumer_plugins:
-            self._output.debug(f"Calling {plugin.get_name()}.end()")
-            start_time = time.time()
-
-            try:
-                plugin.end()
-            except ScanMustStopException:
-                # If we reach this exception here we don't care much
-                # since the scan is ending already. The log message stating
-                # that the scan will end because of this error was already
-                # delivered by the HTTP client.
-                #
-                # We `pass` instead of `break` because some plugins might
-                # still be able to `end()` without sending HTTP requests to
-                # the remote server
-                msg_fmt = (
-                    "Spent %.2f seconds running %s.end() until a"
-                    " scan must stop exception was raised"
-                )
-                self._log_end_took(msg_fmt, start_time, plugin)
-
-            except Exception as e:
-                logger.debug("Unhandled exception in _teardown()", exc_info=True)
-                msg_fmt = (
-                    "Spent %.2f seconds running %s.end() until an"
-                    " unhandled exception was found"
-                )
-                self._log_end_took(msg_fmt, start_time, plugin)
-
-                self.handle_exception(
-                    "bruteforce", plugin.get_name(), "plugin.end()", e
-                )
-
-            else:
-                msg_fmt = "Spent %.2f seconds running %s.end()"
-                self._log_end_took(msg_fmt, start_time, plugin)
-
-        self._output.debug("Finished Bruteforce consumer _teardown()")
+        self._teardown_plugins("bruteforce", "Bruteforce")
 
     def _run_observers(self, fuzzable_request):
         """

@@ -91,7 +91,8 @@ class ParserCache(CacheStats):
         self._cache.clear()
         self._can_parse_cache.clear()
         self._parser_finished_events.clear()
-        self._parser_blacklist.clear()
+        if not self._db.sql_executor.get_received_poison_pill():
+            self._parser_blacklist.clear()
 
     def get_pool_stats(self):
         """Return worker and input queue sizes for this cache's parser pool."""

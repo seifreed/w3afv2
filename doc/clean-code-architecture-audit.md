@@ -6926,3 +6926,21 @@ scan, pero no mantiene workers, colas ni caché del scan anterior en memoria.
 Verificación: Black, Ruff y Mypy pasan en los archivos modificados; los tests
 del lifecycle del pool pasan **2 tests** y la integración de `w3afCore` pasa
 **21 tests**.
+
+## Actualización verificada: teardown común de consumers
+
+La lógica repetida de cierre de plugins se concentra en `BaseConsumer` para
+`audit` y `bruteforce`, conservando la fase, los mensajes de tiempo y el
+reporte de excepciones. Los consumers dejan de mantener dos implementaciones
+paralelas del mismo lifecycle.
+
+## Actualización verificada: cierre tolerante de ParserCache
+
+`ParserCache.clear()` libera sus caches en memoria aunque la base SQLite ya
+esté detenida, y solo intenta limpiar el índice persistente cuando el executor
+está activo. Esto hace idempotente el finalizer del core y evita excepciones al
+salir del proceso.
+
+Verificación: Black, Ruff y Mypy pasan en los módulos modificados; la batería
+combinada de consumers y parser cache pasa **64 tests** sin traceback de
+finalizer ni workers persistentes.

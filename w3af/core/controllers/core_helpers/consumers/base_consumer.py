@@ -35,6 +35,7 @@ from w3af.core.controllers.exception_handling.helpers import pprint_plugins
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.misc.cached_queue import CachedQueue
 from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
+from w3af.core.exceptions import ScanMustStopException
 
 logger = logging.getLogger(__name__)
 
@@ -297,6 +298,38 @@ class BaseConsumer(Process):
 
     def _teardown(self):
         raise NotImplementedError
+
+    def _teardown_plugins(self, phase, consumer_label):
+        msg = f"Starting {consumer_label} consumer _teardown() with %s plugins"
+        self._output.debug(msg % len(self._consumer_plugins))
+
+        for plugin in self._consumer_plugins:
+            self._output.debug(f"Calling {plugin.get_name()}.end()")
+            start_time = time.time()
+
+            try:
+                plugin.end()
+            except ScanMustStopException:
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until a"
+                    " scan must stop exception was raised"
+                )
+                self._log_end_took(msg_fmt, start_time, plugin)
+            except Exception as exception:
+                logger.debug("Plugin end() failed", exc_info=True)
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until an"
+                    " unhandled exception was found"
+                )
+                self._log_end_took(msg_fmt, start_time, plugin)
+                self.handle_exception(
+                    phase, plugin.get_name(), "plugin.end()", exception
+                )
+            else:
+                msg_fmt = "Spent %.2f seconds running %s.end()"
+                self._log_end_took(msg_fmt, start_time, plugin)
+
+        self._output.debug(f"Finished {consumer_label} consumer _teardown()")
 
     def _consume(self, work_unit):
         raise NotImplementedError

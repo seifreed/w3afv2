@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import threading
 import unittest
 
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.sgml import Tag
@@ -66,6 +67,13 @@ class TestParserCache(unittest.TestCase):
         parser2 = self.dpc.get_document_parser_for(resp2)
 
         self.assertEqual(id(parser1), id(parser2))
+
+    def test_clear_is_safe_after_database_shutdown(self):
+        database = create_temp_db_instance()
+        cache = ParserCache(db=database)
+        database.close()
+
+        cache.clear()
 
     def test_bug_13_Dec_2012(self):
         url1 = URL("http://w3af.com/foo/")
