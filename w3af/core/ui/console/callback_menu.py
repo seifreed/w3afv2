@@ -40,7 +40,7 @@ class callbackMenu:
         self._history = history()
         self._raw = raw
 
-    def is_raw(self=None):
+    def is_raw(self):
         # TODO: pull up
         return self._raw
 

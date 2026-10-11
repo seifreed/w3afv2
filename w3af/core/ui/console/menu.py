@@ -75,7 +75,7 @@ class menu:
             return self.suggest_commands(part, onlyLocalCommands)
         return self.suggest_params(tokens[0], tokens[1:], part)
 
-    def is_raw(self=None):
+    def is_raw(self):
         return False
 
     def get_path(self):

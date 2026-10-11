@@ -203,7 +203,7 @@ class rfi(AttackPlugin):
         if exploit_success == SUCCESS_COMPLETE:
 
             # Create the shell object
-            shell_obj = RFIShell(
+            shell_obj: Shell = RFIShell(
                 vuln_obj,
                 self._uri_opener,
                 self.worker_pool,

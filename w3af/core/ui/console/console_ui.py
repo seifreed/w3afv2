@@ -25,6 +25,7 @@ import os
 import secrets
 import shlex
 import traceback
+from collections.abc import Callable
 
 from termcolor import colored
 
@@ -308,7 +309,13 @@ class ConsoleUI:
         self._showPrompt()
 
     def _delWord(self):
-        filt = str.isspace
+        def is_alnum(value):
+            return value.isalnum()
+
+        def is_not_alnum(value):
+            return not value.isalnum()
+
+        filt: Callable[[str], bool] = str.isspace
         while True:
             if self._position == 0:
                 break
@@ -318,7 +325,7 @@ class ConsoleUI:
             if filt(char):
                 self._onBackspace()
             elif filt == str.isspace:
-                filt = str.isalnum(char) and str.isalnum or (lambda s: not s.isalnum())
+                filt = is_alnum if char.isalnum() else is_not_alnum
             else:
                 break
 

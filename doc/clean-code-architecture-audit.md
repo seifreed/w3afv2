@@ -6399,6 +6399,18 @@ módulos; bruteforce pasa **11 tests**, form-auth **10** y autocomplete **5**.
 Los tests base de `AuthPlugin` no coleccionan fuera de su runner porque no
 encuentran el paquete `w3af`. El score global continúa en **9.99/10**.
 
+## Actualización verificada: shell RFI y predicados de consola
+
+`attack.rfi` declara la variable de shell con el contrato común `Shell`,
+permitiendo sus implementaciones `RFIShell` y `PortScanShell`. Los menús de
+consola enlazan correctamente `is_raw` y `_delWord` selecciona predicados con
+una rama explícita, sin depender de funciones descriptoras en una expresión
+booleana.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los cuatro
+módulos; consola pasa **27 tests**. RFI mantiene 2 fallos porque el entorno no
+resuelve `php_moth-fallback`. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: estado tipado en cuatro auditores
 
 `file_upload`, `rfi`, `ssi` y `ssl_certificate` dejan explícitos sus estados
