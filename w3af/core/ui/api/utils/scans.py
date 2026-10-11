@@ -75,6 +75,11 @@ def start_scan_helper(scan_info: ScanInfo) -> None:
     :param scan_info: ScanInfo object contains initialized w3afCore
     """
     w3af_core = scan_info.w3af_core
+    output = scan_info.output
+    profile_path = scan_info.profile_path
+    if w3af_core is None or output is None or profile_path is None:
+        raise RuntimeError("ScanInfo is not initialized")
+
     try:
         # Init plugins!
         w3af_core.plugins.init_plugins()
@@ -94,4 +99,4 @@ def start_scan_helper(scan_info: ScanInfo) -> None:
 
     finally:
         scan_info.finished = True
-        remove_temp_profile(scan_info.profile_path)
+        remove_temp_profile(profile_path)

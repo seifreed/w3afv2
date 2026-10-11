@@ -65,8 +65,12 @@ class APIUnitTest(unittest.TestCase):
         """
         for scan_id, scan_info in list(SCANS.items()):
             if scan_info is not None:
-                scan_info.w3af_core.stop()
-                scan_info.w3af_core.cleanup()
+                if scan_info.w3af_core is not None:
+                    scan_info.w3af_core.stop()
+                    scan_info.w3af_core.cleanup()
+                    scan_info.w3af_core.quit()
+                if scan_info.output is not None:
+                    scan_info.output.cleanup()
             SCANS.pop(scan_id, None)
 
         app.config.pop("PASSWORD", None)

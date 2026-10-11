@@ -4956,6 +4956,19 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: cleanup explícito de scans REST
+
+`ScanInfo.cleanup()` libera ahora el core completo mediante `quit()`, cierra el
+output disk-backed y elimina sus referencias después de liberar los recursos.
+El teardown compartido de la API aplica el mismo cierre incluso a registros
+parciales sin core, evitando que los tests acumulen managers, workers o bases de
+datos de logs entre casos.
+
+Verificación: API sin integración pasa **68 tests** y **40 subtests** con un
+pico de **~135 MiB**; el lifecycle de scans pasa **17 tests** y **17 subtests**.
+El score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.
+
 ## Actualización verificada: lifecycle tipado del webserver
 
 El registro de servidores HTTP declara sus instancias reales, el handler

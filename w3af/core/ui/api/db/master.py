@@ -25,21 +25,33 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #       store one scan
 #
 # Store integer IDs as keys and active ScanInfo instances as values.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from w3af.core.controllers.w3af_core import w3afCore
+    from w3af.core.ui.api.utils.log_handler import RESTAPIOutput
+
+
 SCANS: dict[int, "ScanInfo | None"] = {}
 
 
 class ScanInfo:
     def __init__(self):
-        self.w3af_core = None
-        self.output = None
-        self.exception = None
+        self.w3af_core: w3afCore | None = None
+        self.output: RESTAPIOutput | None = None
+        self.exception: Exception | None = None
         self.finished = False
-        self.target_urls = None
-        self.profile_path = None
+        self.target_urls: list[str] | None = None
+        self.profile_path: str | None = None
 
     def cleanup(self):
-        if self.w3af_core is not None:
-            self.w3af_core.cleanup()
+        w3af_core = self.w3af_core
+        if w3af_core is not None:
+            w3af_core.cleanup()
+            w3af_core.quit()
+            self.w3af_core = None
 
-        if self.output is not None:
-            self.output.cleanup()
+        output = self.output
+        if output is not None:
+            output.cleanup()
+            self.output = None
