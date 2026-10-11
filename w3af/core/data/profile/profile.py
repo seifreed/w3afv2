@@ -29,6 +29,11 @@ from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.paths import get_home_dir
 
 
+class CaseSensitiveConfigParser(configparser.ConfigParser):
+    def optionxform(self, optionstr: str) -> str:
+        return optionstr
+
+
 class profile:
     """
     This class represents a profile.
@@ -49,9 +54,7 @@ class profile:
         """
         # The default optionxform transforms the option to lower case;
         # w3af needs the value as it is
-        self._config = configparser.ConfigParser(interpolation=None, strict=False)
-        # Set the new optionxform function
-        self._config.optionxform = str
+        self._config = CaseSensitiveConfigParser(interpolation=None, strict=False)
 
         if profname:
             # Get profile name's complete path

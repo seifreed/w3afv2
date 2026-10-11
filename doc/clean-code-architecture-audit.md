@@ -6148,3 +6148,14 @@ el flujo de ejecución.
 Verificación: Mypy con cuerpos no tipados, Ruff, Black y compilación pasan en
 los tres módulos `vdaemon`; no existe una suite específica de `vdaemon` en el
 árbol actual. El score global continúa en **9.99/10**.
+
+## Actualización verificada: plantillas y perfiles
+
+`BaseTemplate` declara la selección de mutantes mediante el tipo común
+`Mutant`; la carga dinámica de plantillas usa un `fromlist` válido y el parser
+de perfiles conserva mayúsculas mediante una subclase explícita de
+`ConfigParser`, sin reasignar métodos en runtime.
+
+Verificación: plantillas de vulnerabilidad y perfiles pasan **38 tests**;
+Mypy con cuerpos no tipados, Ruff y Black pasan en los tres módulos. El score
+global continúa en **9.99/10**.

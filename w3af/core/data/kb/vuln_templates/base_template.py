@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from w3af.core.configurable import Configurable
 from w3af.core.data.constants import severity
+from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.vuln import Vuln
@@ -139,12 +140,12 @@ class BaseTemplate(Configurable):
         if self.method.upper() == "GET":
             url.querystring = self.data
             freq = FuzzableRequest(url, method=self.method)
-            MutantKlass = QSMutant
+            mutant_class: type[Mutant] = QSMutant
         else:
             freq = FuzzableRequest(url, method=self.method, post_data=self.data)
-            MutantKlass = PostDataMutant
+            mutant_class = PostDataMutant
 
-        return MutantKlass(freq)
+        return mutant_class(freq)
 
     def create_base_vuln(self):
         """

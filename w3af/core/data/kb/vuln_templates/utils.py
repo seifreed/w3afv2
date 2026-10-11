@@ -48,9 +48,7 @@ def get_all_templates():
         module_name = f"w3af.core.data.kb.vuln_templates.{fname}"
         module = __import__(
             module_name,
-            fromlist=[
-                None,
-            ],
+            fromlist=["*"],
         )
 
         klasses = dir(module)
