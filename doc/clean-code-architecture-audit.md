@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contrato explícito del pool de threads
+
+`ThreadPool` declara ahora las colas, el cache, los workers, los handlers y el
+finalizador que su subclase debe proporcionar. El estado privado de los
+threads se representa con un único tipo compartido y los contenedores de
+resultados declaran sus valores dinámicos de forma explícita.
+
+Verificación: las suites de pools pasan **45 tests**; mypy focal, Ruff y Black
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: contratos de RTT, formularios y workers
 
 Los argumentos de logging del cálculo de RTT ya no se reutilizan con formas

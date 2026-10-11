@@ -41,8 +41,14 @@ import math
 import threading
 import time
 from multiprocessing.util import debug
+from typing import Any, cast
 
 LOGGER = logging.getLogger(__name__)
+
+
+class _StateThread(threading.Thread):
+    _state: int
+
 
 #
 # Constants representing the state of a pool
@@ -85,6 +91,23 @@ class ThreadPool:
     Subclasses create the queues, the worker threads and the handler threads.
     """
 
+    _worker_handler: _StateThread
+    _task_handler: _StateThread
+    _result_handler: _StateThread
+    _inqueue: Any
+    _outqueue: Any
+    _taskqueue: Any
+    _cache: dict[int, Any]
+    _pool: list[Any]
+    _state: int
+    _terminate: Any
+
+    def _join_exited_workers(self):
+        raise NotImplementedError
+
+    def _repopulate_pool(self):
+        raise NotImplementedError
+
     def get_internal_thread_state(self):
         return {
             "worker_handler": self._worker_handler.is_alive(),
@@ -125,7 +148,7 @@ class ThreadPool:
         """
         self._check_running()
         result = IMapUnorderedIterator(self._cache)
-        tasks = guarded_task_generation(result.job, func, iterable)
+        tasks: Any = guarded_task_generation(result.job, func, iterable)
         self._taskqueue.put((tasks, result.set_length))
         return result
 
@@ -154,7 +177,7 @@ class ThreadPool:
 
         task_batches = ThreadPool._get_tasks(func, iterable, chunksize)
         result = MapResult(self._cache, chunksize, len(iterable))
-        tasks = (
+        tasks: Any = (
             (result.job, i, mapstar, (batch,), {})
             for i, batch in enumerate(task_batches)
         )
@@ -163,7 +186,7 @@ class ThreadPool:
 
     @staticmethod
     def _handle_workers(pool):
-        thread = threading.current_thread()
+        thread = cast(_StateThread, threading.current_thread())
 
         # Keep maintaining workers until the cache gets drained, unless the pool
         # is terminated.
@@ -176,7 +199,7 @@ class ThreadPool:
 
     @staticmethod
     def _handle_tasks(taskqueue, put, outqueue, pool):
-        thread = threading.current_thread()
+        thread = cast(_StateThread, threading.current_thread())
 
         for taskseq, set_length in iter(taskqueue.get, None):
             task = None
@@ -206,7 +229,7 @@ class ThreadPool:
 
     @staticmethod
     def _handle_results(get, cache):
-        thread = threading.current_thread()
+        thread = cast(_StateThread, threading.current_thread())
 
         while True:
             task = get()
@@ -310,7 +333,7 @@ class ApplyResult:
         self._cache = cache
         self._callback = callback
         self._success = False
-        self._value = None
+        self._value: Any = None
         cache[self.job] = self
 
     def get(self):
@@ -367,9 +390,9 @@ class IMapUnorderedIterator:
         self._cond = threading.Condition(threading.Lock())
         self.job = next(job_counter)
         self._cache = cache
-        self._items = collections.deque()
+        self._items: collections.deque[Any] = collections.deque()
         self._index = 0
-        self._length = None
+        self._length: int | None = None
         cache[self.job] = self
 
     def __iter__(self):

@@ -24,7 +24,6 @@ import logging
 import os
 import queue
 import sys
-import threading
 import time
 import traceback
 from functools import partial
@@ -35,15 +34,11 @@ from typing import Any
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.data.fuzzer.utils import rand_alnum
 
-from .pool276 import RUN, ThreadPool, mapstar
+from .pool276 import RUN, ThreadPool, _StateThread, mapstar
 
 __all__ = ["Pool", "one_to_many", "return_args"]
 
 LOGGER = logging.getLogger(__name__)
-
-
-class _StateThread(threading.Thread):
-    _state: int
 
 
 class one_to_many:
