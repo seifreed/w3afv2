@@ -698,7 +698,7 @@ class ExtendedUrllib:
             # fails. Those errors are raised before the cache handler numbers
             # the response
             if not hasattr(e, "id"):
-                setattr(e, "id", self._id_generator.inc())
+                e.id = self._id_generator.inc()
 
             return self._handle_send_success(
                 req, e, grep, original_url, original_url_inst

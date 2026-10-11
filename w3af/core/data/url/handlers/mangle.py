@@ -77,7 +77,7 @@ class MangleHandler(urllib.request.BaseHandler):
         ka_resp.code = mangled_response.get_code()
         ka_resp._url = mangled_response.get_uri().url_string
         ka_resp.msg = original_response.msg
-        setattr(ka_resp, "id", getattr(original_response, "id"))
+        ka_resp.id = original_response.id
         ka_resp.set_wait_time(original_response.get_wait_time())
         ka_resp.encoding = mangled_response.charset
 

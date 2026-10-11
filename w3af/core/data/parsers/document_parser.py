@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.baseparser import BaseParser
+from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 from w3af.core.data.parsers.doc.pdf import PDFParser
 from w3af.core.data.parsers.doc.swf import SWFParser

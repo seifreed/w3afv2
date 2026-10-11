@@ -28,7 +28,6 @@ import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any
 from errno import (
     ECONNREFUSED,
     ECONNRESET,
@@ -38,6 +37,7 @@ from errno import (
     ENOSPC,
     ETIMEDOUT,
 )
+from typing import Any
 
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.dc.headers import Headers

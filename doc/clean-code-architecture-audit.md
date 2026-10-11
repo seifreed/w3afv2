@@ -5878,3 +5878,18 @@ Verificación: las suites de consumidores y descripción XSS pasan **20 tests**;
 el ciclo de vida completo de `w3afCore` pasa **21 tests** y parser/DB pasa **62
 tests**. Black y Ruff de los cinco módulos pasan sin hallazgos; el score global
 continúa en **9.99/10**.
+
+## Actualización verificada: cierre de deuda Ruff en fronteras de integración
+
+Las asignaciones dinámicas de identificadores y trazas usan ahora acceso de
+atributo directo, y se ordenaron los imports de parsers, transporte y API.
+Esto elimina la última deuda detectada por Ruff sin introducir excepciones de
+lint ni cambiar el comportamiento de las fronteras existentes.
+
+Verificación: Ruff global pasa sin hallazgos; Black pasa en los **1658
+archivos** del repositorio, Bandit pasa en los ocho módulos modificados y las
+pruebas focalizadas pasan **69 tests y 11 subtests**. `pip-audit` no encuentra
+vulnerabilidades conocidas; el checkout de desarrollo de mitmproxy queda fuera
+de su auditoría por no estar publicado en PyPI. `mypy .` aún queda bloqueado
+por dos errores del script generado `venv/bin/activate_this.py`, no por código
+del proyecto. El score global continúa en **9.99/10**.

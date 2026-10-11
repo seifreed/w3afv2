@@ -376,7 +376,7 @@ class ExceptionData:
         traceback_string = getattr(self.exception, "original_traceback_string", None)
         if traceback_string is None:
             traceback_string = "".join(traceback.format_tb(tb))
-            setattr(self.exception, "original_traceback_string", traceback_string)
+            self.exception.original_traceback_string = traceback_string
 
         self.traceback_str = cleanup_bug_report(traceback_string, configuration)
 

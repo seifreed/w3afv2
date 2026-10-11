@@ -35,8 +35,8 @@ from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.log_handler import RESTAPIOutput
 from w3af.core.ui.api.utils.scans import (
     create_temp_profile,
-    get_scan_core,
     get_new_scan_id,
+    get_scan_core,
     get_scan_info_from_id,
     remove_temp_profile,
     start_scan_helper,
