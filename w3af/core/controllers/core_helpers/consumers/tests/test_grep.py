@@ -49,7 +49,7 @@ class GrepConsumerTest(unittest.TestCase):
         self.server = LocalHTTPServer(body_per_path).start()
         self.addCleanup(self.server.close)
         self.core = w3afCore(knowledge_base=kb, configuration=cf)
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
         self.addCleanup(kb.cleanup)
         cf.save("target_domains", {"127.0.0.1"})
         self.addCleanup(cf.save, "target_domains", set())

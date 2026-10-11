@@ -229,7 +229,7 @@ class TestAddThreadStack(unittest.TestCase):
 class TestPoolStateThreads(unittest.TestCase):
     def setUp(self):
         self.w3af_core = w3afCore()
-        self.addCleanup(self.w3af_core.worker_pool.terminate_join)
+        self.addCleanup(self.w3af_core.quit)
         self.observer = QuickThreadStateObserver(om.out)
         self.addCleanup(self.observer.end)
         self.recorder = record_output(self)

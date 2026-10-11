@@ -98,7 +98,7 @@ class TestAuditConsumer(unittest.TestCase):
             debug_messages,
         )
 
-        w3af_core.worker_pool.terminate_join()
+        w3af_core.quit()
 
 
 class TestAuditConsumerBranches(unittest.TestCase):
@@ -106,7 +106,7 @@ class TestAuditConsumerBranches(unittest.TestCase):
         self.server = LocalHTTPServer(hello_world).start()
         self.addCleanup(self.server.close)
         self.core = w3afCore(knowledge_base=kb, configuration=cf)
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
         self.addCleanup(kb.cleanup)
         self.recorder = start_recording_output()
 

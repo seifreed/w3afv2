@@ -353,7 +353,7 @@ class TestExceptionData(unittest.TestCase):
         fr = self.get_fuzzable_request()
 
         core = w3afCore()
-        self.addCleanup(core.worker_pool.terminate_join)
+        self.addCleanup(core.quit)
         status = CoreStatus(om.out)
         status.set_running_plugin("audit", "sqli", log=False)
         status.set_current_fuzzable_request("audit", fr)
@@ -377,7 +377,7 @@ class TestExceptionData(unittest.TestCase):
             fr = self.get_fuzzable_request()
 
             core = w3afCore()
-            self.addCleanup(core.worker_pool.terminate_join)
+            self.addCleanup(core.quit)
             status = CoreStatus(om.out)
             status.set_running_plugin("audit", "sqli", log=False)
             status.set_current_fuzzable_request("audit", fr)
@@ -401,7 +401,7 @@ class TestExceptionData(unittest.TestCase):
             fr = self.get_fuzzable_request()
 
             core = w3afCore()
-            self.addCleanup(core.worker_pool.terminate_join)
+            self.addCleanup(core.quit)
             status = CoreStatus(om.out)
             status.set_running_plugin("audit", "sqli", log=False)
             status.set_current_fuzzable_request("audit", fr)

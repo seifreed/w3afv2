@@ -85,7 +85,7 @@ class TestMangleHandler(unittest.TestCase):
         http_request = f"GET {self.server.url()} HTTP/1.1\nHost: localhost\nFoo: bar\n"
 
         w3af_core = w3afCore()
-        self.addCleanup(w3af_core.worker_pool.terminate_join)
+        self.addCleanup(w3af_core.quit)
         w3af_core.plugins.set_plugins(["sed"], "mangle")
         w3af_core.plugins.init_plugins()
 

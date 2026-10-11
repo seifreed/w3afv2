@@ -58,7 +58,7 @@ class TestStatus(unittest.TestCase):
 
     def test_simple(self):
         core = w3afCore()
-        self.addCleanup(core.worker_pool.terminate_join)
+        self.addCleanup(core.quit)
         s = CoreStatus(om.out, ConsumerMetrics(core.strategy, lambda: core.worker_pool))
 
         self.assertEqual(s.get_status(), STOPPED)
@@ -117,11 +117,11 @@ class TestStatus(unittest.TestCase):
 
         self.assertEqual(s.get_grep_eta(), None)
 
-        core.worker_pool.terminate_join()
+        core.quit()
 
     def test_starting_scan_status(self):
         core = w3afCore()
-        self.addCleanup(core.worker_pool.terminate_join)
+        self.addCleanup(core.quit)
         s = CoreStatus(om.out, ConsumerMetrics(core.strategy, lambda: core.worker_pool))
         s.start()
 
@@ -224,7 +224,7 @@ class TestStatusWithConsumers(unittest.TestCase):
 
     def setUp(self):
         self.core = w3afCore()
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
         self.status = CoreStatus(
             om.out,
             ConsumerMetrics(self.core.strategy, lambda: self.core.worker_pool),
@@ -240,18 +240,18 @@ class TestStatusWithConsumers(unittest.TestCase):
             output=om.out,
             configuration=self.core.configuration,
         )
-        self.core.strategy._discovery_consumer = self.track(consumer)
+        self.core.strategy._consumer_runtime._discovery_consumer = self.track(consumer)
         return consumer
 
     def add_audit(self):
         consumer = audit([], self.core, om.out, self.core.configuration)
-        self.core.strategy._audit_consumer = self.track(consumer)
+        self.core.strategy._consumer_runtime._audit_consumer = self.track(consumer)
         return consumer
 
     def add_grep(self):
         private_ip = self.core.plugins.get_plugin_inst("grep", "private_ip")
         consumer = grep([private_ip], self.core, om.out, self.core.configuration)
-        self.core.strategy._grep_consumer = self.track(consumer)
+        self.core.strategy._consumer_runtime._grep_consumer = self.track(consumer)
         return consumer
 
     def track(self, consumer):

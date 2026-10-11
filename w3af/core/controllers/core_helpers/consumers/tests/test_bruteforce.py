@@ -44,7 +44,7 @@ AUTHENTICATED = FuzzableRequest(URL("http://127.0.0.1/admin"))
 class TestBruteforceConsumer(unittest.TestCase):
     def setUp(self):
         self.core = w3afCore()
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
         self.recorder = start_recording_output()
 
     def run_bruteforce(self, plugins, observer=None):

@@ -40,7 +40,7 @@ class TestSeedConsumer(unittest.TestCase):
         self.server.start()
         self.addCleanup(self.server.close)
         self.core = w3afCore(knowledge_base=kb)
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
         self.addCleanup(kb.cleanup)
         self.recorder = start_recording_output()
         self.consumer = seed(self.core, kb, om.out)

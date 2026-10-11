@@ -7605,3 +7605,16 @@ modo que los identificadores y tiempos de un scan no sobreviven al siguiente.
 
 Verificación: la API de urllib pasa **24 tests** y el manejo de errores pasa
 **6 tests**; Black, Ruff y mypy pasan en los módulos modificados.
+
+## Actualización verificada: ownership completo de cores en fixtures
+
+La auditoría de la suite encontró más fixtures que creaban `w3afCore` y solo
+terminaban su pool de workers. Esos casos ahora llaman a `core.quit()`, que
+libera también output manager, parser, DNS, base temporal y finalizador. El
+fixture de estado se actualizó además para registrar consumidores en
+`StrategyConsumerRuntime`, eliminando la dependencia de atributos privados que
+ya no pertenecen a `CoreStrategy`.
+
+Verificación: la batería combinada de consumidores, estado, plugins, perfiles,
+excepciones, observer y mangle pasa **139 tests**; el RSS máximo observado fue
+**227147776 bytes**. Black y Ruff pasan en los archivos modificados.

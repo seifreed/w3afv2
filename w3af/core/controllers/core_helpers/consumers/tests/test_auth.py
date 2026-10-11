@@ -37,7 +37,7 @@ NEVER = 60
 class TestAuthConsumer(unittest.TestCase):
     def setUp(self):
         self.core = w3afCore()
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
 
     def start_consumer(self, plugins, timeout):
         consumer = auth(plugins, self.core, timeout, om.out)

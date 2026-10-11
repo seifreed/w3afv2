@@ -47,7 +47,7 @@ class TestCoreProfiles(unittest.TestCase):
 
     def tearDown(self):
         super().tearDown()
-        self.core.worker_pool.terminate_join()
+        self.core.quit()
 
     @pytest.mark.smoke
     def test_use_profile(self):
@@ -102,7 +102,7 @@ class TestCoreProfiles(unittest.TestCase):
 
         # cleanup
         clean_core.profiles.remove_profile(new_profile_name)
-        clean_core.worker_pool.terminate_join()
+        clean_core.quit()
 
     def test_remove_profile(self):
         self.core.profiles.save_current_to_new_profile("unittest-remove")

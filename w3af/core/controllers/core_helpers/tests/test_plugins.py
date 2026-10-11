@@ -58,7 +58,7 @@ class TestW3afCorePlugins(unittest.TestCase):
         super().setUp()
 
         self.core = w3afCore()
-        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(self.core.quit)
 
     def test_get_plugin_types(self):
         plugin_types = self.core.plugins.get_plugin_types()
