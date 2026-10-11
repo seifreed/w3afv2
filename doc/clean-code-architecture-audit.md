@@ -7573,3 +7573,15 @@ subtests; los tests de consumidores, resultados y tiempo máximo pasan. El test
 determinista lento también reproduce el timeout en el commit anterior, por lo
 que no se atribuye a esta extracción. Black y Ruff pasan en los módulos
 modificados.
+
+## Actualización verificada: cleanup del core en tests de urllib
+
+`TestWorkerPoolSize` creaba un `w3afCore` completo para obtener su pool de
+workers, pero solo cerraba el pool. El fixture ahora registra `w3afCore.quit()`
+como único dueño del cleanup, cerrando también output manager, parser, DNS,
+base temporal y finalizador sin crear un segundo pool durante la limpieza.
+
+Verificación: `test_xurllib_api.py` pasa **23 tests**; el RSS máximo baja de
+**115703808** a **113573888 bytes** frente al commit anterior. Black y Ruff
+pasan; mypy sigue mostrando únicamente errores de dependencias y tipos
+preexistentes del árbol transitivo.

@@ -256,8 +256,8 @@ class TestWorkerPoolSize(unittest.TestCase):
         )
 
         self.w3af_core = w3afCore()
+        self.addCleanup(self.w3af_core.quit)
         self.worker_pool = self.w3af_core.worker_pool
-        self.addCleanup(self.worker_pool.terminate_join)
 
     def fail_requests(self, times):
         for _ in range(times):
