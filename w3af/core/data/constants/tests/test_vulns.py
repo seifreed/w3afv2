@@ -43,7 +43,8 @@ class TestVulnsConstants(unittest.TestCase):
                 for target in node.targets
             )
         )
-        assert isinstance(registry, ast.Dict)
+        if not isinstance(registry, ast.Dict):
+            raise TypeError("VULNS must be an AST dictionary.")
         names = [key.value for key in registry.keys if isinstance(key, ast.Constant)]
 
         self.assertEqual(len(names), len(set(names)))

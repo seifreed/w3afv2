@@ -39,5 +39,6 @@ class exception_raise(CrawlPlugin):
 
     def crawl(self, fuzzable_req, debugging_id):
         exception = self.exception_to_raise
-        assert exception is not None
+        if exception is None:
+            raise AssertionError("The test exception must be configured.")
         raise exception("Test exception.")

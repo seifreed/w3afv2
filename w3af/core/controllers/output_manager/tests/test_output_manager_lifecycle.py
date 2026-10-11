@@ -247,7 +247,7 @@ class TestOutputManagerPlugins(unittest.TestCase):
         manager.set_output_plugin_inst(plugin)
         database = manager._standalone_database
 
-        assert database is not None
+        self.assertIsNotNone(database)
         manager.stop()
 
         self.assertIsNone(manager._standalone_database)

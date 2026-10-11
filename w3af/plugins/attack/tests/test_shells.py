@@ -60,7 +60,7 @@ class TestWiredShells(unittest.TestCase):
         shell.set_output(None)
 
         transfer_factory = shell._payload_transfer_factory
-        assert isinstance(transfer_factory, partial)
+        self.assertIsInstance(transfer_factory, partial)
         self.assertIs(transfer_factory.func, payload_transfer_factory)
 
     def test_data_layer_shells_have_no_collaborators(self):

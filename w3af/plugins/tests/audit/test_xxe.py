@@ -39,8 +39,10 @@ def test_xml_payloads_are_text():
 
     payload = next(plugin._create_xml_payloads(root))
 
-    assert isinstance(payload, str)
-    assert "&xxe_test;" in payload
+    if not isinstance(payload, str):
+        raise TypeError("The XML payload must be text.")
+    if "&xxe_test;" not in payload:
+        raise AssertionError("The XML payload must include the test entity.")
 
 
 class TestXXESimple(PluginTest):

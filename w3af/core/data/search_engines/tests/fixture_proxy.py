@@ -62,7 +62,8 @@ class FixtureProxy:
                     self.close_connection = True
                     return
 
-                assert isinstance(body, str)
+                if not isinstance(body, str):
+                    raise TypeError("The responder must return text.")
                 payload = body.encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")

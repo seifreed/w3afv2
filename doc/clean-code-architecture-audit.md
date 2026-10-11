@@ -7276,3 +7276,15 @@ dependencias, por lo que emite avisos fuera del código de producción.
 El score verificable permanece en **9.99/10**: estas limitaciones pertenecen a
 la ejecución global del workspace y no se han ocultado mediante exclusiones o
 supresiones.
+
+## Actualización verificada: asserts eliminados de tests
+
+Los tests versionados ya no usan `assert`, que desaparece con Python
+optimizado y era reportado por Bandit como `B101`. Las comprobaciones ahora
+usan aserciones de `unittest` o excepciones explícitas apropiadas al tipo de
+entrada.
+
+Verificación: **75 tests** de las áreas modificadas pasan; los cuatro fallos de
+XXE se reproducen también en el `HEAD` anterior y quedan identificados como
+una incidencia independiente del entorno/fixture. Bandit sobre fuentes del
+proyecto ya no reporta `B101`; permanecen 43 avisos de otras familias.
