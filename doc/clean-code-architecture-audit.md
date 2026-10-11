@@ -8079,3 +8079,15 @@ Verificación: la suite de core y la prueba de capas pasan; el nuevo controlador
 queda ejercitado por los tests reales de pausa y no introduce una dependencia
 ascendente de capas. El score aún no es 10/10 por los módulos grandes y la
 cobertura/gates globales pendientes.
+
+## Verificación final: regresión de memoria en tests
+
+La batería específica de output manager, pools, ciclo de vida de `w3afCore` y
+`generic` pasa **104 tests en 71 segundos**. La reproducción de diez ciclos de
+creación y destrucción de `w3afCore` termina con cero threads de
+`OutputManager`; el RSS máximo crece aproximadamente **304 KiB**, sin el
+crecimiento lineal observado cuando se retenían ciclos y resultados de pools.
+
+También se confirma que el árbol queda limpio después de la batería. Black y
+Ruff globales pasan. `mypy .` y `bandit -r .` siguen limitados por artefactos y
+dependencias externas ya documentados, no por los módulos modificados.
