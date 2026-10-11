@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import atexit
 import logging
 import os
 import sqlite3
@@ -530,3 +531,6 @@ def get_default_persistent_db_instance():
     where it should be done.
     """
     return get_default_temp_db_instance()
+
+
+atexit.register(close_default_temp_db_instance)

@@ -4931,3 +4931,14 @@ Verificación: lifecycle y manager pasan **35 tests** y el bridge de logging
 pasa **4 tests**, sin mensajes de cola cerrada; Black, Ruff, mypy y Bandit
 focales están limpios. El score global continúa en **9.99/10**, con los gates
 heredados del entorno todavía pendientes.
+
+## Actualización verificada: cierre de la DB standalone
+
+La SQLite global usada solo por componentes standalone registra ahora
+`close_default_temp_db_instance()` en `atexit`. Los callers que no están bajo
+un `w3afCore` siguen funcionando, pero su `SQLiteExecutor` se detiene al salir
+del proceso y no deja el hilo de persistencia vivo indefinidamente.
+
+Verificación: la suite de DBMS pasa **23 tests**; Black, Ruff, mypy y Bandit
+focales están limpios. El score global continúa en **9.99/10**, con los gates
+heredados del entorno y la cobertura global todavía pendientes.
