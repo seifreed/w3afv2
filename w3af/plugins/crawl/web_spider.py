@@ -358,10 +358,14 @@ class web_spider(CrawlPlugin):
 
     def _get_variant_db(self):
         if self._variant_db is None:
-            w3af_core = self.get_w3af_core()
-            if w3af_core is None:
-                raise RuntimeError("web_spider requires a configured w3af core")
-            self._variant_db = VariantDB(w3af_core.configuration, db=w3af_core.database)
+            runtime_context = self.get_runtime_context()
+            if runtime_context is None:
+                raise RuntimeError(
+                    "web_spider requires a configured plugin runtime context"
+                )
+            self._variant_db = VariantDB(
+                runtime_context.configuration, db=runtime_context.database
+            )
         return self._variant_db
 
     def _extract_links_and_verify(self, resp, fuzzable_req):

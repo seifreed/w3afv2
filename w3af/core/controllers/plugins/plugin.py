@@ -38,6 +38,9 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import new_no_content_resp
 from w3af.core.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.plugin_runtime_context import (
+    PluginRuntimeContext,
+)
 
 
 class Plugin(Configurable):
@@ -60,7 +63,7 @@ class Plugin(Configurable):
         Create some generic attributes that are going to be used by most plugins
         """
         self._uri_opener: Any = None
-        self._w3af_core = None
+        self._runtime_context: PluginRuntimeContext | None = None
         self._configuration = None
         self._knowledge_base = None
         self._parser_cache = None
@@ -96,15 +99,9 @@ class Plugin(Configurable):
         """
         self._uri_opener = UrlOpenerProxy(url_opener, self)
 
-    def set_w3af_core(self, w3af_core):
-        """
-        Set the w3af core instance to the plugin. This shouldn't be used much
-        but it is helpful when the plugin needs to query something about the
-        core status.
-
-        :return: None
-        """
-        self._w3af_core = w3af_core
+    def set_runtime_context(self, runtime_context: PluginRuntimeContext | None):
+        """Set the scan services required by this plugin."""
+        self._runtime_context = runtime_context
 
     def set_configuration(self, configuration):
         """Set the scan configuration used by plugin-level helpers."""
@@ -153,12 +150,13 @@ class Plugin(Configurable):
 
         return parser.get_clear_text_body()
 
-    def get_w3af_core(self):
-        return self._w3af_core
+    def get_runtime_context(self) -> PluginRuntimeContext | None:
+        """Return the configured scan services, if available."""
+        return self._runtime_context
 
     def _is_404(self, http_response):
-        if self._w3af_core is not None:
-            return self._w3af_core.is_404(http_response)
+        if self._runtime_context is not None:
+            return self._runtime_context.is_404(http_response)
         if self._fingerprint_404 is None:
             raise RuntimeError("Plugin requires a configured 404 detector")
         return self._fingerprint_404.is_404(http_response)

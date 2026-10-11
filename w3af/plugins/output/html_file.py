@@ -231,8 +231,8 @@ class html_file(OutputPlugin):
         )
 
         jinja2_env.filters["render_markdown"] = render_markdown
-        core = self.get_w3af_core()
-        database = None if core is None else core.database
+        runtime_context = self.get_runtime_context()
+        database = None if runtime_context is None else runtime_context.database
         jinja2_env.filters["request"] = functools.partial(request_dump, db=database)
         jinja2_env.filters["response"] = functools.partial(response_dump, db=database)
         jinja2_env.filters["severity_icon"] = severity_icon

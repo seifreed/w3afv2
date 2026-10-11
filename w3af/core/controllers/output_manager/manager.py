@@ -28,13 +28,15 @@ import threading
 import time
 from functools import wraps
 from multiprocessing.dummy import Process
-from weakref import ReferenceType, ref
 
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.output_manager.output_plugin_registry import (
     OutputPluginRegistry,
+)
+from w3af.core.controllers.plugins.plugin_runtime_context import (
+    PluginRuntimeContext,
 )
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool
@@ -115,29 +117,26 @@ class OutputManager(Process):
 
         # Internal variables
         self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
-        self._w3af_core = None
+        self._plugin_runtime_context: PluginRuntimeContext | None = None
         self._output: LogSink | None = None
-        self._plugin_registry = OutputPluginRegistry(self._get_w3af_core)
+        self._plugin_registry = OutputPluginRegistry(self._get_plugin_runtime_context)
         self._flush_timeout = flush_timeout
         self._last_output_flush = None
         self._is_shutting_down = False
         self._worker_pool_closed = False
         self._worker_pool = None
 
-    def set_w3af_core(self, w3af_core, output):
-        self._w3af_core = ref(w3af_core)
-        self.set_output(output)
-        self.set_knowledge_base(w3af_core.knowledge_base)
+    def set_plugin_runtime_context(self, runtime_context: PluginRuntimeContext) -> None:
+        """Expose plugin services without retaining the core composition root."""
+        self._plugin_runtime_context = runtime_context
 
     def set_output(self, output: LogSink) -> None:
         """Register the sink whose queue is owned by this manager."""
         self._output = output
         self._plugin_registry.set_output(output)
 
-    def _get_w3af_core(self):
-        if isinstance(self._w3af_core, ReferenceType):
-            return self._w3af_core()
-        return self._w3af_core
+    def _get_plugin_runtime_context(self) -> PluginRuntimeContext | None:
+        return self._plugin_runtime_context
 
     def set_knowledge_base(self, knowledge_base):
         self._plugin_registry.set_knowledge_base(knowledge_base)
@@ -321,8 +320,8 @@ class OutputManager(Process):
             LOGGER.debug("{}.flush() took {:.2f}s to run".format(*flush_args))
 
     def _handle_output_plugin_exception(self, o_plugin, exception):
-        w3af_core = self._get_w3af_core()
-        if w3af_core is None:
+        runtime_context = self._get_plugin_runtime_context()
+        if runtime_context is None:
             return
 
         # Smart error handling, much better than just crashing.
@@ -337,7 +336,7 @@ class OutputManager(Process):
 
         exec_info = sys.exc_info()
         enabled_plugins = "n/a"
-        w3af_core.exception_handler.handle(
+        runtime_context.exception_handler.handle(
             status, exception, exec_info, enabled_plugins
         )
 

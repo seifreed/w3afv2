@@ -91,7 +91,7 @@ class TestArchiveDotOrg(PluginTest):
         plugin = archive_dot_org()
         plugin.set_url_opener(self.w3afcore.uri_opener)
         plugin.set_worker_pool(self.w3afcore.worker_pool)
-        plugin.set_w3af_core(self.w3afcore)
+        plugin.set_runtime_context(self.w3afcore._plugin_runtime_context)
         plugin.set_configuration(self.w3afcore.configuration)
         plugin.set_output(om.out)
         return plugin

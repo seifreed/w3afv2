@@ -1,39 +1,15 @@
 """Build and configure runtime plugin instances."""
 
-from typing import Protocol
-
 from w3af.core.controllers.core_helpers.plugin_loader import create_plugin_instance
-
-
-class PluginCoreContext(Protocol):
-    """Core services required to initialize a plugin instance."""
-
-    @property
-    def database(self) -> object: ...
-
-    @property
-    def uri_opener(self) -> object: ...
-
-    @property
-    def worker_pool(self) -> object: ...
-
-    @property
-    def configuration(self) -> object: ...
-
-    @property
-    def knowledge_base(self) -> object: ...
-
-    @property
-    def parser_cache(self) -> object: ...
-
-    @property
-    def id_generator(self) -> object: ...
+from w3af.core.controllers.plugins.plugin_runtime_context import (
+    PluginRuntimeContext,
+)
 
 
 class PluginInstanceFactory:
     """Create plugins with the runtime dependencies supplied by the core."""
 
-    def __init__(self, plugin_context: PluginCoreContext, output):
+    def __init__(self, plugin_context: PluginRuntimeContext, output):
         self._plugin_context = plugin_context
         self._output = output
 
@@ -43,7 +19,7 @@ class PluginInstanceFactory:
         )
         plugin_instance.set_url_opener(self._plugin_context.uri_opener)
         plugin_instance.set_worker_pool(self._plugin_context.worker_pool)
-        plugin_instance.set_w3af_core(self._plugin_context)
+        plugin_instance.set_runtime_context(self._plugin_context)
         plugin_instance.set_configuration(self._plugin_context.configuration)
         plugin_instance.set_knowledge_base(self._plugin_context.knowledge_base)
         plugin_instance.set_output(self._output)

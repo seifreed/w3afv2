@@ -5,11 +5,13 @@ import os
 from collections.abc import Callable
 from importlib import import_module
 from typing import Any
-from weakref import proxy
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+from w3af.core.controllers.plugins.plugin_runtime_context import (
+    PluginRuntimeContext,
+)
 from w3af.core.data.db.dbms import SQLiteDBMS, create_temp_db_instance
 
 LOGGER = logging.getLogger(__name__)
@@ -18,8 +20,12 @@ LOGGER = logging.getLogger(__name__)
 class OutputPluginRegistry:
     """Manage output plugin ownership independently from queue processing."""
 
-    def __init__(self, get_w3af_core: Callable[[], Any], output=None) -> None:
-        self._get_w3af_core = get_w3af_core
+    def __init__(
+        self,
+        get_plugin_runtime_context: Callable[[], PluginRuntimeContext | None],
+        output=None,
+    ) -> None:
+        self._get_plugin_runtime_context = get_plugin_runtime_context
         self._output = output
         self._knowledge_base = None
         self._instances: list[OutputPlugin] = []
@@ -114,20 +120,20 @@ class OutputPluginRegistry:
         self.add_instance(self._get_plugin_instance(output_plugin_name))
 
     def _get_plugin_instance(self, plugin_name):
-        w3af_core = self._get_w3af_core()
+        runtime_context = self._get_plugin_runtime_context()
         module = import_module(f"w3af.plugins.output.{plugin_name}")
         plugin_class = getattr(module, plugin_name)
-        database = self._get_plugin_database(plugin_class, w3af_core)
+        database = self._get_plugin_database(plugin_class, runtime_context)
         plugin = (
             factory(f"w3af.plugins.output.{plugin_name}", database)
             if database is not None
             else factory(f"w3af.plugins.output.{plugin_name}")
         )
 
-        plugin.set_w3af_core(proxy(w3af_core) if w3af_core is not None else None)
+        plugin.set_runtime_context(runtime_context)
         plugin.set_output(self._output)
-        if w3af_core is not None:
-            plugin.set_configuration(w3af_core.configuration)
+        if runtime_context is not None:
+            plugin.set_configuration(runtime_context.configuration)
         if self._knowledge_base is not None:
             plugin.set_knowledge_base(self._knowledge_base)
         if plugin_name in self._plugin_options:
@@ -135,9 +141,9 @@ class OutputPluginRegistry:
 
         return plugin
 
-    def _get_plugin_database(self, plugin_class, w3af_core):
+    def _get_plugin_database(self, plugin_class, runtime_context):
         if not getattr(plugin_class, "uses_database", False):
             return None
-        if w3af_core is not None:
-            return w3af_core.database
+        if runtime_context is not None:
+            return runtime_context.database
         return self._get_standalone_database()

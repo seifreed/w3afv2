@@ -31,6 +31,7 @@ from w3af.core.controllers.tests.local_http_server import (
 )
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
@@ -122,15 +123,18 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual(repr(plugin), "<plugin.Plugin>")
         self.assertIsNone(plugin.end())
 
-    def test_core_and_worker_pool(self):
+    def test_runtime_context_and_worker_pool(self):
         plugin = Plugin()
         pool = Pool(1, worker_names="PluginTestWorker")
         self.addCleanup(pool.terminate_join)
+        core = w3afCore()
+        self.addCleanup(core.quit)
 
-        plugin.set_w3af_core("core")
+        plugin.set_runtime_context(core._plugin_runtime_context)
         plugin.set_worker_pool(pool)
 
-        self.assertEqual(plugin.get_w3af_core(), "core")
+        self.assertIs(plugin.get_runtime_context(), core._plugin_runtime_context)
+        self.assertIsNot(plugin.get_runtime_context(), core)
         self.assertIs(plugin.worker_pool, pool)
 
     def test_kb_append_uniq(self):

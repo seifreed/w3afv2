@@ -136,7 +136,7 @@ class TestOutputManager(unittest.TestCase):
         self.addCleanup(w3af_core.quit)
         w3af_core.exception_handler.clear()
 
-        om.manager.set_w3af_core(w3af_core, w3af_core._output)
+        om.manager.set_plugin_runtime_context(w3af_core._plugin_runtime_context)
         try:
             raise RuntimeError("output plugin failure")
         except RuntimeError as exception:

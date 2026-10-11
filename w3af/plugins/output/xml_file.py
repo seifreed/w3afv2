@@ -264,7 +264,10 @@ class xml_file(OutputPlugin):
     def _add_scan_status_to_context(self, context):
         self._output.debug("[xml_file.flush()] _add_scan_status_to_context() start")
 
-        status = self.get_w3af_core().status.get_status_as_dict()
+        runtime_context = self.get_runtime_context()
+        if runtime_context is None:
+            raise RuntimeError("xml_file requires a configured plugin runtime context")
+        status = runtime_context.status.get_status_as_dict()
         self._output.debug(
             "[xml_file.flush()] _add_scan_status_to_context() read status"
         )
@@ -365,8 +368,8 @@ class xml_file(OutputPlugin):
         ):
             uniq_id = finding.get_uniq_id()
             processed_uniq_ids.append(uniq_id)
-            core = self.get_w3af_core()
-            database = self._db if core is None else core.database
+            runtime_context = self.get_runtime_context()
+            database = self._db if runtime_context is None else runtime_context.database
             node = Finding(
                 self._jinja2_env,
                 finding,

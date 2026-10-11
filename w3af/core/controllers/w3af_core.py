@@ -64,6 +64,9 @@ from w3af.core.controllers.core_helpers.scan_stop_controller import (
 from w3af.core.controllers.core_helpers.scan_runtime_context import (
     ScanRuntimeContext,
 )
+from w3af.core.controllers.plugins.plugin_runtime_context import (
+    PluginRuntimeContext,
+)
 from w3af.core.controllers.core_helpers.status import (
     PAUSED,
     RUNNING,
@@ -125,6 +128,11 @@ class w3afCore:
     STOP_TIMEOUT = 10
     STOP_LOOP_DELAY = 0.5
 
+    _scan_context: ScanRuntimeContext
+    _plugin_runtime_context: PluginRuntimeContext
+    status: CoreStatus
+    strategy: CoreStrategy
+
     def __init__(
         self,
         knowledge_base: DBKnowledgeBase | None = None,
@@ -159,10 +167,8 @@ class w3afCore:
         )
         self._output = output
         self._output_manager = manager
-        # FIXME: In the future, when the output_manager is not an awful
-        # singleton anymore, this line should be removed and the output_manager
-        # object should take a w3afCore object as a parameter in its __init__
-        manager.set_w3af_core(self, output)
+        manager.set_output(output)
+        manager.set_knowledge_base(self.knowledge_base)
 
         # This is more than just a debug message, it's a way to force the
         # output manager thread to start it's work. I would start that thread
@@ -186,11 +192,7 @@ class w3afCore:
         # these here because they are used by the UIs even before starting a
         # scan.
         self.profiles = CoreProfiles(self, self._configuration)
-        self.plugins = CorePlugins(self, output, manager)
         self.target = CoreTarget(self._configuration)
-        self._environment_validator = ScanEnvironmentValidator(
-            self.plugins, self.target
-        )
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(
@@ -202,7 +204,7 @@ class w3afCore:
             db=self._database,
         )
         self.uri_opener.set_worker_pool_provider(
-            lambda: self.worker_pool,
+            self._worker_pool_manager.get_pool,
             self.MIN_WORKER_THREADS,
             self.MAX_WORKER_THREADS,
         )
@@ -213,15 +215,32 @@ class w3afCore:
             self.uri_opener,
         )
         self._exploit_phase_lifecycle = ExploitPhaseLifecycle(output, self.uri_opener)
+        self._plugin_runtime_context = PluginRuntimeContext(
+            self._database,
+            self.uri_opener,
+            self._configuration,
+            self.knowledge_base,
+            self._parser_cache,
+            self._id_generator,
+            self.exception_handler,
+            self._worker_pool_manager.get_pool,
+            self._fingerprint_404_lifecycle.is_404,
+        )
+        self.plugins = CorePlugins(self._plugin_runtime_context, output, manager)
+        self._environment_validator = ScanEnvironmentValidator(
+            self.plugins, self.target
+        )
         self._create_scan_runtime()
+        manager.set_plugin_runtime_context(self._plugin_runtime_context)
+        core_reference = weakref.proxy(self)
         self._stop_controller = ScanStopController(
             output,
             self.uri_opener,
-            lambda: self.strategy,
-            lambda: self.status,
+            self._scan_context.get_strategy,
+            self._scan_context.get_status,
             self._worker_pool_manager.terminate,
-            lambda: self.STOP_TIMEOUT,
-            lambda: self.STOP_LOOP_DELAY,
+            lambda: core_reference.STOP_TIMEOUT,
+            lambda: core_reference.STOP_LOOP_DELAY,
         )
         self._scan_context.bind_stop(self._stop_controller.stop)
         self._pause_controller = ScanPauseController(self.status, self.uri_opener)
@@ -318,6 +337,7 @@ class w3afCore:
             scans_completed=scans_completed,
             id_generator=self._id_generator,
         )
+        self._plugin_runtime_context.bind_status(self.status)
         self.strategy = CoreStrategy(
             self._scan_context,
             self.knowledge_base,

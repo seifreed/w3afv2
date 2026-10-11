@@ -21,7 +21,7 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.8/10 | Alta |
+| Clean Code | 9.9/10 | Alta |
 | Clean Architecture | 10/10 | Alta |
 | Global | 9.9/10 | Alta |
 
@@ -50,13 +50,13 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Responsabilidades concentradas
 
-- `w3af/core/controllers/w3af_core.py` (452 líneas) construye varios servicios,
+- `w3af/core/controllers/w3af_core.py` (439 líneas) construye varios servicios,
   configura estado global y coordina inicialización, estrategia, perfiles,
   estado, objetivos y ejecución.
-- `w3af/core/controllers/core_helpers/plugins.py` (249 líneas) mezcla
-  descubrimiento del filesystem, importación dinámica, configuración, orden de
-  dependencias, creación de instancias y coordinación con output.
-- `w3af/core/data/url/extended_urllib.py` (663 líneas) concentra transporte,
+- `w3af/core/controllers/core_helpers/plugins.py` (249 líneas) actúa como
+  fachada, pero todavía concentra demasiadas operaciones de configuración de
+  plugins para una sola clase.
+- `w3af/core/data/url/extended_urllib.py` (520 líneas) concentra transporte,
   reintentos, pausas, métricas, evasiones y estado de requests.
 - La inicialización de plugins contiene mapas de tipos repetidos; su conjunto
   se mantenía manualmente y podía desincronizarse del filesystem.
@@ -8157,3 +8157,23 @@ La comprobación adicional de memoria repitió **30 ciclos reales** de creación
 y destrucción de `w3afCore`: el RSS creció **2.45 MiB** en la inicialización y
 se mantuvo estable entre los ciclos 10, 20 y 30; no quedó ningún hilo de
 `OutputManager`. No se observa crecimiento lineal por ciclo.
+
+## Actualización verificada: contexto de plugins sin referencia al core
+
+`PluginRuntimeContext` reemplaza la referencia directa a `w3afCore` en la base
+de plugins, el `PluginInstanceFactory` y el `OutputPluginRegistry`. Expone solo
+los servicios que necesitan los consumidores reales: configuración, base de
+datos, estado, excepción, 404 y recursos de ejecución. `html_file`, `xml_file`
+y `web_spider` se adaptaron a ese contrato; no quedan referencias de
+`get_w3af_core` o `set_w3af_core` en producción.
+
+La extracción también eliminó una captura fuerte del core en el controlador de
+stop. Los tests de ciclo de vida vuelven a liberar el `OutputManager`, parser y
+worker pool cuando el core pierde sus referencias.
+
+Verificación: **125 tests** del bloque de plugins, output manager y core pasan;
+los **25 tests** de `test_w3af_core.py` pasan, incluyendo los casos de
+recolección y timeout dinámico. Black, Ruff, Bandit focal, `pip-audit` y la
+comprobación de referencias residuales están limpios. Clean Code sube a
+**9.9/10**; queda pendiente reducir la concentración restante de
+`ExtendedUrllib`, `CorePlugins` y completar cobertura/gates globales.

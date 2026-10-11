@@ -157,7 +157,7 @@ class TestXMLOutput(PluginTest):
         w3af_core.status.start()
 
         plugin_instance = xml_file_with_output()
-        plugin_instance.set_w3af_core(w3af_core)
+        plugin_instance.set_runtime_context(w3af_core._plugin_runtime_context)
         plugin_instance.set_configuration(w3af_core.configuration)
         plugin_instance.set_knowledge_base(kb)
 
@@ -216,7 +216,7 @@ class TestNoDuplicate(unittest.TestCase):
 
         # Setup the plugin
         plugin_instance = xml_file_with_output()
-        plugin_instance.set_w3af_core(self.w3af_core)
+        plugin_instance.set_runtime_context(self.w3af_core._plugin_runtime_context)
         plugin_instance.set_configuration(self.w3af_core.configuration)
         plugin_instance.set_knowledge_base(kb)
 
@@ -1270,7 +1270,7 @@ class TestXMLFileEdgeCases(unittest.TestCase):
         plugin = xml_file_with_output()
         w3af_core = w3afCore()
         self.addCleanup(w3af_core.quit)
-        plugin.set_w3af_core(w3af_core)
+        plugin.set_runtime_context(w3af_core._plugin_runtime_context)
         plugin.set_configuration(w3af_core.configuration)
         options = plugin.get_options()
         options["output_file"].set_value(output_file)

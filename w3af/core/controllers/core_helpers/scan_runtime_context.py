@@ -51,6 +51,14 @@ class ScanRuntimeContext:
         self._status = status
         self._strategy = strategy
 
+    def get_status(self) -> Any:
+        """Return the status provider required by lifecycle controllers."""
+        return self.status
+
+    def get_strategy(self) -> Any:
+        """Return the strategy provider required by lifecycle controllers."""
+        return self.strategy
+
     def bind_stop(self, stop_callback: Callable[[], None]) -> None:
         """Bind the scan stop operation after the controller is assembled."""
         self._stop_callback = stop_callback
