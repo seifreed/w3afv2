@@ -6770,3 +6770,14 @@ entre casos.
 Verificación: Black y Ruff pasan. La ejecución dinámica queda bloqueada en este
 entorno porque falta la dependencia `pebble`; el score global continúa en
 **9.99/10**.
+
+## Actualización verificada: cleanup robusto de pools en Knowledge Base
+
+Los tres tests que crean pools directamente en `test_knowledge_base` registran
+`terminate` y `join` como cleanup, y los casos de shells registran también el
+cierre de `ExtendedUrllib`. Los workers y conexiones se liberan aunque falle
+una aserción antes del final normal del test.
+
+Verificación: Black, Ruff y diff limpio. La ejecución completa sigue limitada
+por dependencias opcionales no instaladas en este entorno; el score global
+continúa en **9.99/10**.

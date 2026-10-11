@@ -398,6 +398,9 @@ class TestKnowledgeBase(unittest.TestCase):
     def test_pickleable_shells(self):
         pool = Pool(1)
         xurllib = ExtendedUrllib()
+        self.addCleanup(xurllib.end)
+        self.addCleanup(pool.join)
+        self.addCleanup(pool.terminate)
 
         original_shell = Shell(MockVuln(), xurllib, pool)
 
@@ -408,10 +411,6 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertEqual(unpickled_shell.worker_pool, None)
         self.assertEqual(unpickled_shell._uri_opener, None)
 
-        pool.terminate()
-        pool.join()
-        xurllib.end()
-
     def test_pickleable_shells_get_all(self):
         class FakeCore:
             worker_pool = Pool(1)
@@ -419,6 +418,9 @@ class TestKnowledgeBase(unittest.TestCase):
             knowledge_base = kb
 
         core = FakeCore()
+        self.addCleanup(core.uri_opener.end)
+        self.addCleanup(core.worker_pool.join)
+        self.addCleanup(core.worker_pool.terminate)
         original_shell = Shell(MockVuln(), core.uri_opener, core.worker_pool)
 
         kb.append("a", "b", original_shell)
@@ -427,10 +429,6 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertEqual(original_shell, unpickled_shell)
         self.assertEqual(unpickled_shell.worker_pool, core.worker_pool)
         self.assertEqual(unpickled_shell._uri_opener, core.uri_opener)
-
-        core.worker_pool.terminate()
-        core.worker_pool.join()
-        core.uri_opener.end()
 
     def test_raw_write_list(self):
         """
@@ -781,6 +779,8 @@ class TestKnowledgeBase(unittest.TestCase):
             return True
 
         pool = Pool(2)
+        self.addCleanup(pool.join)
+        self.addCleanup(pool.terminate)
 
         r1 = pool.apply_async(multi_append)
         r2 = pool.apply_async(multi_append)
@@ -789,9 +789,6 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertTrue(r1.get())
         self.assertTrue(r2.get())
         self.assertTrue(r3.get())
-
-        pool.terminate()
-        pool.join()
 
     def test_info_set_keep_uniq_id(self):
         #
