@@ -7332,6 +7332,16 @@ servicios de ejecución.
 Verificación: **36 tests** de catálogo, fábrica y resolución pasan; Black,
 Ruff y mypy pasan en los tres módulos modificados.
 
+## Actualización verificada: ownership explícito del lifecycle del core
+
+La liberación de output manager, pool de workers, cachés y base de datos salió
+de `w3af_core.py` hacia `CoreResourceLifecycle`. El componente conserva el
+orden de teardown y hace la operación idempotente, por lo que el finalizer y
+`quit()` no pueden liberar dos veces el mismo recurso.
+
+Verificación: **7 tests** de finalización y recolección del core pasan; Black,
+Ruff y mypy pasan en los módulos modificados.
+
 ## Actualización verificada: construcción única de plugins
 
 `PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica

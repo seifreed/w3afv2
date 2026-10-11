@@ -99,6 +99,12 @@ class TestW3afCore(unittest.TestCase):
 
         self.assertFalse(self.core._output_manager.is_alive())
 
+    def test_quit_is_idempotent(self):
+        self.core.quit()
+        self.core.quit()
+
+        self.assertFalse(self.core._output_manager.is_alive())
+
     def test_unreferenced_core_stops_output_manager(self):
         core = w3afCore()
         core.plugins.set_plugins(["console"], "output")

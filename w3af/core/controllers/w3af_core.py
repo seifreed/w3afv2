@@ -26,6 +26,9 @@ import threading
 import traceback
 import weakref
 
+from w3af.core.controllers.core_helpers.core_resource_lifecycle import (
+    CoreResourceLifecycle,
+)
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
@@ -98,17 +101,6 @@ NO_MEMORY_MSG = (
 )
 
 
-def _stop_core_resources(
-    output_manager, dns_cache, parser_cache, database, worker_pool_manager
-):
-    worker_pool_manager.terminate()
-    parser_cache.clear()
-    dns_cache.clear()
-    output_manager.stop()
-    if database is not None:
-        database.close()
-
-
 class w3afCore:
     """
     This is the core of the framework, it calls all plugins, handles exceptions,
@@ -175,14 +167,16 @@ class w3afCore:
             self.WORKER_INQUEUE_MAX_SIZE,
             self.WORKER_MAX_TASKS,
         )
-        self._output_manager_finalizer = weakref.finalize(
-            self,
-            _stop_core_resources,
+        self._resource_lifecycle = CoreResourceLifecycle(
             manager,
             self._dns_cache,
             self._parser_cache,
             self._database if self._owns_database else None,
             self._worker_pool_manager,
+        )
+        self._resource_finalizer = weakref.finalize(
+            self,
+            self._resource_lifecycle.stop,
         )
         self._output = output
         self._output_manager = manager
@@ -542,7 +536,7 @@ class w3afCore:
             self._fingerprint_404 = None
 
         remove_data_logging(self._output)
-        self._output_manager_finalizer()
+        self._resource_finalizer()
 
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #
