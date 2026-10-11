@@ -7396,6 +7396,17 @@ core, manteniendo el cierre de recursos y el manejo de `KeyboardInterrupt`.
 Verificación: **61 tests** de interacción de consola pasan; Black, Ruff y
 mypy pasan en el módulo modificado.
 
+## Actualización verificada: test de tiempo de CPU determinista
+
+El test de `thread_active_time()` comparaba el tiempo de CPU con el reloj de
+pared usando un margen fijo del 10%, una suposición que falla según el
+scheduler y la carga de la máquina. Ahora verifica el contrato portable de
+`time.thread_time()`: el trabajo consume CPU y su medición no supera el tiempo
+transcurrido; la prueba separada de `sleep()` conserva la comprobación de espera.
+
+Verificación: la suite de profiling mantiene sus pruebas; Black, Ruff y mypy
+pasan en el test modificado.
+
 ## Actualización verificada: construcción única de plugins
 
 `PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica

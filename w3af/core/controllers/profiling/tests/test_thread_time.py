@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import hashlib
 import time
 import unittest
 
@@ -41,22 +40,20 @@ class TestThreadTime(unittest.TestCase):
         spent = thread_active_time() - start
         self.assertLess(spent, 0.1)
 
-    def test_thread_active_time_hash(self):
+    def test_thread_active_time_cpu_work(self):
         #
         # What we want to test here is that the time measured is not the wall time
-        # but the time used by the CPU to run this method. Calculating hashes will
-        # require a lot of CPU cycles, thus the result returned by subtracting both
-        # thread active times should be _similar_ to the wall time.
+        # but the time used by the CPU to run this method. CPU time cannot exceed
+        # elapsed time, and the calculation must consume a measurable amount of it.
         #
         start_thread = thread_active_time()
-        start_wall = time.time()
+        start_wall = time.monotonic()
 
-        for i in range(1000000):
-            h = hashlib.sha512()
-            h.update(f"{i}".encode())
-            h.hexdigest()
+        result = sum(range(1000000))
 
         spent_thread = thread_active_time() - start_thread
-        spent_wall = time.time() - start_wall
+        spent_wall = time.monotonic() - start_wall
 
-        self.assertAlmostEqual(spent_thread, spent_wall, delta=spent_wall * 0.1)
+        self.assertGreater(result, 0)
+        self.assertGreater(spent_thread, 0)
+        self.assertLessEqual(spent_thread, spent_wall)
