@@ -24,4 +24,4 @@ import threading
 
 
 def is_main_thread():
-    return isinstance(threading.current_thread(), threading._MainThread)
+    return threading.current_thread() is threading.main_thread()
