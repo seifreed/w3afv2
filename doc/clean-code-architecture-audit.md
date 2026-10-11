@@ -4542,3 +4542,15 @@ XML con su infraestructura de persistencia.
 Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
+
+## Actualización verificada: modelos XML separados del orquestador
+
+`HTTPTransaction`, `ScanInfo`, `ScanStatus` y `Finding` viven ahora en
+`w3af/plugins/output/xml_models.py`. `xml_file` conserva la coordinación del
+reporte, mantiene las exportaciones públicas mediante `__all__` y ya no mezcla
+renderizado de modelos con configuración del plugin. El cambio no duplica
+estado ni altera el contrato de caché, base de datos o manejo de errores.
+
+Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
+El score global continúa en **9.99/10**, con los gates heredados, el fallback
+standalone y otros módulos grandes todavía pendientes.
