@@ -5677,3 +5677,15 @@ Verificación: toda la suite de `core.data.request` pasa **55 tests**; Black,
 Ruff, mypy focal y Bandit focal están limpios. El score global continúa en
 **9.99/10**, con los gates globales heredados y la cobertura global todavía
 pendientes.
+
+## Actualización verificada: tipos reales de formularios HTTP
+
+`URLEncodedForm` declara sus valores como listas de texto, y
+`MultipartContainer` distingue payloads bytes de payloads ya textuales antes de
+decodificar. Se conserva el formato wire y el uso de Latin-1 para partes MIME
+binarias.
+
+Verificación: formularios URL-encoded y multipart pasan **21 tests**; Black,
+Ruff, mypy focal y Bandit focal están limpios. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.

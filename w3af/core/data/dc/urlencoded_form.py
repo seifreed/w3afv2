@@ -80,7 +80,7 @@ class URLEncodedForm(Form):
         :see: Unittest in test_form.py
         :return: string representation of the Form object.
         """
-        d = {}
+        d: dict[str, list[str]] = {}
         d.update(list(self.items()))
 
         for key in d:

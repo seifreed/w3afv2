@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from email.parser import BytesParser
 from email.policy import default
+from typing import cast
 
 from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.dc.utils.multipart import encode_as_multipart, get_boundary
@@ -87,7 +88,12 @@ class MultipartContainer(Form):
                 name = part.get_param("name", header="content-disposition")
                 if name is None:
                     continue
-                value = (part.get_payload(decode=True) or b"").decode("latin-1")
+                payload = part.get_payload(decode=True)
+                value = (
+                    payload.decode("latin-1")
+                    if isinstance(payload, bytes)
+                    else cast(str, payload or "")
+                )
                 filename = part.get_filename()
                 if filename is None:
                     attrs = {"type": INPUT_TYPE_TEXT, "name": name, "value": value}
