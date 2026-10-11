@@ -1,4 +1,5 @@
 import socket
+from typing import Any, cast
 from urllib.parse import urlsplit
 from urllib.request import (
     HTTPDefaultErrorHandler,
@@ -11,9 +12,11 @@ from urllib.request import (
     UnknownHandler,
 )
 
+_GLOBAL_DEFAULT_TIMEOUT = cast(Any, socket)._GLOBAL_DEFAULT_TIMEOUT
+
 
 class CustomOpenerDirector(OpenerDirector):
-    def open(self, req, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+    def open(self, req, data=None, timeout=_GLOBAL_DEFAULT_TIMEOUT):
         """
         Overriding to remove the timeout kwarg which was being used below to
         override my own HTTPRequest.timeout attribute.
@@ -30,15 +33,17 @@ class CustomOpenerDirector(OpenerDirector):
 
         # pre-process request
         meth_name = protocol + "_request"
-        for processor in self.process_request.get(protocol, []):
+        director = cast(Any, self)
+
+        for processor in director.process_request.get(protocol, []):
             meth = getattr(processor, meth_name)
             req = meth(req)
 
-        response = self._open(req, data)
+        response = director._open(req, data)
 
         # post-process response
         meth_name = protocol + "_response"
-        for processor in self.process_response.get(protocol, []):
+        for processor in director.process_response.get(protocol, []):
             meth = getattr(processor, meth_name)
             response = meth(req, response)
 

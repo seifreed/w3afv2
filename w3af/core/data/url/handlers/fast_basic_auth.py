@@ -24,6 +24,11 @@ import base64
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Protocol, cast
+
+
+class _PasswordManager(Protocol):
+    def find_user_password(self, realm: str | None, authuri: str): ...
 
 
 class FastHTTPBasicAuthHandler(
@@ -44,7 +49,8 @@ class FastHTTPBasicAuthHandler(
             return request
 
         # Add the headers for the authorization...
-        user, pw = self.passwd.find_user_password(None, request.get_full_url())
+        password_manager = cast(_PasswordManager, self.passwd)
+        user, pw = password_manager.find_user_password(None, request.get_full_url())
         if pw is not None:
             raw = f"{user}:{pw}".encode()
             auth = f"Basic {base64.b64encode(raw).decode('ascii')}"

@@ -23,6 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Any, Protocol, cast
+
+
+class _HTTPErrorWithID(Protocol):
+    id: Any
 
 
 class ErrorHandler(urllib.request.HTTPDefaultErrorHandler):
@@ -32,7 +37,7 @@ class ErrorHandler(urllib.request.HTTPDefaultErrorHandler):
 
     def http_error_default(self, req, resp, code, msg, hdrs):
         err = urllib.error.HTTPError(req.get_full_url(), code, msg, hdrs, resp)
-        err.id = req.id
+        cast(_HTTPErrorWithID, err).id = req.id
         raise err
 
 

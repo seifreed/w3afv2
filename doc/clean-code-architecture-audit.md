@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: fronteras urllib tipadas
+
+El director de URLs declara el sentinel privado de timeout una sola vez y
+encapsula las tablas/procesadores internos de `OpenerDirector`. Los handlers de
+autenticación y error documentan sus extensiones runtime (`realm=None` e
+`HTTPError.id`) mediante protocolos locales, sin cambiar el comportamiento de
+las respuestas ni de las credenciales.
+
+Verificación: las suites afectadas pasan **15 tests**; mypy focal, Ruff y Black
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: precondición de transferencia HTTP
 
 `ClientlessReverseHTTP.transfer()` ya no ignora un `False` de `can_transfer()`
