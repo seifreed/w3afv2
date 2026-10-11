@@ -4774,3 +4774,14 @@ Verificación: **41 tests** de `DiskList` y `CrawlInfrastructure` pasan; Black,
 Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**, con
 los gates heredados, el fallback standalone y otros módulos grandes todavía
 pendientes.
+
+## Actualización verificada: exportación JSON incremental
+
+`json_file` ya no crea listas completas de URLs, descripciones y findings
+detallados antes de abrir el informe. Escribe los arrays JSON elemento a
+elemento desde los iteradores de la base de conocimiento, manteniendo el
+contrato de claves y un documento JSON válido con un pico de memoria acotado.
+
+Verificación: **3 tests** del exportador JSON pasan; Black, Ruff, mypy y Bandit
+focales pasan. El score global continúa en **9.99/10**, con los gates heredados,
+el fallback standalone y otros módulos grandes todavía pendientes.

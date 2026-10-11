@@ -92,25 +92,94 @@ class json_file(OutputPlugin):
 
         enabled_plugins = self._enabled_plugins
 
-        def _get_desc(x):
-            try:
-                return x._desc
-            except AttributeError:
-                return None
+        try:
+            with open(self.output_file, "w", encoding="utf-8") as output_handler:
+                self._write_report(
+                    output_handler,
+                    target_urls,
+                    target_domain,
+                    enabled_plugins,
+                )
+        except OSError as ioe:
+            msg = 'Failed to open the output file for writing: "%s"'
+            self._output.error(msg % ioe)
 
-        findings = [
-            _f
-            for _f in [
-                _get_desc(x) for x in self._get_knowledge_base().get_all_findings_iter()
-            ]
-            if _f
-        ]
-        known_urls = [str(x) for x in self._get_knowledge_base().get_all_known_urls()]
+    def _write_report(
+        self, output_handler, target_urls, target_domain, enabled_plugins
+    ):
+        output_handler.write("{\n")
+        self._write_field(
+            output_handler, "w3af-version", get_w3af_version.get_w3af_version()
+        )
+        output_handler.write('    "scan-info": {\n')
+        self._write_field(output_handler, "target_urls", target_urls, indent=8)
+        self._write_field(output_handler, "target_domain", target_domain, indent=8)
+        self._write_field(output_handler, "enabled_plugins", enabled_plugins, indent=8)
+        self._write_field(
+            output_handler,
+            "findings",
+            self._iter_finding_descriptions(),
+            indent=8,
+            array=True,
+        )
+        self._write_field(
+            output_handler,
+            "known_urls",
+            (str(url) for url in self._get_knowledge_base().get_all_known_urls()),
+            indent=8,
+            array=True,
+            trailing_comma=False,
+        )
+        output_handler.write("\n    },\n")
+        self._write_field(output_handler, "start", self._timestamp)
+        self._write_field(output_handler, "start-long", self._long_timestamp)
+        self._write_field(
+            output_handler,
+            "items",
+            self._iter_finding_items(),
+            array=True,
+            trailing_comma=False,
+        )
+        output_handler.write("\n}\n")
 
-        items = []
+    def _write_field(
+        self,
+        output_handler,
+        name,
+        value,
+        *,
+        indent=4,
+        array=False,
+        trailing_comma=True,
+    ):
+        output_handler.write(" " * indent)
+        json.dump(name, output_handler)
+        output_handler.write(": ")
+        if array:
+            self._write_array(output_handler, value)
+        else:
+            json.dump(value, output_handler)
+        output_handler.write(",\n" if trailing_comma else "")
+
+    @staticmethod
+    def _write_array(output_handler, values):
+        output_handler.write("[")
+        for index, value in enumerate(values):
+            if index:
+                output_handler.write(",")
+            json.dump(value, output_handler)
+        output_handler.write("]")
+
+    def _iter_finding_descriptions(self):
+        for finding in self._get_knowledge_base().get_all_findings_iter():
+            description = getattr(finding, "_desc", None)
+            if description:
+                yield description
+
+    def _iter_finding_items(self):
         for info in self._get_knowledge_base().get_all_findings_iter():
             post_data = info.get_mutant().get_data().encode("utf-8")
-            item = {
+            yield {
                 "Severity": info.get_severity(),
                 "Name": info.get_name(),
                 "HTTP method": info.get_method(),
@@ -124,28 +193,6 @@ class json_file(OutputPlugin):
                 "VulnDB ID": info.get_vulndb_id(),
                 "Description": info.get_desc(),
             }
-            items.append(item)
-
-        res = {
-            "w3af-version": get_w3af_version.get_w3af_version(),
-            "scan-info": {
-                "target_urls": target_urls,
-                "target_domain": target_domain,
-                "enabled_plugins": enabled_plugins,
-                "findings": findings,
-                "known_urls": known_urls,
-            },
-            "start": self._timestamp,
-            "start-long": self._long_timestamp,
-            "items": items,
-        }
-
-        try:
-            with open(self.output_file, "w", encoding="utf-8") as output_handler:
-                json.dump(res, output_handler, indent=4)
-        except OSError as ioe:
-            msg = 'Failed to open the output file for writing: "%s"'
-            self._output.error(msg % ioe)
 
     def get_long_desc(self):
         """
