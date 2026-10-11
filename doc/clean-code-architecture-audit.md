@@ -4543,6 +4543,18 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: caché LRU de Vulners acotada
+
+`vulners_db` ya no conserva en un diccionario ilimitado las respuestas de cada
+combinación de software, versión y tipo de consulta. Usa el `SynchronizedLRUDict`
+existente con capacidad fija, manteniendo las consultas calientes y liberando
+las antiguas durante scans con muchas versiones detectadas.
+
+Verificación: **13 tests** de `vulners_db` pasan con servidor HTTP local real;
+Black, Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**,
+con los gates heredados, callers standalone de bajo nivel y otros módulos
+grandes todavía pendientes.
+
 ## Actualización verificada: ordenación externa de `DiskList`
 
 `DiskList.ordered_iter()` ya no materializa toda la colección para ordenarla.

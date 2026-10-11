@@ -31,6 +31,7 @@ from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.cvss import cvss_to_severity
+from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import STRING
@@ -69,6 +70,7 @@ class vulners_db(GrepPlugin):
     VULNERS_API_URL = URL("https://vulners.com/")
     BULLETIN_FIELDS = ("title", "description", "cvss")
     CHECK_TYPES = ("software", "cpe")
+    VULNERABILITY_CACHE_SIZE = 512
 
     def __init__(self):
         GrepPlugin.__init__(self)
@@ -84,7 +86,7 @@ class vulners_db(GrepPlugin):
         self.rules_updated = False
 
         self._already_visited = ScalableBloomFilter()
-        self._vulnerability_cache = {}
+        self._vulnerability_cache = SynchronizedLRUDict(self.VULNERABILITY_CACHE_SIZE)
         self._multi_re = None
 
     def grep(self, request, response):

@@ -191,6 +191,8 @@ class TestVulnersDBUnit(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
+        kb.cleanup()
+        self.addCleanup(kb.cleanup)
 
         self.api = LocalVulners()
         self.api.server.start()
@@ -206,6 +208,8 @@ class TestVulnersDBUnit(GrepPluginTestCase):
         options["vulners_api_url"].set_value(self.api.url("/"))
         options["vulners_rules_url"].set_value(self.api.url(rules_path))
         plugin.set_options(options)
+        self.configure_plugin(plugin)
+        plugin.set_knowledge_base(kb)
         plugin.set_url_opener(self.uri_opener)
         return plugin
 
@@ -267,6 +271,16 @@ class TestVulnersDBUnit(GrepPluginTestCase):
         self.grep(plugin, "Microsoft-IIS/7.5", path="/b/")
 
         self.assertEqual(len(self.api.audit_requests), 1)
+
+    def test_vulnerability_cache_is_bounded(self):
+        plugin = self.make_plugin()
+
+        for key in range(plugin.VULNERABILITY_CACHE_SIZE + 1):
+            plugin._vulnerability_cache[key] = []
+
+        self.assertEqual(
+            len(plugin._vulnerability_cache), plugin.VULNERABILITY_CACHE_SIZE
+        )
 
     def test_same_path_is_analyzed_once(self):
         plugin = self.make_plugin()
