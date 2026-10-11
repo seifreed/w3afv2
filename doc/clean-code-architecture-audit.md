@@ -7699,3 +7699,13 @@ dependientes sin filtrar representación interna entre componentes.
 
 Verificación: **55 tests** de plugins, estrategia, excepciones y pausa pasan;
 Black, Ruff y mypy dirigido pasan en los módulos modificados.
+
+## Actualización verificada: snapshots del catálogo de output
+
+`OutputManager` ya copia los nombres recibidos y entrega copias al consultar
+los plugins configurados. Las capas consumidoras no pueden mutar por referencia
+la selección sin ejecutar la transición que crea y libera las instancias. La
+regresión cubre tanto la lista original como la devuelta por el getter.
+
+Verificación: la batería de lifecycle del output manager pasa con el nuevo caso;
+Black y Ruff pasan en los archivos modificados.

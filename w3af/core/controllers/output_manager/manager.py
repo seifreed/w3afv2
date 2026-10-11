@@ -528,13 +528,13 @@ class OutputManager(Process):
             self._end_output_plugin_instances(previous_plugins)
         finally:
             self._close_standalone_database()
-        self._output_plugin_names = output_plugins
+        self._output_plugin_names = list(output_plugins)
 
         for plugin_name in self._output_plugin_names:
             self._add_output_plugin(plugin_name)
 
     def get_output_plugins(self):
-        return self._output_plugin_names
+        return list(self._output_plugin_names)
 
     def set_plugin_options(self, plugin_name, plugin_options):
         """

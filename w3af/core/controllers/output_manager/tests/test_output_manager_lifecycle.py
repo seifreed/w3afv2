@@ -241,6 +241,17 @@ class TestOutputManagerPlugins(unittest.TestCase):
 
         self.assertTrue(previous.ended.is_set())
 
+    def test_output_plugin_names_are_snapshots(self):
+        manager = OutputManager()
+        configured_plugins = ["console"]
+
+        manager.set_output_plugins(configured_plugins)
+        configured_plugins.append("xml_file")
+        returned_plugins = manager.get_output_plugins()
+        returned_plugins.clear()
+
+        self.assertEqual(manager.get_output_plugins(), ["console"])
+
     def test_stop_releases_standalone_plugin_database(self):
         manager = OutputManager()
         plugin = manager._get_plugin_instance("xml_file")
