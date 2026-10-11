@@ -62,6 +62,14 @@ class TestPluginRegistryStructure(unittest.TestCase):
 
         self.assertEqual(core_plugins.get_enabled_plugins("crawl"), ["custom_crawl"])
 
+    def test_plugin_selection_snapshots_are_not_mutable(self):
+        core_plugins = CorePlugins(None, om.out, om.manager)
+
+        selected = core_plugins.get_all_enabled_plugins()
+        selected["crawl"].append("custom_crawl")
+
+        self.assertEqual(core_plugins.get_enabled_plugins("crawl"), [])
+
 
 @pytest.mark.smoke
 class TestW3afCorePlugins(unittest.TestCase):

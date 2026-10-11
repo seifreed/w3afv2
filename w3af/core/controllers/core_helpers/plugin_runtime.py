@@ -32,7 +32,7 @@ class PluginRuntime:
         plugin_names: dict[str, list[str]],
         plugin_options: dict[str, dict[str, Any]],
         active_plugins: dict[str, list[Plugin]],
-    ) -> None:
+    ) -> dict[str, list[str]]:
         """Resolve dependencies and create the instances for each plugin type."""
         resolver = PluginDependencyResolver(
             plugin_names,
@@ -53,6 +53,8 @@ class PluginRuntime:
                     plugin_instance,
                     plugin_options[plugin_type],
                 )
+
+        return plugin_names
 
     def mark_instance_ended(self, plugin_instance: Plugin) -> None:
         """Remember that another lifecycle owner already ended an instance."""

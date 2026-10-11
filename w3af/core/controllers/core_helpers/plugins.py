@@ -46,7 +46,6 @@ class CorePlugins(PluginCatalog):
         )
 
         self.initialized = False
-        self._plugins_names_dict: dict[str, list[str]]
         self._plugins_options: dict[str, dict[str, Any]]
         self._plugins: dict[str, list[Plugin]] = {}
         self.zero_enabled_plugins()
@@ -59,7 +58,6 @@ class CorePlugins(PluginCatalog):
         self._plugin_runtime.release_instances(self._plugins)
         plugin_types = self.get_plugin_types()
         self._plugin_selection.reset(plugin_types)
-        self._plugins_names_dict = self._plugin_selection.names
         self._plugins_options = {plugin_type: {} for plugin_type in plugin_types}
         self._plugins_options["attack"] = {}
         self._plugins = {plugin_type: [] for plugin_type in plugin_types}
@@ -84,7 +82,7 @@ class CorePlugins(PluginCatalog):
         self, plugin_type: str, plugin_names: list[str]
     ) -> None:
         """Set names for externally supplied plugin instances."""
-        self._plugins_names_dict[plugin_type] = list(plugin_names)
+        self._plugin_selection.set_selected(plugin_type, plugin_names)
 
     def init_plugins(self):
         """
@@ -92,7 +90,7 @@ class CorePlugins(PluginCatalog):
         If they don't do it, an exception is raised.
         """
         # This is inited before all, to have a full logging support.
-        self._output_manager.set_output_plugins(self._plugins_names_dict["output"])
+        self._output_manager.set_output_plugins(self._plugin_selection.get("output"))
 
         # Create an instance of each requested plugin and add it to the plugin
         # list. Plugins are added taking care of plugin dependencies and
@@ -163,13 +161,10 @@ class CorePlugins(PluginCatalog):
         }
 
     def get_all_enabled_plugins(self):
-        return {
-            plugin_type: list(plugin_names)
-            for plugin_type, plugin_names in self._plugins_names_dict.items()
-        }
+        return self._plugin_selection.get_all()
 
     def get_enabled_plugins(self, plugin_type):
-        return list(self._plugins_names_dict[plugin_type])
+        return self._plugin_selection.get(plugin_type)
 
     def set_plugins(self, plugin_names, plugin_type, raise_on_error=True):
         """
@@ -190,7 +185,7 @@ class CorePlugins(PluginCatalog):
         unknown_plugins = self._plugin_selection.set_plugins(
             plugin_names, plugin_type, raise_on_error
         )
-        plugin_names = self._plugin_selection.names[plugin_type]
+        plugin_names = self._plugin_selection.get(plugin_type)
 
         if plugin_type == "evasion":
             self._set_evasion_plugins(plugin_names)
@@ -238,11 +233,12 @@ class CorePlugins(PluginCatalog):
 
     def create_instances(self):
         """Create the resolved plugin instances for the current selection."""
-        self._plugin_runtime.create_instances(
-            self._plugins_names_dict,
+        resolved_names = self._plugin_runtime.create_instances(
+            self._plugin_selection.get_all(),
             self._plugins_options,
             self._plugins,
         )
+        self._plugin_selection.replace_all(resolved_names)
 
     def _set_plugin_generic(self, plugin_type, plugin_list):
         """
@@ -250,7 +246,7 @@ class CorePlugins(PluginCatalog):
         :param plugin_list: A list with the names of @plugin_type plugins to be
                             run.
         """
-        self._plugins_names_dict[plugin_type] = plugin_list
+        self._plugin_selection.set_selected(plugin_type, plugin_list)
 
     def _set_evasion_plugins(self, evasion_plugins):
         """
@@ -258,7 +254,7 @@ class CorePlugins(PluginCatalog):
                                 will be used.
         :return: No value is returned.
         """
-        self._plugins_names_dict["evasion"] = evasion_plugins
+        self._plugin_selection.set_selected("evasion", evasion_plugins)
         self.plugin_factory()
 
         self._w3af_core.uri_opener.set_evasion_plugins(

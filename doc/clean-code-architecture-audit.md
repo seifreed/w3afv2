@@ -7688,3 +7688,14 @@ interno.
 
 Verificación: la batería de estrategia, excepciones, pausa y plugins pasa; no
 quedan accesos externos a `_plugins_names_dict` en producción ni tests.
+
+## Actualización verificada: ownership de la selección de plugins
+
+`PluginSelection` es ahora el único dueño de sus nombres seleccionados. Sus
+lecturas devuelven snapshots y `PluginRuntime` devuelve explícitamente la
+selección enriquecida por dependencias para que `CorePlugins` la reincorpore
+sin compartir un diccionario mutable. Esto conserva el orden y los plugins
+dependientes sin filtrar representación interna entre componentes.
+
+Verificación: **55 tests** de plugins, estrategia, excepciones y pausa pasan;
+Black, Ruff y mypy dirigido pasan en los módulos modificados.
