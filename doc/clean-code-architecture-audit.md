@@ -4956,6 +4956,20 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: recorders de salida aislados entre tests
+
+`start_recording_output()` retiraba los `recording_output` anteriores del
+manager. Como cada recorder conserva todos los mensajes en una lista, el
+manager global retenía recorders y logs de tests ya terminados; además, cada
+mensaje futuro se copiaba a todas esas listas. El helper ahora conserva solo
+el recorder activo por manager, evitando crecimiento acumulativo de RAM en la
+suite.
+
+Verificación: el test de ciclo de vida nuevo y la suite del output manager
+pasan **37 tests**; Ruff y Black están limpios. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
+
 ## Actualización verificada: cierre explícito del `LogSink`
 
 `OutputManager` registra el sink que posee, lo cierra de forma idempotente antes

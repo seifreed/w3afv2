@@ -66,6 +66,12 @@ def start_recording_output(manager=None):
 
     :return: The recording_output instance
     """
+    output_manager = manager or om.manager
+    output_plugins = output_manager.get_output_plugin_inst()
+    output_plugins[:] = [
+        plugin for plugin in output_plugins if not isinstance(plugin, recording_output)
+    ]
+
     recorder = recording_output(manager)
-    (manager or om.manager).set_output_plugin_inst(recorder)
+    output_manager.set_output_plugin_inst(recorder)
     return recorder
