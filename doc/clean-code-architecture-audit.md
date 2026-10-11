@@ -6843,3 +6843,14 @@ ClamAV se limpian mediante cleanup.
 Verificación: Mypy pasa en `w3af` completo, Black y Ruff pasan en los archivos
 modificados, y las baterías focalizadas pasan **68 tests**. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: KB única para fixtures canned
+
+Las pruebas de infraestructura ya no crean una `DBKnowledgeBase` adicional por
+módulo: reutilizan la instancia que inyecta `CannedServerPluginTest`. Esto hace
+que los findings que escribe el plugin sean los mismos que comprueban las
+aserciones y evita mantener almacenes duplicados durante la suite.
+
+Verificación: la batería de infraestructura pasa **34 tests** y la batería de
+memoria, parser, diff y KB pasa **161 tests**; el score global continúa en
+**9.99/10**.
