@@ -38,6 +38,7 @@ from w3af.core.data.url.request_error_handler import RequestErrorHandler
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
 from w3af.core.data.url.request_api import RequestApi
 from w3af.core.data.url.request_metrics import RequestMetrics
+from w3af.core.data.url.request_mode_controller import RequestModeController
 from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.request_preflight import RequestPreflight
 from w3af.core.data.url.request_retry_handler import RequestRetryHandler
@@ -88,9 +89,6 @@ class ExtendedUrllib:
         self._sleep = sleep
         self._average_rtt_mutant = GetAverageRTTForMutant(self)
 
-        # In exploit mode we disable some timeout/delay/error handling stuff
-        self.exploit_mode = False
-
         # For error handling, the history starts with successful responses so
         # the unreachable-server pattern can be detected from the first errors.
         self._response_history = ResponseHistory()
@@ -99,6 +97,10 @@ class ExtendedUrllib:
         # For rate limiting and timeouts
         self._rate_limiter = RateLimiter(self.settings, sleep)
         self._timeout_manager = TimeoutManager(self.settings)
+        self._request_mode_controller = RequestModeController(
+            self.clear_timeout,
+            self.settings.close_connections,
+        )
         self._size_limit_override = SizeLimitOverride(self._configuration)
         self._timeout_adjustment = TimeoutAdjustmentPolicy(
             self._timeout_manager,
@@ -190,7 +192,7 @@ class ExtendedUrllib:
             self._request_control,
             self._response_history,
             self._reset_total_requests,
-            lambda: self.set_exploit_mode(False),
+            lambda: self._request_mode_controller.set_exploit_mode(False),
             self.clear_timeout,
             self._request_metrics.clear_rtt,
         )
@@ -213,6 +215,14 @@ class ExtendedUrllib:
     @property
     def _opener(self):
         return self._session_lifecycle.opener
+
+    @property
+    def exploit_mode(self):
+        return self._request_mode_controller.exploit_mode
+
+    @exploit_mode.setter
+    def exploit_mode(self, exploit_mode):
+        self._request_mode_controller.set_exploit_mode(exploit_mode)
 
     def get_average_rtt_for_mutant(self, *args, **kwargs):
         return self._average_rtt_mutant.get_average_rtt_for_mutant(*args, **kwargs)
@@ -251,17 +261,12 @@ class ExtendedUrllib:
             - The pause/stop feature
             - Memory debugging features
         """
-        self._request_preflight.prepare(request, self.exploit_mode)
+        self._request_preflight.prepare(
+            request, self._request_mode_controller.exploit_mode
+        )
 
     def set_exploit_mode(self, exploit_mode):
-        self.exploit_mode = exploit_mode
-
-        # Set the timeout to DEFAULT_TIMEOUT
-        self.clear_timeout()
-
-        # Closes all HTTPConnections so all new requests are sent using the
-        # DEFAULT_TIMEOUT
-        self.settings.close_connections()
+        self._request_mode_controller.set_exploit_mode(exploit_mode)
 
     def set_timeout(self, timeout, host):
         """

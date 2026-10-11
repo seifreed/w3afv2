@@ -80,6 +80,13 @@ class TestExtendedUrllibAPI(unittest.TestCase):
 
         self.assertEqual(self.uri_opener.GET(self.url()).get_body(), "index")
 
+    def test_exploit_mode_is_resettable(self):
+        self.uri_opener.set_exploit_mode(True)
+        self.assertTrue(self.uri_opener.exploit_mode)
+
+        self.uri_opener.set_exploit_mode(False)
+        self.assertFalse(self.uri_opener.exploit_mode)
+
     def test_setup_reuses_opener_until_settings_change(self):
         self.uri_opener.setup()
         opener = self.uri_opener._opener

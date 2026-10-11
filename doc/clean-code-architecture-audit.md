@@ -8027,3 +8027,16 @@ Bandit dirigido pasan. La nota no se declara 10/10: siguen pendientes la
 composición del constructor de `w3afCore`, la concentración de
 `ExtendedUrllib`, la cobertura global y los gates que recorren artefactos
 generados o dependencias externas.
+
+## Actualización verificada: modo de requests aislado
+
+El estado y la política del modo explotación salieron de `ExtendedUrllib` y
+pasaron a `RequestModeController`: conserva el flag público, reinicia los
+timeouts y cierra conexiones al cambiar de modo. La fachada HTTP mantiene
+`set_exploit_mode()` y la propiedad `exploit_mode`, mientras el preflight y el
+lifecycle de sesión consumen el colaborador explícito.
+
+Verificación: **37 tests** de URL pasan, incluida la prueba de cambio de modo;
+Black, Ruff, mypy dirigido, Bandit dirigido y la prueba de capas pasan. Sigue
+pendiente descomponer la composición restante de `ExtendedUrllib` y demostrar
+la cobertura global al 100%.
