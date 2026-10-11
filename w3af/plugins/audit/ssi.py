@@ -226,9 +226,11 @@ class ssi(AuditPlugin):
         msg = "Analyzing HTTP response %s to verify if SSI string is found"
         self._output.debug(msg % response.get_uri())
 
-        for matched_expected_result in self._persistent_multi_in.query(
-            response.get_body()
-        ):
+        persistent_multi_in = self._persistent_multi_in
+        if persistent_multi_in is None:
+            return
+
+        for matched_expected_result in persistent_multi_in.query(response.get_body()):
             # We found one of the expected results, now we search the
             # self._expected_mutant_dict to find which of the mutants sent it
             # and create the vulnerability

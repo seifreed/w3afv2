@@ -134,7 +134,7 @@ class rfi(AuditPlugin):
         So now we store stuff in self._vulns analyze them after all vulns are
         found and store the ones with highest risk.
         """
-        sorted_vulns = {}
+        sorted_vulns: dict[tuple[URL, str], list[Vuln]] = {}
 
         for v in self._vulns:
             data_tuple = (v.get_url(), v.get_token_name())
@@ -160,7 +160,7 @@ class rfi(AuditPlugin):
 
             for vuln in vulns_for_url_var:
 
-                this_vuln_severity = rank.get(vuln.get_severity())
+                this_vuln_severity = rank.get(vuln.get_severity(), -1)
                 if this_vuln_severity > highest_severity:
                     highest_severity_vuln = vuln
                     highest_severity = this_vuln_severity
@@ -168,7 +168,8 @@ class rfi(AuditPlugin):
                 # Don't keep the vulnerability in memory
                 self._vulns.remove(vuln)
 
-            self.kb_append_uniq(self, "rfi", highest_severity_vuln)
+            if highest_severity_vuln is not None:
+                self.kb_append_uniq(self, "rfi", highest_severity_vuln)
 
     def _correctly_configured(self):
         """
@@ -524,7 +525,7 @@ class rfi(AuditPlugin):
 
 class RFIWebHandler(http.server.BaseHTTPRequestHandler):
 
-    RESPONSE_BODY = None
+    RESPONSE_BODY = ""
 
     def do_GET(self):
         self.send_response(200)

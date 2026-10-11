@@ -38,6 +38,7 @@ from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.io import NamedStringIO
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.re_extract import ReExtract
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -78,7 +79,7 @@ class file_upload(AuditPlugin):
         AuditPlugin.__init__(self)
 
         # Internal attributes
-        self._urls_recently_tested = deque(maxlen=300)
+        self._urls_recently_tested: deque[URL] = deque(maxlen=300)
         self._urt_lock = RLock()
 
         # User configured
@@ -209,14 +210,14 @@ class file_upload(AuditPlugin):
         debugging_id_repeater = repeat(debugging_id)
         http_response_repeater = repeat(mutant_response)
 
-        args = zip(
+        map_args = zip(
             to_verify_filtered,
             mutant_repeater,
             http_response_repeater,
             debugging_id_repeater,
         )
 
-        self.worker_pool.map_multi_args(self._confirm_file_upload, args)
+        self.worker_pool.map_multi_args(self._confirm_file_upload, map_args)
 
     def _get_references_regex(self, mutant, mutant_response):
         """
@@ -290,14 +291,14 @@ class file_upload(AuditPlugin):
         http_response_repeater = repeat(mutant_response)
         url_generator = self._generate_urls(domain_path_set, mutant.uploaded_file_name)
 
-        args = zip(
+        map_args = zip(
             url_generator,
             mutant_repeater,
             http_response_repeater,
             debugging_id_repeater,
         )
 
-        self.worker_pool.map_multi_args(self._confirm_file_upload, args)
+        self.worker_pool.map_multi_args(self._confirm_file_upload, map_args)
 
     def _confirm_file_upload(self, path, mutant, http_response, debugging_id):
         """

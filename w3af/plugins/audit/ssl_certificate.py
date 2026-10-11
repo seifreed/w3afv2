@@ -219,8 +219,8 @@ class ssl_certificate(AuditPlugin):
             s.connect((domain, port))
         except OSError as se:
             msg = 'Failed to connect to %s:%s. Socket error: "%s"'
-            args = (domain, port, se)
-            self._output.debug(msg % args)
+            connection_args = (domain, port, se)
+            self._output.debug(msg % connection_args)
             return
 
         try:
@@ -246,8 +246,8 @@ class ssl_certificate(AuditPlugin):
 
         except (OSError, ValueError, TypeError, AttributeError) as e:
             msg = 'Unhandled %s exception in _ssl_connect_specific_protocol(): "%s"'
-            args = (e.__class__.__name__, e)
-            self._output.debug(msg % args)
+            error_args = (e.__class__.__name__, e)
+            self._output.debug(msg % error_args)
         else:
             result = Result()
 

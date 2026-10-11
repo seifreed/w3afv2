@@ -6371,3 +6371,18 @@ cuerpos no tipados, Ruff y Black pasan en producción y fixture. La suite
 completa histórica de XXE mantiene **4 fallos y 2 tests pasados** de detección
 con la implementación anterior y con la actual; no se atribuyen a este cambio.
 El score global continúa en **9.99/10**.
+
+## Actualización verificada: estado tipado en cuatro auditores
+
+`file_upload`, `rfi`, `ssi` y `ssl_certificate` dejan explícitos sus estados
+mutables, separan los argumentos de logging y de los pools de workers, y
+comprueban el estado opcional de los analizadores antes de usarlo. `rfi`
+también conserva un cuerpo vacío válido para su handler HTTP hasta que el
+plugin lo configura.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los cuatro
+módulos; RFI pasa **15 tests** y SSI **3 tests**. `file_upload` mantiene 2
+fallos porque el entorno no resuelve `php_moth-fallback`; SSL mantiene 4
+fallos porque su fixture histórico no configura `self._output` antes de
+invocar el plugin. Ninguno procede de este cambio. El score global continúa
+en **9.99/10**.
