@@ -46,8 +46,7 @@ def verify_has_db(meth):
 
     @wraps(meth)
     def inner_verify_has_db(self, *args, **kwds):
-        if self._db is None:
-            raise RuntimeError("The database is not initialized yet.")
+        self._require_db()
         return meth(self, *args, **kwds)
 
     return inner_verify_has_db
@@ -105,14 +104,12 @@ class HistoryItem:
     charset = None
 
     def __init__(self, db: SQLiteDBMS):
-        self._db = db
+        self._db: SQLiteDBMS | None = db
         self._history_lock = threading.RLock()
 
-        self._session_dir = os.path.join(
-            get_temp_dir(), self._db.get_file_name() + "_traces"
-        )
+        self._session_dir = os.path.join(get_temp_dir(), db.get_file_name() + "_traces")
         self._history_repository = HistoryRepository(
-            self._db,
+            db,
             self._DATA_TABLE,
             self._COLUMNS,
             self._PRIMARY_KEY_COLUMNS,
@@ -123,6 +120,11 @@ class HistoryItem:
             self._session_dir, self._trace_serializer
         )
         self._trace_compressor = HistoryTraceCompressor(self._session_dir)
+
+    def _require_db(self) -> SQLiteDBMS:
+        if self._db is None:
+            raise RuntimeError("The database is not initialized yet.")
+        return self._db
 
     def get_session_dir(self):
         return self._session_dir
@@ -180,7 +182,7 @@ class HistoryItem:
 
         result = []
         for row in rows:
-            item = self.__class__(db=self._db)
+            item = self.__class__(db=self._require_db())
             item._load_from_row(row)
             result.append(item)
         return result
@@ -237,7 +239,7 @@ class HistoryItem:
         """
         Return item by ID
         """
-        result_item = self.__class__(db=self._db)
+        result_item = self.__class__(db=self._require_db())
         result_item.load(_id)
         return result_item
 

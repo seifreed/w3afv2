@@ -5997,3 +5997,13 @@ sin cambiar las consultas ni el filtrado de resultados.
 
 Verificación: Bing y PKS pasan **11 tests**; Mypy estricto, Ruff y Black pasan
 en ambos módulos. El score global continúa en **9.99/10**.
+
+## Actualización verificada: ciclo de vida explícito del historial
+
+`HistoryItem` declara la base de datos como recurso opcional porque `clear()`
+la libera. El acceso a ese recurso pasa por `_require_db()`, que centraliza el
+error de ciclo de vida y evita propagar valores opcionales a repositorios y
+elementos derivados.
+
+Verificación: historia e identificadores SQL pasan **30 tests**; Mypy estricto,
+Ruff y Black pasan en el módulo. El score global continúa en **9.99/10**.
