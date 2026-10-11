@@ -8152,3 +8152,8 @@ propios del cambio. Clean Architecture sube a **10/10** y el global a
 **9.9/10**. Siguen pendientes la demostración de cobertura global al 100% y
 los errores de `mypy .`/`bandit -r .` causados por artefactos y dependencias
 externas ya documentados.
+
+La comprobación adicional de memoria repitió **30 ciclos reales** de creación
+y destrucción de `w3afCore`: el RSS creció **2.45 MiB** en la inicialización y
+se mantuvo estable entre los ciclos 10, 20 y 30; no quedó ningún hilo de
+`OutputManager`. No se observa crecimiento lineal por ciclo.
