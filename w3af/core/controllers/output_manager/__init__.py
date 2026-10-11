@@ -91,7 +91,7 @@ def close_default_output_manager() -> None:
     """Stop and forget the process-level output manager, if any."""
     global _manager, _out
 
-    output = _out
+    output = globals().pop("out", None) or _out
     _out = None
     if output is not None:
         output.close()

@@ -342,6 +342,7 @@ class TestOutputManagerModule(unittest.TestCase):
         self.assertTrue(manager.is_alive())
 
     def test_close_default_manager_releases_global_resources(self):
+        previous_output = om.out
         manager = OutputManager()
         manager.start()
         om.manager = manager
@@ -350,6 +351,7 @@ class TestOutputManagerModule(unittest.TestCase):
         close_default_output_manager()
 
         self.assertFalse(manager.is_alive())
+        self.assertFalse(previous_output._closed)
         self.assertIsNone(om.__dict__.get("_manager"))
         self.assertIsNone(om.__dict__.get("_out"))
 

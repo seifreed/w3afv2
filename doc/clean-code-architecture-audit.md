@@ -7150,3 +7150,14 @@ los handlers del bridge anteriores al reconfigurar.
 
 Verificación: logging bridge, factory y transferencia pasan **12 tests y 3
 omitidos**; Black y Ruff pasan en el archivo modificado.
+
+## Actualización verificada: cierre coherente del output global
+
+`close_default_output_manager()` podía cerrar el sink privado anterior aunque
+un caller hubiera sustituido explícitamente `om.out`. Eso dejaba el sink
+restaurado por los tests cerrado y descartaba mensajes posteriores. El cierre
+ahora consume primero el recurso público explícito, y la regresión verifica que
+el sink anterior permanece abierto.
+
+Verificación: output manager y plugins pasan **150 tests y 9 subtests**; Black y
+Ruff pasan en los archivos modificados.
