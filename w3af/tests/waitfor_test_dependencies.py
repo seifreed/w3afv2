@@ -76,7 +76,7 @@ def waitfor_test_dependencies():
 
 def wait_until_stable():
     print("\n\nWaiting for dependencies to be stable...\n\n")
-    test_results = {}
+    test_results: dict[str, int] = {}
 
     for _ in range(LOOPS):
         time.sleep(DELAY)

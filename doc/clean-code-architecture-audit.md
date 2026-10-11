@@ -6625,3 +6625,12 @@ instalación comprueba primero que la expresión regular encontró una ruta.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **19 tests**
 de dependency check pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: estado del script de dependencias de tests
+
+El acumulador de estabilidad del script auxiliar declara explícitamente el
+mapa de URL a número de comprobaciones, evitando inferencia parcial en un
+camino que se ejecuta durante la preparación de la suite.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en el script. No
+se ejecutó contra servicios externos. El score global continúa en **9.99/10**.
