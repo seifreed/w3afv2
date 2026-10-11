@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from functools import partial
+from typing import Any
 
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
@@ -36,7 +37,7 @@ class Shell(_Shell):
     """Data-layer Shell wired with the plugins-layer payload handler."""
 
     _payload_handler = payload_handler
-    _output = None
+    _output: Any = None
 
     def set_output(self, output):
         self._output = output

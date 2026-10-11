@@ -5783,3 +5783,15 @@ del informe permanecen sin cambios.
 Verificación: la suite de XML pasa **32 tests**; mypy global baja a **670
 errores en 266 archivos** desde 680, y Black, Ruff y Bandit del módulo pasan
 sin hallazgos. El score global continúa en **9.99/10**.
+
+## Actualización verificada: búsqueda binaria del shell XPath
+
+`XPathReader._get_data_len` usa ahora división entera para mantener sus límites
+como enteros durante la búsqueda binaria. También se tipan los colaboradores
+inyectados del shell en su adaptador común, evitando opcionales artificiales
+en cada shell concreto.
+
+Verificación: mypy global baja a **646 errores en 261 archivos** desde 670;
+Black, Ruff y Bandit de los módulos modificados pasan. La prueba de integración
+XPath queda sin validar en este entorno porque `http://fallback` no resuelve;
+el score global continúa en **9.99/10**.

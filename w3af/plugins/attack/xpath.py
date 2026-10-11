@@ -24,6 +24,7 @@ import difflib
 import re
 import textwrap
 from secrets import randbelow
+from typing import Any
 
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.threads.threadpool import return_args
@@ -352,7 +353,7 @@ class XPathReader(Shell):
 
         while True:
 
-            mid = (maxl + minl) / 2
+            mid = (maxl + minl) // 2
             self._output.debug(f"MAX:{maxl}, MID:{mid}, MIN:{minl}")
 
             if self._verify_data_len_eq(mid):
@@ -493,7 +494,7 @@ class IsErrorResponse:
         self.vuln_obj = vuln_obj
         self.url_opener = url_opener
         self.use_difflib = use_difflib
-        self.base_response = None
+        self.base_response: Any = None
 
     def __reduce__(self):
         """
