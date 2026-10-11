@@ -309,29 +309,38 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :return: A list of all info instances with severity in (LOW, MEDIUM,
                  HIGH)
         """
-        return self._get_all_by_severity((LOW, MEDIUM, HIGH))
+        return list(self.get_all_vulns_iter())
+
+    @requires_setup
+    def get_all_vulns_iter(self):
+        """Yield vulnerability findings without materializing the result."""
+        yield from self._get_all_by_severity_iter((LOW, MEDIUM, HIGH))
 
     @requires_setup
     def get_all_infos(self):
         """
         :return: A list of all info instances with severity eq INFORMATION
         """
-        return self._get_all_by_severity((INFORMATION,))
+        return list(self.get_all_infos_iter())
+
+    @requires_setup
+    def get_all_infos_iter(self):
+        """Yield informational findings without materializing the result."""
+        yield from self._get_all_by_severity_iter((INFORMATION,))
 
     def _get_all_by_severity(self, severities):
+        return list(self._get_all_by_severity_iter(severities))
+
+    def _get_all_by_severity_iter(self, severities):
         query = "SELECT pickle FROM %s"
         results = self.db.select_in_batches(query % self.table_name)
-
-        result_lst = []
 
         for r in results:
             obj = loads(r[0])
             if hasattr(obj, "get_severity"):
                 severity = obj.get_severity()
                 if severity in severities:
-                    result_lst.append(obj)
-
-        return result_lst
+                    yield obj
 
     @requires_setup
     def cleanup(self):

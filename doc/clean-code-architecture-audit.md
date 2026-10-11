@@ -4826,3 +4826,14 @@ Verificación: `test_plugins.py` pasa **32 tests** y la suite de
 `OutputManager` pasa **37 tests**; Black, Ruff y mypy focales pasan. El score
 global continúa en **9.99/10**, con los fallbacks standalone y los gates
 globales heredados todavía pendientes.
+
+## Actualización verificada: iteración de findings por severidad
+
+La KB conserva `get_all_vulns()` y `get_all_infos()` para callers que necesitan
+una lista, pero expone ahora `get_all_vulns_iter()` y `get_all_infos_iter()` para
+recorridos grandes. `email_report` usa el iterador y deja de crear una lista
+intermedia de todas las vulnerabilidades antes de construir el mensaje.
+
+Verificación: tests de KB y email pasan; Black, Ruff, mypy y Bandit focales
+están limpios. El score global continúa en **9.99/10**, con los fallbacks
+standalone y los gates globales heredados todavía pendientes.

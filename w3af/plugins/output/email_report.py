@@ -91,9 +91,7 @@ class email_report(OutputPlugin):
         # Only vulnerabilities are sent via email, the info objects we don't
         # care about in this output plugin. Modify this, or add a configuration
         # setting if you do.
-        vulns = self._get_knowledge_base().get_all_vulns()
-
-        for v in vulns:
+        for v in self._get_knowledge_base().get_all_vulns_iter():
             data += v.get_desc() + "\n"
 
         msg = MIMEText(data)

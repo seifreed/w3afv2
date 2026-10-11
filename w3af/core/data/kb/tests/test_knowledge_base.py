@@ -334,6 +334,8 @@ class TestKnowledgeBase(unittest.TestCase):
 
         self.assertEqual(kb.get_all_vulns(), [v1, vset])
         self.assertEqual(kb.get_all_infos(), [i1, iset])
+        self.assertEqual(list(kb.get_all_vulns_iter()), [v1, vset])
+        self.assertEqual(list(kb.get_all_infos_iter()), [i1, iset])
         self.assertEqual(kb.get_all_findings(), [i1, iset, v1, vset])
 
     def test_all_of_info_exclude_ids(self):
