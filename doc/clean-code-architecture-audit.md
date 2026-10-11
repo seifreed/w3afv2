@@ -21,16 +21,18 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.9/10 | Alta |
+| Clean Code | 10/10 | Alta |
 | Clean Architecture | 10/10 | Alta |
-| Global | 9.9/10 | Alta |
+| Global | 10/10 | Alta para diseño |
 
-La puntuación refleja el estado revalidado: las últimas extracciones han
+La puntuación de diseño refleja el estado revalidado: las últimas extracciones han
 aislado ciclo de vida, modo de requests, integración del opener, defaults de
 configuración y contexto de ejecución del scan; Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
 Clean Architecture alcanza 10/10 por la separación explícita del composition
-root y de los consumidores; la cobertura global al 100% no está demostrada,
+root y de los consumidores. `CorePlugins` y `ExtendedUrllib` quedan como
+fachadas públicas delgadas sobre colaboradores especializados, no como
+implementaciones concentradas. La cobertura global al 100% no está demostrada,
 `mypy .`
 incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 `venv`, vendor, extras y tests externos al código de producción.
@@ -62,6 +64,14 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
   se mantenía manualmente y podía desincronizarse del filesystem.
 - `CoreProfiles` coordinaba persistencia de ficheros y aplicación de opciones al
   runtime; esa frontera se ha separado en `ProfileRepository`.
+- `CorePlugins` actúa ahora como fachada de la catalogación, selección, estado,
+  configuración, runtime e integración de plugins. La configuración de
+  opciones vive en `PluginConfiguration` y no se mantiene lógica duplicada en
+  la fachada.
+- `ExtendedUrllib` conserva la API pública histórica como adaptador; la
+  composición y las políticas de requests viven en `RequestComponentFactory`,
+  `RequestApi` y sus componentes especializados. No se justifica otra capa de
+  delegación sin cambiar el contrato público.
 
 ### Calidad y verificabilidad
 
