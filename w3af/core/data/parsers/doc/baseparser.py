@@ -74,6 +74,10 @@ class BaseParser:
         """
         raise NotImplementedError
 
+    def parse(self):
+        """Parse the response into the parser-specific representation."""
+        raise NotImplementedError
+
     def _decode_url(self, url_string):
         """
         Decode `url_string` using urllib's url-unquote
@@ -154,6 +158,10 @@ class BaseParser:
                  trustworthy.
         """
         raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_references")
+
+    def get_references_of_tag(self, tag_type):
+        """Return references associated with a specific document tag."""
+        return self._return_empty_list(tag_type)
 
     def get_emails(self, domain=None):
         """

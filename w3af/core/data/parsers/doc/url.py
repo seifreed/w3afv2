@@ -21,12 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
+import importlib
 import re
 import socket
 import urllib.parse
 from functools import lru_cache, wraps
-
-from tldextract import TLDExtract
+from typing import Any
 
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
@@ -39,12 +39,14 @@ from w3af.core.data.misc.encoding import (
 from w3af.core.data.misc.ip_address import is_ip_address
 from w3af.core.data.parsers.doc.url_query import parse_qs, parse_qsl
 
+tldextract: Any = importlib.import_module("tldextract")
+
 __all__ = ["URL", "InvalidURLError", "parse_qs", "parse_qsl"]
 
 
 @lru_cache(maxsize=1)
 def _get_tld_extractor():
-    return TLDExtract(suffix_list_urls=(), fallback_to_snapshot=True)
+    return tldextract.TLDExtract(suffix_list_urls=(), fallback_to_snapshot=True)
 
 
 def set_changed(meth):
@@ -226,15 +228,15 @@ class URL(DiskItem):
         """
         :return: A <unicode> representation of the URL
         """
-        data = (
+        data: list[str] = [
             self.scheme,
             self.netloc,
             self.path,
             self.params,
             self.querystring,
             self.fragment,
-        )
-        data = [smart_unicode(s) for s in data]
+        ]
+        data = [smart_unicode(value) for value in data]
 
         return urllib.parse.urlunparse(data)
 

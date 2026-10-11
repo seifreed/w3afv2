@@ -21,15 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import io
+import importlib
 import logging
 import re
 import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import ClassVar
-
-from lxml import etree
+from typing import Any, ClassVar
 
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_unicode
@@ -37,6 +36,8 @@ from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.exceptions import ParserException
 from w3af.core.data.parsers.utils.form_constants import EXCLUDE, INCLUDE
+
+etree: Any = importlib.import_module("lxml.etree")
 
 # Errors that handling a single (potentially broken) tag might raise, they are
 # logged and the parser continues with the next tag
@@ -604,8 +605,8 @@ class SGMLParser(BaseParser):
         #
         for urlstr in self.META_URL_REDIR_RE.findall(content):
             urlstr = self._decode_url(urlstr.strip())
-            url = str(self._base_url.url_join(urlstr))
-            url = URL(url, encoding=self._encoding)
+            url_string = str(self._base_url.url_join(urlstr))
+            url = URL(url_string, encoding=self._encoding)
             self._tag_and_url.add(("meta", url))
 
     def _handle_form_tag_start(self, tag, tag_name, attrs):

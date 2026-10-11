@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.parsers.doc.html import HTMLParser
+from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 from w3af.core.data.parsers.doc.pdf import PDFParser
 from w3af.core.data.parsers.doc.swf import SWFParser
@@ -50,8 +51,8 @@ class DocumentParser:
 
         :param parsers: The parser classes to try, in order
         """
-        self._parser = None
-        self._response_repr = None
+        self._parser: BaseParser | None = None
+        self._response_repr: str | None = None
 
         if http_resp.is_image():
             msg = "There is no parser for images."
@@ -83,7 +84,7 @@ class DocumentParser:
         """
         :return: A list of forms.
         """
-        return self._parser.get_forms(configuration)
+        return self._get_parser().get_forms(configuration)
 
     def get_references(self):
         """
@@ -102,7 +103,7 @@ class DocumentParser:
         are much more accurate and they might deserve a different
         treatment.
         """
-        parsed_refs, re_refs = self._parser.get_references()
+        parsed_refs, re_refs = self._get_parser().get_references()
 
         parsed_refs.sort(key=url_sort_key)
         re_refs.sort(key=url_sort_key)
@@ -115,7 +116,7 @@ class DocumentParser:
         :return: A list of references related to the tag that is passed as
                  parameter.
         """
-        return self._parser.get_references_of_tag(tag)
+        return self._get_parser().get_references_of_tag(tag)
 
     def get_emails(self, domain=None):
         """
@@ -124,40 +125,46 @@ class DocumentParser:
                        are returned.
         :return: A list of email accounts that are inside the document.
         """
-        return self._parser.get_emails(domain)
+        return self._get_parser().get_emails(domain)
 
     def get_comments(self):
         """
         :return: A list of comments.
         """
-        return self._parser.get_comments()
+        return self._get_parser().get_comments()
 
     def get_meta_redir(self):
         """
         :return: A list of the meta redirection tags.
         """
-        return self._parser.get_meta_redir()
+        return self._get_parser().get_meta_redir()
 
     def get_meta_tags(self):
         """
         :return: A list of all meta tags.
         """
-        return self._parser.get_meta_tags()
+        return self._get_parser().get_meta_tags()
 
     def get_clear_text_body(self):
         """
         :return: Only the text, no tags, which is present in a document.
         """
-        return self._parser.get_clear_text_body()
+        return self._get_parser().get_clear_text_body()
 
     def clear(self):
-        return self._parser.clear()
+        return self._get_parser().clear()
 
     def get_parser(self):
-        return self._parser
+        return self._get_parser()
+
+    def _get_parser(self) -> BaseParser:
+        parser = self._parser
+        if parser is None:
+            raise RuntimeError("DocumentParser has no selected parser")
+        return parser
 
     def __repr__(self):
-        klass = self._parser.__class__.__name__
+        klass = self._get_parser().__class__.__name__
         return f'<{klass} DocumentParser for "{self._response_repr}">'
 
     __str__ = __repr__

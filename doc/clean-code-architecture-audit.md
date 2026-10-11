@@ -5701,3 +5701,26 @@ Verificación: las suites de formularios pasan **63 tests y 7 subtests**; Black,
 Ruff, mypy focal y Bandit focal están limpios. El score global continúa en
 **9.99/10**, con los gates globales heredados y la cobertura global todavía
 pendientes.
+
+## Actualización verificada: contrato común de parsers
+
+`BaseParser` declara ahora `parse()` y `get_references_of_tag()`, que son las
+operaciones que `DocumentParser` delega al parser concreto. `DocumentParser`
+centraliza además la validación de que existe un parser seleccionado, evitando
+accesos opcionales repetidos y errores ambiguos en cada método público.
+
+Verificación: `DocumentParser` pasa **18 tests**; Black, Ruff, mypy focal y
+Bandit focal están limpios. El score global continúa en **9.99/10**, con los
+gates globales heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: contratos de parsers de URL, SGML y PDF
+
+El parser de URL conserva el resultado normalizado como lista de texto, el
+parser SGML separa la URL textual de la instancia `URL`, y el extractor PDF
+declara el conjunto de páginas que recibe `pdfminer`. Se eliminan tres
+ambigüedades de tipo sin cambiar el formato ni el flujo de parsing.
+
+Verificación: las comprobaciones focales de estos módulos quedan limpias en
+Black, Ruff, mypy y Bandit; la suite completa de parsers sigue pendiente. El
+score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.

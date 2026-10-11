@@ -21,15 +21,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import io
-
-from pdfminer.converter import HTMLConverter
-from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfparser import PDFSyntaxError
+import importlib
+from typing import Any
 
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.sgml import SGMLParser
 from w3af.core.data.parsers.utils.re_extract import ReExtract
+
+pdfminer_converter: Any = importlib.import_module("pdfminer.converter")
+pdfminer_pdfinterp: Any = importlib.import_module("pdfminer.pdfinterp")
+pdfminer_pdfpage: Any = importlib.import_module("pdfminer.pdfpage")
+pdfminer_pdfparser: Any = importlib.import_module("pdfminer.pdfparser")
+
+PDFPageInterpreter = pdfminer_pdfinterp.PDFPageInterpreter
+PDFResourceManager = pdfminer_pdfinterp.PDFResourceManager
+PDFPage = pdfminer_pdfpage.PDFPage
+PDFSyntaxError = pdfminer_pdfparser.PDFSyntaxError
 
 
 class PDFParser(BaseParser):
@@ -133,7 +140,7 @@ def pdf_to_text(pdf_string):
     )
 
     document_io = io.BytesIO(as_pdf_bytes(pdf_string))
-    pagenos = set()
+    pagenos: set[int] = set()
     try:
         interpreter = PDFPageInterpreter(rsrcmgr, device)
         for page in PDFPage.get_pages(
@@ -149,6 +156,6 @@ def pdf_to_text(pdf_string):
     return SGMLParser.ANY_TAG_MATCH.sub("", output.read())
 
 
-class NoPageHTMLConverter(HTMLConverter):
+class NoPageHTMLConverter(pdfminer_converter.HTMLConverter):
     def write_footer(self):
         self.write("</body></html>\n")
