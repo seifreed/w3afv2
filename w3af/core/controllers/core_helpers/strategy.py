@@ -22,19 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import queue
-import time
 from multiprocessing import TimeoutError
 
 from w3af.core.constants import POISON_PILL
-from w3af.core.controllers.core_helpers.consumers.audit import audit
-from w3af.core.controllers.core_helpers.consumers.auth import auth
-from w3af.core.controllers.core_helpers.consumers.bruteforce import bruteforce
-from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
-    CrawlInfrastructure,
-)
-from w3af.core.controllers.core_helpers.consumers.grep import grep
-from w3af.core.controllers.core_helpers.consumers.seed import seed
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
+from w3af.core.controllers.core_helpers.strategy_consumer_runtime import (
+    StrategyConsumerRuntime,
+)
 from w3af.core.controllers.core_helpers.target_validation import (
     alert_if_target_is_301_all,
     replace_targets_with_redir,
@@ -67,47 +61,30 @@ class CoreStrategy:
         self._output = output
         self._configuration = configuration
 
-        # Consumer threads
-        self._grep_consumer = None
-        self._audit_consumer = None
-        self._auth_consumer = None
-
-        # Producer/consumer threads
-        self._discovery_consumer = None
-        self._bruteforce_consumer = None
-
-        # Producer threads
-        self._seed_producer = seed(self._w3af_core, self._knowledge_base, self._output)
+        self._consumer_runtime = StrategyConsumerRuntime(
+            self._w3af_core,
+            self._knowledge_base,
+            self._output,
+            self._configuration,
+        )
 
         # Also use this method to clear observers
         self._observers = []
 
     def get_grep_consumer(self):
-        return self._grep_consumer
+        return self._consumer_runtime.get_grep_consumer()
 
     def get_audit_consumer(self):
-        return self._audit_consumer
+        return self._consumer_runtime.get_audit_consumer()
 
     def get_discovery_consumer(self):
-        return self._discovery_consumer
+        return self._consumer_runtime.get_discovery_consumer()
 
     def get_bruteforce_consumer(self):
-        return self._bruteforce_consumer
+        return self._consumer_runtime.get_bruteforce_consumer()
 
     def set_consumers_to_none(self):
-        # Consumer threads
-        self._grep_consumer = None
-        self._audit_consumer = None
-        self._auth_consumer = None
-
-        # Producer/consumer threads
-        self._discovery_consumer = None
-        self._bruteforce_consumer = None
-
-        # Producer threads
-        self._seed_producer = seed(self._w3af_core, self._knowledge_base, self._output)
-
-        # Also use this method to clear observers
+        self._consumer_runtime.reset()
         self._observers = []
 
     def start(self):
@@ -178,35 +155,7 @@ class CoreStrategy:
         Consume (without processing) all queues with data which are in
         the consumers and then send a poison-pill to that queue.
         """
-        consumers = ["discovery", "audit", "auth", "bruteforce", "grep"]
-
-        for consumer in consumers:
-
-            consumer_inst = getattr(self, f"_{consumer}_consumer")
-
-            if consumer_inst is None:
-                msg = "%s consumer is None. Skipping call to terminate()"
-                self._output.debug(msg % consumer)
-                continue
-
-            self._output.debug(f"Calling terminate() on {consumer} consumer")
-            start = time.time()
-
-            # Set it immediately to None to avoid any race conditions where
-            # the terminate() method is called twice (from different
-            # threads) and before the first call finishes
-            #
-            # The getattr/setattr tricks are required to make sure that "the
-            # real consumer instance" is set to None. Do not modify unless
-            # you know what you're doing!
-            setattr(self, f"_{consumer}_consumer", None)
-
-            consumer_inst.terminate()
-
-            spent = time.time() - start
-            self._output.debug(
-                f"terminate() on {consumer} consumer took {spent:.2f} seconds"
-            )
+        self._consumer_runtime.terminate()
 
         # The observers run their own (non-daemon) threads, which need to be
         # stopped before set_consumers_to_none() forgets about them
@@ -242,16 +191,7 @@ class CoreStrategy:
         is used to calculate the input / output speeds and is now useless since
         the number of consumers has changed.
         """
-        consumers = [
-            self.get_grep_consumer(),
-            self.get_audit_consumer(),
-            self.get_discovery_consumer(),
-            self.get_bruteforce_consumer(),
-        ]
-
-        consumers = [consumer for consumer in consumers if consumer is not None]
-        for consumer in consumers:
-            consumer.in_queue.clear()
+        self._consumer_runtime.clear_queue_speed_data()
 
     def add_observer(self, observer):
         self._observers.append(observer)
@@ -262,10 +202,10 @@ class CoreStrategy:
         :return: None
         """
         for consumer in {
-            self._audit_consumer,
-            self._bruteforce_consumer,
-            self._discovery_consumer,
-            self._grep_consumer,
+            self.get_audit_consumer(),
+            self.get_bruteforce_consumer(),
+            self.get_discovery_consumer(),
+            self.get_grep_consumer(),
         }:
             if consumer is not None:
                 for observer in self._observers:
@@ -281,23 +221,27 @@ class CoreStrategy:
         the "main thread" and lives during the whole scan process.
         """
         _input = [
-            self._seed_producer,
-            self._discovery_consumer,
-            self._bruteforce_consumer,
+            self._consumer_runtime.get_seed_producer(),
+            self.get_discovery_consumer(),
+            self.get_bruteforce_consumer(),
         ]
         _input = [_f for _f in _input if _f]
 
         output = [
-            self._audit_consumer,
-            self._discovery_consumer,
-            self._bruteforce_consumer,
+            self.get_audit_consumer(),
+            self.get_discovery_consumer(),
+            self.get_bruteforce_consumer(),
         ]
         output = [_f for _f in output if _f]
 
         # Only check if these have exceptions and bring them to the main
         # thread in order to be handled by the ExceptionHandler and the
         # w3afCore
-        _other = [self._audit_consumer, self._auth_consumer, self._grep_consumer]
+        _other = [
+            self.get_audit_consumer(),
+            self._consumer_runtime.get_auth_consumer(),
+            self.get_grep_consumer(),
+        ]
         _other = [_f for _f in _other if _f]
 
         finished: set[object] = set()
@@ -452,81 +396,25 @@ class CoreStrategy:
         self._w3af_core.exception_handler.handle_exception_data(exception_data)
 
     def _setup_crawl_infrastructure(self):
-        """
-        Setup the crawl and infrastructure consumer:
-            * Retrieve all plugins from the core,
-            * Create the consumer instance and more,
-        """
-        crawl_plugins = self._w3af_core.plugins.plugins["crawl"]
-        infrastructure_plugins = self._w3af_core.plugins.plugins["infrastructure"]
-
-        if crawl_plugins or infrastructure_plugins:
-            discovery_plugins = infrastructure_plugins + crawl_plugins
-
-            self._discovery_consumer = CrawlInfrastructure(
-                discovery_plugins,
-                self._w3af_core,
-                self._configuration.get("max_discovery_time"),
-                knowledge_base=self._knowledge_base,
-                output=self._output,
-                configuration=self._configuration,
-            )
-            self._discovery_consumer.start()
+        self._consumer_runtime.setup_crawl_infrastructure()
 
     def _setup_grep(self):
-        """
-        Setup the grep consumer:
-            * Create a Queue,
-            * Set the Queue in xurllib
-            * Start the consumer
-        """
-        grep_plugins = self._w3af_core.plugins.plugins["grep"]
-
-        if grep_plugins:
-            self._grep_consumer = grep(
-                grep_plugins,
-                self._w3af_core,
-                output=self._output,
-                configuration=self._configuration,
-            )
-            self._w3af_core.uri_opener.set_grep_queue_put(self._grep_consumer.grep)
-            self._grep_consumer.start()
+        self._consumer_runtime.setup_grep()
 
     def _teardown_grep(self):
-        self._output.debug("Called strategy._teardown_grep()")
-
-        if self._grep_consumer is not None:
-            self._grep_consumer.join()
-            self._grep_consumer = None
+        self._consumer_runtime.teardown_grep()
 
     def _teardown_audit(self):
-        self._output.debug("Called strategy._teardown_audit()")
-
-        if self._audit_consumer is not None:
-            # Wait for all the in_queue items to get() from the queue
-            self._audit_consumer.join()
-            self._audit_consumer = None
+        self._consumer_runtime.teardown_audit()
 
     def _teardown_auth(self):
-        self._output.debug("Called strategy._teardown_auth()")
-
-        if self._auth_consumer is not None:
-            self._auth_consumer.join()
-            self._auth_consumer = None
+        self._consumer_runtime.teardown_auth()
 
     def _teardown_bruteforce(self):
-        self._output.debug("Called strategy._teardown_bruteforce()")
-
-        if self._bruteforce_consumer is not None:
-            self._bruteforce_consumer.join()
-            self._bruteforce_consumer = None
+        self._consumer_runtime.teardown_bruteforce()
 
     def _teardown_crawl_infrastructure(self):
-        self._output.debug("Called strategy._teardown_crawl_infrastructure()")
-
-        if self._discovery_consumer is not None:
-            self._discovery_consumer.join()
-            self._discovery_consumer = None
+        self._consumer_runtime.teardown_crawl_infrastructure()
 
     def _teardown_observers(self):
         self._output.debug("Called strategy._teardown_observers()")
@@ -535,64 +423,13 @@ class CoreStrategy:
             observer.end()
 
     def _seed_discovery(self):
-        """
-        Create the first fuzzable request objects based on the targets and put
-        them in the CrawlInfrastructure consumer Queue.
-
-        This will start the whole discovery process, since plugins are going
-        to consume from that Queue and then put their results in it again in
-        order to continue discovering.
-        """
-        #
-        #    GET the initial target URLs in order to save them
-        #    in a list and use them as our bootstrap URLs
-        #
-        self._seed_producer.seed_output_queue(self._configuration.get("targets"))
+        self._consumer_runtime.seed_discovery()
 
     def _setup_bruteforce(self):
-        """
-        Create a bruteforce consumer instance with the bruteforce plugins
-        and initialize it in order to start taking work from the input Queue.
-
-        The input queue for this consumer is populated by the fuzzable request
-        router.
-        """
-        bruteforce_plugins = self._w3af_core.plugins.plugins["bruteforce"]
-
-        if bruteforce_plugins:
-            self._bruteforce_consumer = bruteforce(
-                bruteforce_plugins, self._w3af_core, output=self._output
-            )
-            self._bruteforce_consumer.start()
+        self._consumer_runtime.setup_bruteforce()
 
     def _setup_auth(self, timeout=5):
-        """
-        Start the thread that will make sure the xurllib always has a "fresh"
-        session. The thread will call has_active_session() and login() for each enabled
-        auth plugin every "timeout" seconds.
-        """
-        auth_plugins = self._w3af_core.plugins.plugins["auth"]
-
-        if auth_plugins:
-            self._auth_consumer = auth(
-                auth_plugins, self._w3af_core, timeout, output=self._output
-            )
-            self._auth_consumer.start()
-            self._auth_consumer.force_login()
+        self._consumer_runtime.setup_auth(timeout)
 
     def _setup_audit(self):
-        """
-        Starts the audit plugin consumer
-        """
-        self._output.debug("Called _setup_audit()")
-
-        audit_plugins = self._w3af_core.plugins.plugins["audit"]
-
-        if audit_plugins:
-            self._audit_consumer = audit(
-                audit_plugins,
-                self._w3af_core,
-                output=self._output,
-                configuration=self._configuration,
-            )
-            self._audit_consumer.start()
+        self._consumer_runtime.setup_audit()

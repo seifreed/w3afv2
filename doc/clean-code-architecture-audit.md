@@ -7559,3 +7559,17 @@ errores ni el inventario de hilos.
 
 Verificación: **42 tests** de excepciones y core pasan, con 7 subtests;
 Black, Ruff y mypy pasan en el runner.
+
+## Actualización verificada: ciclo de consumidores separado de la estrategia
+
+`CoreStrategy` conserva la coordinación del scan y sus métodos privados de
+extensión, mientras `StrategyConsumerRuntime` concentra la creación,
+terminación, teardown y limpieza de colas de los consumidores. Esto reduce el
+estado mutable y la responsabilidad del orquestador sin cambiar el contrato
+de las subclases existentes.
+
+Verificación: los tests de bajo nivel de estrategia pasan **9 tests** y 7
+subtests; los tests de consumidores, resultados y tiempo máximo pasan. El test
+determinista lento también reproduce el timeout en el commit anterior, por lo
+que no se atribuye a esta extracción. Black y Ruff pasan en los módulos
+modificados.
