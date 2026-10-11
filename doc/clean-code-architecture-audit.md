@@ -4873,3 +4873,14 @@ Verificación: la suite de plugins de la API pasa **3 tests y 2 subtests**;
 Black, Ruff, mypy de código de producto y Bandit focales están limpios. El
 score global continúa en **9.99/10**; `mypy .` solo conserva los dos errores
 del `venv/bin/activate_this.py` generado.
+
+## Actualización verificada: sin cola global en fixtures HTTP
+
+El callback HTTP de `PluginTest` ya no accede a `om.out`, cuyo proveedor lazy
+creaba un `OutputManager` global sin dueño. Usa el output del `w3afCore` de la
+fixture, por lo que su cola y sus hilos se cierran junto con el core.
+
+Verificación: `click_jacking` y `web_spider` terminan limpiamente con **19
+tests**, sin el bloqueo posterior en `_finalize_join`; Black, Ruff, mypy y
+Bandit focales están limpios. El score global continúa en **9.99/10**, con los
+gates heredados del entorno todavía pendientes.

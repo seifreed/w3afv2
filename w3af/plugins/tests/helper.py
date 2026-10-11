@@ -31,7 +31,6 @@ from typing import ClassVar
 import pytest
 import requests
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.misc_settings import MiscSettings
@@ -209,10 +208,12 @@ class PluginTest(unittest.TestCase):
         for mock_response in self.MOCK_RESPONSES:
             if mock_response.matches(request, uri):
                 self.request_callback_match += 1
-                om.out.debug(f"[request_callback] URI {uri} matched {mock_response}")
+                self.w3afcore.output.debug(
+                    f"[request_callback] URI {uri} matched {mock_response}"
+                )
                 return CannedReply(*mock_response.get_response(request, uri, {}))
 
-        om.out.debug(f"[request_callback] URI {uri} will return 404")
+        self.w3afcore.output.debug(f"[request_callback] URI {uri} will return 404")
         return CannedReply(*MockResponse.get_404(request, uri, {}))
 
     @retry(tries=3, delay=0.5, backoff=2)
