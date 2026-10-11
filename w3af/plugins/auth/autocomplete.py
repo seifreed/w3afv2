@@ -104,7 +104,7 @@ class autocomplete(AuthSessionPlugin):
         """
         return
 
-    def _handle_authentication_success(self, form):
+    def _handle_authentication_success(self, form=None):
         super()._handle_authentication_success()
 
         form_url = form.get_action().uri2url()

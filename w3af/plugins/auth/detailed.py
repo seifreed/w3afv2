@@ -111,7 +111,7 @@ class detailed(AuthSessionPlugin):
         """
         return
 
-    def _handle_authentication_success(self):
+    def _handle_authentication_success(self, form=None):
         super()._handle_authentication_success()
         self._log_debug(f"Login success for {self.username}")
 

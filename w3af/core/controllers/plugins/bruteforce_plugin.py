@@ -91,7 +91,7 @@ class BruteforcePlugin(AuditPlugin):
         p_bf.passwd_file = self._passwd_file
         return p_bf.generator()
 
-    def audit(self, freq, debugging_id=None):
+    def audit(self, freq, orig_resp=None, debugging_id=None):
         """
         This method MUST be implemented on every plugin.
 

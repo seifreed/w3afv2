@@ -37,7 +37,7 @@ class basic_auth(BruteforcePlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def audit(self, freq, debugging_id=None):
+    def audit(self, freq, orig_resp=None, debugging_id=None):
         """
         Tries to bruteforce a basic HTTP auth. This is not fast!
 

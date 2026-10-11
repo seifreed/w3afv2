@@ -6386,6 +6386,19 @@ fixtures/servicios históricos (`output` no configurado y hosts fallback no
 resolubles); el test de entropía no existe con ese nombre en el árbol actual.
 El score global continúa en **9.99/10**.
 
+## Actualización verificada: contratos de bruteforce y autenticación
+
+Las auditorías de bruteforce aceptan ahora el `orig_resp` del contrato común
+de `AuditPlugin`; el worker específico de formularios tiene un nombre propio y
+el conjunto de URLs encontradas no colisiona con el booleano `_found` de la
+clase base. El callback de autenticación admite opcionalmente el formulario,
+manteniendo compatibles los plugins genérico, detallado y autocomplete.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los siete
+módulos; bruteforce pasa **11 tests**, form-auth **10** y autocomplete **5**.
+Los tests base de `AuthPlugin` no coleccionan fuera de su runner porque no
+encuentran el paquete `w3af`. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: estado tipado en cuatro auditores
 
 `file_upload`, `rfi`, `ssi` y `ssl_certificate` dejan explícitos sus estados

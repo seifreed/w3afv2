@@ -47,9 +47,9 @@ class form_auth(BruteforcePlugin):
     def __init__(self):
         BruteforcePlugin.__init__(self)
 
-        self._found = set()
+        self._found_urls = set()
 
-    def audit(self, freq, debugging_id=None):
+    def audit(self, freq, orig_resp=None, debugging_id=None):
         """
         Tries to bruteforce a form auth. This is slow!
 
@@ -148,7 +148,9 @@ class form_auth(BruteforcePlugin):
             repeat(debugging_id),
         )
 
-        self.worker_pool.map_multi_args(self._brute_worker, args_iter, chunksize=100)
+        self.worker_pool.map_multi_args(
+            self._form_brute_worker, args_iter, chunksize=100
+        )
 
     def _password_only_login(self, form):
         user_token, _ = form.get_login_tokens()
@@ -349,7 +351,7 @@ class form_auth(BruteforcePlugin):
 
         return http_response.body
 
-    def _brute_worker(
+    def _form_brute_worker(
         self, mutant, login_failed_result_list, combination, session, debugging_id
     ):
         """
@@ -358,7 +360,7 @@ class form_auth(BruteforcePlugin):
         :param combination: A tuple with (user, pass) or a pass if this is a
                                 password only form.
         """
-        if mutant.get_url() in self._found and self._stop_on_first:
+        if mutant.get_url() in self._found_urls and self._stop_on_first:
             return
 
         mutant = deepcopy(mutant)
@@ -435,7 +437,7 @@ class form_auth(BruteforcePlugin):
         # Found a valid username and password!
         #
         freq_url = mutant.get_url()
-        self._found.add(freq_url)
+        self._found_urls.add(freq_url)
 
         password_for_report = self._get_password_for_report(password)
         user_token, _ = form.get_login_tokens()
@@ -472,7 +474,7 @@ class form_auth(BruteforcePlugin):
         self._output.vulnerability(desc, severity=severity.HIGH)
 
     def end(self):
-        self._found = set()
+        self._found_urls = set()
         self._already_tested = []
         self._already_reported = []
 

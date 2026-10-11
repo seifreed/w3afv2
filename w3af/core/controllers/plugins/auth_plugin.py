@@ -256,7 +256,7 @@ class AuthPlugin(Plugin):
             self._log_error(message)
             self._attempt_login = False
 
-    def _handle_authentication_success(self):
+    def _handle_authentication_success(self, form=None):
         self._login_result_log.append(True)
 
     def _log_info_to_kb(self, title, message, include_log_messages=True):
