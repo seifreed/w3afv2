@@ -175,7 +175,7 @@ class TestInfo(unittest.TestCase):
         payloads = ["abc", "def"]
 
         freq = FuzzableRequest(url)
-        fuzzer_config = {}
+        fuzzer_config: dict[str, object] = {}
 
         created_mutants = QSMutant.create_mutants(
             freq, payloads, [], False, fuzzer_config

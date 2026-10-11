@@ -83,12 +83,12 @@ class TestXMLRPC(unittest.TestCase):
         payload = "<script>alert(1)</script>"
         data_container["string"][0] = payload
 
-        handler = XmlRpcWriteHandler(data_container)
+        writer = XmlRpcWriteHandler(data_container)
 
         fuzzed = XML_WITH_FUZZABLE.replace("Foo bar", html.escape(payload, quote=False))
 
-        parse_string(XML_WITH_FUZZABLE, handler)
-        self.assertEqual(handler.fuzzed_xml_string, fuzzed)
+        parse_string(XML_WITH_FUZZABLE, writer)
+        self.assertEqual(writer.fuzzed_xml_string, fuzzed)
 
     def test_parse_and_build_with_tokens_and_attributes(self):
         xml_string = (

@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import http.server
 import threading
 import urllib.parse
+from collections.abc import Callable
+from typing import Self
 
 from w3af.core.data.kb.config import Config
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -45,9 +47,9 @@ class FixtureProxy:
                       to close the socket without answering.
     """
 
-    def __init__(self, responder):
-        self.requests = []
-        self._previous_proxy = ()
+    def __init__(self, responder: Callable[[urllib.parse.ParseResult], str | object]):
+        self.requests: list[urllib.parse.ParseResult] = []
+        self._previous_proxy: list[tuple[str, object | None]] = []
         proxy = self
 
         class Handler(http.server.BaseHTTPRequestHandler):
@@ -60,6 +62,7 @@ class FixtureProxy:
                     self.close_connection = True
                     return
 
+                assert isinstance(body, str)
                 payload = body.encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -73,11 +76,11 @@ class FixtureProxy:
         self._server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self._thread.start()
         return self
 
-    def __exit__(self, *exc_info):
+    def __exit__(self, *exc_info: object) -> None:
         self._server.shutdown()
         self._server.server_close()
         # The proxy settings live in the global configuration: restore them so
@@ -85,7 +88,7 @@ class FixtureProxy:
         for name, value in self._previous_proxy:
             cf.save(name, value)
 
-    def query(self, index=-1):
+    def query(self, index: int = -1) -> dict[str, str]:
         return dict(urllib.parse.parse_qsl(self.requests[index].query))
 
     def opener(self):

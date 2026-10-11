@@ -102,6 +102,7 @@ class TestLogin(GithubApiTestCase):
 
         self.assertIsNotNone(issues.gh)
         request = self.api.last_request
+        assert request is not None
         self.assertEqual(request.route, "/user/repos")
         self.assertIn(CREDENTIAL, request.headers["Authorization"])
 
@@ -213,5 +214,6 @@ class TestReportBug(GithubApiTestCase):
 
         body = self.created_issue()["body"]
         match = re.search(r"```\n(.*?)\n```", body, re.DOTALL)
+        assert match is not None
         self.assertIn("Python version:", match.group(1))
         self.assertIn("w3af version:", match.group(1))

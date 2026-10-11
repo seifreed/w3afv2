@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import json
 import unittest
+from collections.abc import Callable
+from typing import cast
 
 import pytest
 
@@ -83,7 +85,8 @@ class TestInfoSet(unittest.TestCase):
         self.assertEqual(iset.get_desc(), "two")
 
     def test_inline_templates_render_as_plain_text(self):
-        self.assertFalse(InfoSet.JINJA2_ENV.autoescape(None))
+        autoescape = cast(Callable[[str | None], bool], InfoSet.JINJA2_ENV.autoescape)
+        self.assertFalse(autoescape(None))
 
     def test_get_desc_template_info_attr_access(self):
         value = "Yuuup!"

@@ -49,7 +49,7 @@ class TestUnittestCoverage(unittest.TestCase):
         if len(UNABLE_TO_TEST) > 0:
             # TODO: In vdaemon.py we have subprocess.Popen( ['gnome-terminal', '-e', msfcli_command] )
             #       which makes the payloads in UNABLE_TO_TEST very very very difficult to test
-            raise SkipTest()
+            raise SkipTest("Payloads in UNABLE_TO_TEST require an interactive terminal")
 
     def _analyze_unittests(self):
         payloads = get_payload_list()

@@ -396,7 +396,7 @@ class TestSpecification(unittest.TestCase):
         self.assertEqual(param.param_spec["in"], "body")
         self.assertIn("schema", param.param_spec)
 
-        expected_value = {
+        expected_pet = {
             "birthdate": datetime.date(2017, 6, 30),
             "name": "John",
             "owner": {
@@ -411,7 +411,7 @@ class TestSpecification(unittest.TestCase):
             },
             "type": "cat",
         }
-        self.assertEqual(param.fill, expected_value)
+        self.assertEqual(param.fill, expected_pet)
 
     def test_array_with_model_items_param_in_json(self):
         specification_as_string = ArrayModelItems().get_specification()
@@ -580,7 +580,7 @@ class TestSpecification(unittest.TestCase):
         self.assertEqual(param.param_spec["in"], "body")
         self.assertIn("schema", param.param_spec)
 
-        expected_value = {
+        expected_pet = {
             "owner": {
                 "name": {"last": "Smith", "first": "56"},
                 "address": {
@@ -595,7 +595,7 @@ class TestSpecification(unittest.TestCase):
             "name": "John",
             "birthdate": datetime.date(2017, 6, 30),
         }
-        self.assertEqual(param.fill, expected_value)
+        self.assertEqual(param.fill, expected_pet)
 
     def test_parameter_handler_no_params(self):
         specification_as_string = NoParams().get_specification()

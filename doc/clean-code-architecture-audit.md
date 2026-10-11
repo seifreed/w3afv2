@@ -6792,3 +6792,16 @@ privadas de la librería estándar están tipados en un único punto.
 
 Verificación: Mypy, Black y Ruff pasan en los **10 archivos** modificados; la
 batería integrada pasa **105 tests**. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contratos de parsers, KB y fixtures de soporte
+
+Los tests de XML-RPC separan los handlers de lectura y escritura, las
+fixtures de AST validan el tipo de nodo antes de recorrerlo y las configuraciones
+de mutants declaran sus diccionarios. El proxy de búsqueda tipa sus URLs y
+respuestas, `Platform` expone el nombre de sistema como contrato de clase y las
+aserciones de GitHub estrechan respuestas opcionales antes de usarlas.
+
+Verificación: Mypy, Black y Ruff pasan en los **14 archivos** modificados; la
+batería focalizada pasa **54 tests**. Se observan 359 warnings deprecados de
+`jsonschema` en la dependencia `bravado-core`; el score global continúa en
+**9.99/10**.

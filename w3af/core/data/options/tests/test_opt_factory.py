@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from typing import Any
 
 from w3af import ROOT_PATH
 from w3af.core.data.options.opt_factory import opt_factory
@@ -56,7 +57,7 @@ class TestOptionFactory(unittest.TestCase):
         input_file = self.INPUT_FILE
         output_file = self.INPUT_FILE
 
-        data = {
+        data: dict[str, list[tuple[Any, Any]]] = {
             BOOL: [("true", True)],
             INT: [("1", 1)],
             POSITIVE_INT: [("2", 2)],

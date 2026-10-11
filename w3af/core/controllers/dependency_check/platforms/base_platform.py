@@ -36,6 +36,8 @@ class Platform:
     checks.
     """
 
+    SYSTEM_NAME: ClassVar[str]
+
     PIP_PACKAGES: ClassVar[dict[int, list[PIPDependency]]] = {CORE: CORE_PIP_PACKAGES}
 
     SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: []}

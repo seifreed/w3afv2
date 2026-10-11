@@ -32,10 +32,12 @@ class exception_raise(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    exception_to_raise = None
+    exception_to_raise: type[Exception] | None = None
 
     def __init__(self):
         CrawlPlugin.__init__(self)
 
     def crawl(self, fuzzable_req, debugging_id):
-        raise self.exception_to_raise("Test exception.")
+        exception = self.exception_to_raise
+        assert exception is not None
+        raise exception("Test exception.")

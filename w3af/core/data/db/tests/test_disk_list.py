@@ -94,8 +94,8 @@ class TestDiskList(unittest.TestCase):
 
         self.assertEqual(rnd in dl, True)
 
-        for i in string.ascii_letters:
-            self.assertNotIn(i, dl)
+        for letter in string.ascii_letters:
+            self.assertNotIn(letter, dl)
 
         self.assertIn(rnd, dl)
 
