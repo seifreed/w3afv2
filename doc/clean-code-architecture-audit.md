@@ -7311,3 +7311,14 @@ Verificación: los tests de autenticación afectados pasan; el test de rutas no
 puede arrancar en este entorno porque su objetivo `fallback` no resuelve y
 falla antes de ejecutar el payload. Bandit sobre fuentes del proyecto baja a
 **25 avisos**, sin `B104`, `B105` ni `B108`.
+
+## Actualización verificada: construcción única de plugins
+
+`PluginCatalog` y `PluginInstanceFactory` duplicaban la importación dinámica
+de plugins y la decisión de inyectar la base de datos. Esa política vive ahora
+en `create_plugin_instance()`, mientras cada consumidor conserva su propia
+responsabilidad: catálogo rápido o configuración completa de runtime.
+
+Verificación: **36 tests** de catálogo, fábrica y resolución pasan; Black,
+Ruff y mypy focalizado pasan en los dos módulos modificados. Se eliminan 18
+líneas duplicadas sin cambiar la API pública.

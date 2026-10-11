@@ -2,11 +2,12 @@
 
 import os
 import sys
-from importlib import import_module
 from typing import ClassVar
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.core_helpers.plugin_instance_factory import (
+    create_plugin_instance,
+)
 from w3af.core.controllers.misc.get_file_list import get_file_list
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -50,11 +51,4 @@ class PluginCatalog:
         ]
 
     def get_quick_instance(self, plugin_type, plugin_name, db):
-        module_name = f"w3af.plugins.{plugin_type}.{plugin_name}"
-        plugin_module = import_module(module_name)
-        plugin_class = getattr(plugin_module, plugin_name)
-
-        if getattr(plugin_class, "uses_database", False):
-            return factory(module_name, db)
-
-        return factory(module_name)
+        return create_plugin_instance(plugin_type, plugin_name, db)
