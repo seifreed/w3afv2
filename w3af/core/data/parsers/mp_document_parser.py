@@ -145,7 +145,7 @@ class MultiProcessingDocumentParser:
         self.parsers = parsers
         self.log_queue_provider = log_queue_provider
         self.worker_initializer = worker_initializer
-        self._pool = None
+        self._pool: ProcessPool | None = None
         self._start_lock = threading.RLock()
 
     def start_workers(self):
@@ -167,7 +167,13 @@ class MultiProcessingDocumentParser:
                     initargs=(self.worker_initializer, log_queue, self.memory_limit),
                 )
 
-        return self._pool
+        return self._get_pool()
+
+    def _get_pool(self) -> ProcessPool:
+        pool = self._pool
+        if pool is None:
+            raise RuntimeError("Parser worker pool has not been started")
+        return pool
 
     def stop_workers(self):
         """
@@ -214,8 +220,9 @@ class MultiProcessingDocumentParser:
         apply_args = (process_document_parser, filename, self.DEBUG, self.parsers)
 
         # Push the task to the workers
+        pool = self._get_pool()
         try:
-            future = self._pool.schedule(
+            future = pool.schedule(
                 apply_with_return_error, args=(apply_args,), timeout=self.parser_timeout
             )
         except RuntimeError as rte:
@@ -316,8 +323,9 @@ class MultiProcessingDocumentParser:
         #
         # Push the task to the workers
         #
+        pool = self._get_pool()
         try:
-            future = self._pool.schedule(
+            future = pool.schedule(
                 apply_with_return_error, args=(apply_args,), timeout=self.parser_timeout
             )
         except RuntimeError as rte:
@@ -422,8 +430,8 @@ def process_document_parser(filename, debug, parsers):
                 "[mp_document_parser] PID %s finished parsing %s with"
                 ' exception: "%s"'
             )
-            args = (pid, http_resp.get_url(), e)
-            LOGGER.debug(msg % args)
+            error_args = (pid, http_resp.get_url(), e)
+            LOGGER.debug(msg % error_args)
         raise
     else:
         if debug:

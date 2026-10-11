@@ -5750,3 +5750,15 @@ proceso de pytest alcanza aproximadamente **79 MiB RSS** en macOS. Black,
 Ruff y Bandit focales pasan; mypy aún reporta anotaciones heredadas en estos
 tests y tres avisos transitivos en `mp_document_parser`. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: ownership explícito del ProcessPool
+
+`MultiProcessingDocumentParser` declara el pool como recurso opcional solo
+durante su ciclo de creación y concentra la comprobación de disponibilidad en
+`_get_pool()`. Las operaciones que programan tareas usan así una referencia
+estable al pool ya iniciado, mientras `stop_workers()` conserva la liberación
+explícita y el borrado de la referencia.
+
+Verificación: la suite de parser multiproceso y caché pasa **66 tests**;
+Black, Ruff y Bandit focales pasan. Mypy no reporta errores de flujo propios
+del módulo, únicamente los stubs ausentes de `psutil` y `pebble`.
