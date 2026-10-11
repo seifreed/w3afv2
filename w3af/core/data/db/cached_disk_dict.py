@@ -48,6 +48,7 @@ class CachedDiskDict:
         table_prefix = self._get_table_prefix(table_prefix)
 
         self._max_in_memory = max_in_memory
+        self._access_count_limit = max_in_memory * 2
         self._disk_dict = DiskDict(table_prefix=table_prefix, db=db)
         self._in_memory = {}
         self._access_count = Counter()
@@ -102,11 +103,20 @@ class CachedDiskDict:
 
     def _increase_access_count(self, key):
         self._access_count.update([key])
+        self._trim_access_count()
 
         keys_for_memory = self._get_keys_for_memory()
 
         self._move_key_to_disk_if_needed(keys_for_memory)
         self._move_key_to_memory_if_needed(key, keys_for_memory)
+
+    def _trim_access_count(self):
+        if len(self._access_count) <= self._access_count_limit:
+            return
+
+        self._access_count = Counter(
+            dict(self._access_count.most_common(self._access_count_limit))
+        )
 
     def _move_key_to_disk_if_needed(self, keys_for_memory):
         """

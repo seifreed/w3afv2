@@ -140,6 +140,12 @@ class TestCachedDiskDict(unittest.TestCase):
 
         self.assertNotIn(5, self.cdd._in_memory)
 
+    def test_access_count_is_bounded(self):
+        for key in range(20):
+            self.cdd[key] = key
+
+        self.assertLessEqual(len(self.cdd._access_count), self.cdd._access_count_limit)
+
     def test_table_prefix(self):
         cdd = CachedDiskDict(table_prefix="variants")
         self.addCleanup(cdd.cleanup)

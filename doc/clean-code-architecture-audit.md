@@ -4557,6 +4557,20 @@ y Bandit focales pasan. El score global continúa en **9.99/10**, con los gates
 heredados, callers standalone de bajo nivel y otros módulos grandes todavía
 pendientes.
 
+## Actualización verificada: frecuencia acotada en `CachedDiskDict`
+
+`CachedDiskDict` limitaba correctamente los valores residentes, pero mantenía
+un contador de accesos con una entrada permanente por cada clave vista. En
+colecciones de URLs únicas ese índice crecía sin límite aunque la caché solo
+guardase unas pocas entradas en RAM. El contador ahora conserva únicamente el
+ranking más relevante dentro de un límite proporcional a `max_in_memory`, sin
+alterar la política observada en las claves calientes.
+
+Verificación: **81 tests** de `CachedDiskDict`, `VariantDB` y `Fingerprint404`
+pasan; Black, Ruff, mypy y Bandit focales pasan. El score global continúa en
+**9.99/10**, con los gates heredados, callers standalone de bajo nivel y otros
+módulos grandes todavía pendientes.
+
 ## Actualización verificada: ownership de DB en `OutputManager`
 
 Los `OutputManager` sin `w3afCore` ya no dejan que `xml_file` o `html_file`
