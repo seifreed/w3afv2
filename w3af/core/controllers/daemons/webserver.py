@@ -27,11 +27,17 @@ import os
 import select
 import socket
 import threading
+from typing import Any, Protocol, cast
 
 LOGGER = logging.getLogger(__name__)
 
 # Created servers
-_servers: dict[tuple[str, int], object] = {}
+_servers: dict[tuple[str, int], "HTTPServer"] = {}
+
+
+class _ConfiguredHTTPServer(Protocol):
+    webroot: str
+    output: Any
 
 
 def is_running(ip, port):
@@ -93,7 +99,7 @@ class HTTPServer(http.server.HTTPServer):
             self.__shutdown_request = True
             return
 
-        self._handle_request_noblock()
+        cast(Any, self)._handle_request_noblock()
 
     def handle_error(self, request, client_address):
         LOGGER.exception("Error processing request from %s", client_address)
@@ -114,8 +120,9 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
             return
 
         try:
+            server = cast(_ConfiguredHTTPServer, self.server)
             with open(
-                self.server.webroot + os.path.sep + self.path[1:], "rb"
+                server.webroot + os.path.sep + self.path[1:], "rb"
             ) as requested_file:
                 content = requested_file.read()
         except OSError:
@@ -137,7 +144,7 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
         to the om.
         """
         message = f"webserver.py: {self.address_string()} - {fmt % args}"
-        self.server.output.debug(message)
+        cast(_ConfiguredHTTPServer, self.server).output.debug(message)
 
 
 def start_webserver(ip, port, webroot, output, handler=WebHandler):

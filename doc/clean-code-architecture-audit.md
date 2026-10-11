@@ -4956,6 +4956,17 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: lifecycle tipado del webserver
+
+El registro de servidores HTTP declara sus instancias reales, el handler
+expone mediante un protocolo los atributos `webroot/output` que añade el
+servidor y el único método privado de `socketserver` queda aislado en su borde
+de compatibilidad. El cierre automático por inactividad permanece intacto.
+
+Verificación: la suite webserver pasa **10 tests**; mypy focal, Ruff y Black
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: fronteras urllib tipadas
 
 El director de URLs declara el sentinel privado de timeout una sola vez y
