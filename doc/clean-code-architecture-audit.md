@@ -5865,3 +5865,16 @@ logging con formas distintas.
 Verificación: las suites de consumidores pasan **31 tests**; mypy global baja
 a **626 errores en 258 archivos** desde 629, y Black, Ruff y Bandit de los dos
 módulos pasan sin hallazgos. El score global continúa en **9.99/10**.
+
+## Actualización verificada: teardown de consumidores y dependencias de BD
+
+Los consumidores de audit, grep y bruteforce capturan el pool local antes de
+programar trabajo y abandonan la operación si el teardown ya lo liberó. Los
+tests de plugins con almacenamiento usan ahora una SQLite real del core o una
+sesión temporal explícita, evitando crear bases globales implícitas entre
+tests.
+
+Verificación: las suites de consumidores y descripción XSS pasan **20 tests**;
+el ciclo de vida completo de `w3afCore` pasa **21 tests** y parser/DB pasa **62
+tests**. Black y Ruff de los cinco módulos pasan sin hallazgos; el score global
+continúa en **9.99/10**.

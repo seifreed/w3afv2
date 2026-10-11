@@ -160,7 +160,10 @@ class audit(BaseConsumer):
             debugging_id = rand_alnum(8)
             args = (plugin, fuzzable_request, orig_resp, debugging_id)
 
-            self._threadpool.apply_async(self._audit, args)
+            threadpool = self._threadpool
+            if threadpool is None:
+                return
+            threadpool.apply_async(self._audit, args)
 
     def _should_audit(self, fuzzable_request):
         """

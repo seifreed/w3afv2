@@ -119,8 +119,12 @@ class bruteforce(BaseConsumer):
     def _consume(self, function_id, work_unit):
         self._run_observers(work_unit)
 
+        threadpool = self._threadpool
+        if threadpool is None:
+            return
+
         for plugin in self._consumer_plugins:
-            self._threadpool.apply_async(
+            threadpool.apply_async(
                 return_args(self._bruteforce),
                 (
                     plugin,

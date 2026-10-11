@@ -58,7 +58,7 @@ class TestAuditConsumer(unittest.TestCase):
         w3af_core = w3afCore(knowledge_base=kb, configuration=cf)
         recorder = start_recording_output()
 
-        xss_instance = xss()
+        xss_instance = xss(db=w3af_core.database)
         xss_instance.set_output(om.out)
         xss_instance.set_url_opener(w3af_core.uri_opener)
         xss_instance.set_worker_pool(w3af_core.worker_pool)

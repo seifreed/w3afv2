@@ -300,7 +300,10 @@ class grep(BaseConsumer):
             #
             # This is controlled by max_pool_queued_tasks
             args = (plugin_name, http_response_id)
-            self._threadpool.apply_async(self._run_one_plugin, args)
+            threadpool = self._threadpool
+            if threadpool is None:
+                return
+            threadpool.apply_async(self._run_one_plugin, args)
 
     def _get_plugin_from_name(self, plugin_name):
         plugin = self._consumer_plugin_dict.get(plugin_name, None)

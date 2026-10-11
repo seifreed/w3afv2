@@ -29,6 +29,7 @@ from w3af.core.data.constants import severity
 from w3af.core.data.context.context.css import ALL_CONTEXTS as ALL_CSS_CONTEXTS
 from w3af.core.data.context.context.html import ALL_CONTEXTS as ALL_HTML_CONTEXTS
 from w3af.core.data.context.context.javascript import ALL_CONTEXTS as ALL_JS_CONTEXTS
+from w3af.core.data.db.dbms import database_session
 from w3af.core.data.kb.config import Config
 from w3af.plugins.audit.xss import xss
 from w3af.plugins.tests.audit.vulnerable_xss import (
@@ -494,7 +495,8 @@ class TestXSSFileUpload(XssPluginTest):
 
 class TestXSSPluginDescription(TestCase):
     def test_long_description_names_the_option(self):
-        self.assertIn("persistent_xss", xss().get_long_desc())
+        with database_session() as database:
+            self.assertIn("persistent_xss", xss(db=database).get_long_desc())
 
 
 class TestXSSPayloadsBreak(TestCase):
