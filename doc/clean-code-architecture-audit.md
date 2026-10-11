@@ -4837,3 +4837,15 @@ intermedia de todas las vulnerabilidades antes de construir el mensaje.
 Verificación: tests de KB y email pasan; Black, Ruff, mypy y Bandit focales
 están limpios. El score global continúa en **9.99/10**, con los fallbacks
 standalone y los gates globales heredados todavía pendientes.
+
+## Actualización verificada: fixture de plugins con una sola KB
+
+`PluginTest` reutiliza ahora la base de datos que crea su `w3afCore`, en lugar
+de abrir una `DBKnowledgeBase` adicional que quedaba separada del parser y del
+resto del core. El teardown valida los `InfoSet` antes de delegar el cierre al
+core y evita limpiar dos veces la misma conexión.
+
+Verificación: los tests funcionales de `click_jacking` y `web_spider` pasan
+**19 tests**; Black, Ruff, mypy y Bandit focales están limpios. El score global
+continúa en **9.99/10**, con los fallbacks standalone y los gates globales
+heredados todavía pendientes.

@@ -39,7 +39,6 @@ from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -72,11 +71,9 @@ class PluginTest(unittest.TestCase):
     base_path: str | None = None
 
     def setUp(self):
-        self.kb = DBKnowledgeBase()
         self.configuration = Config()
-        self.w3afcore = w3afCore(
-            knowledge_base=self.kb, configuration=self.configuration
-        )
+        self.w3afcore = w3afCore(configuration=self.configuration)
+        self.kb = self.w3afcore.knowledge_base
         self.misc_settings = MiscSettings(self.configuration)
 
         self.request_callback_call_count = 0
@@ -124,9 +121,8 @@ class PluginTest(unittest.TestCase):
         return list(self.canned_server.requests)
 
     def tearDown(self):
-        self.w3afcore.quit()
-        self.kb.cleanup()
         self.assert_all_get_desc_work()
+        self.w3afcore.quit()
 
         if self.canned_server is not None:
             # set_proxy() persists proxy_address/proxy_port into the process-wide
