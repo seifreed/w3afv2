@@ -94,7 +94,10 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
                 "No supported clientless HTTP transfer command is available."
             )
 
-        assert self._command is not None
+        if self._command is None:
+            raise BaseFrameworkException(
+                "No supported clientless HTTP transfer command is available."
+            )
 
         cmd_templates = {
             "wget": "wget http://%s:%s/%s -O %s",

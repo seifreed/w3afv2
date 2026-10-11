@@ -41,21 +41,23 @@ class GenericBloomFilter:
         self.error_rate = error_rate
         self.bf: GenericBloomFilter | None = None
 
+    def _get_filter(self):
+        if self.bf is None:
+            raise RuntimeError("The bloom filter implementation is not initialized.")
+        return self.bf
+
     def __contains__(self, key):
-        assert self.bf is not None
-        return key in self.bf
+        return key in self._get_filter()
 
     def __len__(self):
-        assert self.bf is not None
-        return len(self.bf)
+        return len(self._get_filter())
 
     def __repr__(self):
         args = (type(self).__name__, len(self), self.capacity, self.error_rate)
         return "<{} items={} capacity={} error_rate={}>".format(*args)
 
     def add(self, key):
-        assert self.bf is not None
-        return self.bf.add(key)
+        return self._get_filter().add(key)
 
     @staticmethod
     def get_temp_file():

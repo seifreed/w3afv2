@@ -36,6 +36,16 @@ class TestScalableBloomFilterAPI(unittest.TestCase):
 
 
 class TestBloomFilterWrapper(unittest.TestCase):
+    def test_uninitialized_filter_rejects_operations(self):
+        bloom = GenericBloomFilter(10)
+
+        with self.assertRaisesRegex(RuntimeError, "not initialized"):
+            bloom.__contains__("key")
+        with self.assertRaisesRegex(RuntimeError, "not initialized"):
+            len(bloom)
+        with self.assertRaisesRegex(RuntimeError, "not initialized"):
+            bloom.add("key")
+
     def test_repr(self):
         bloom = BloomFilter(10, 0.01)
         bloom.add("a")

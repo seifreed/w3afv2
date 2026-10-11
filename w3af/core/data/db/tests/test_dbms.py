@@ -239,6 +239,16 @@ class TestDBMS(unittest.TestCase):
         with self.assertNoLogs("w3af.core.data.db.dbms", level="DEBUG"):
             executor._report_qsize_limit_reached()
 
+    def test_uninitialized_executor_rejects_database_operations(self):
+        executor = SQLiteExecutor(Queue())
+
+        with self.assertRaisesRegex(RuntimeError, "not initialized"):
+            executor._query_handler("SELECT 1", ())
+        with self.assertRaisesRegex(RuntimeError, "not initialized"):
+            executor._select_handler("SELECT 1", ())
+        with self.assertRaisesRegex(RuntimeError, "not initialized"):
+            executor._commit_handler()
+
 
 class TestDefaultDB(unittest.TestCase):
     def tearDown(self):

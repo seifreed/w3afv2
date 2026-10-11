@@ -319,6 +319,11 @@ class SQLiteExecutor(Process):
             args = (self._in_queue.maxsize, self._current_query_num)
             LOGGER.debug(msg % args)
 
+    def _get_connection(self):
+        if self.conn is None:
+            raise RuntimeError("SQLite executor is not initialized.")
+        return self.conn
+
     def query(self, query, parameters):
         future: Future[Any] = Future()
         request: tuple[Any, ...] = (QUERY, (query, parameters), {}, future)
@@ -326,8 +331,7 @@ class SQLiteExecutor(Process):
         return future
 
     def _query_handler(self, query, parameters):
-        assert self.conn is not None
-        cursor = self.conn.cursor()
+        cursor = self._get_connection().cursor()
         return cursor.execute(query, parameters)
 
     def select(self, query, parameters):
@@ -337,8 +341,7 @@ class SQLiteExecutor(Process):
         return future
 
     def _select_handler(self, query, parameters):
-        assert self.conn is not None
-        return list(self.cursor.execute(query, parameters))
+        return list(self._get_connection().execute(query, parameters))
 
     def commit(self):
         future: Future[Any] = Future()
@@ -347,8 +350,7 @@ class SQLiteExecutor(Process):
         return future
 
     def _commit_handler(self):
-        assert self.conn is not None
-        return self.conn.commit()
+        return self._get_connection().commit()
 
     def stop(self):
         future: Future[Any] = Future()

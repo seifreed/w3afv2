@@ -7058,3 +7058,18 @@ arrancados en una ejecución antigua desde un worktree y reteniendo semáforos.
 Después de la batería actual no quedan procesos `pytest`, `spawn_main` o
 `resource_tracker` activos. El score global continúa en **9.99/10** por las
 limitaciones de cobertura y gates globales documentadas arriba.
+
+## Actualización verificada: contratos runtime sin `assert`
+
+Los contratos de estado de `GenericBloomFilter` y `SQLiteExecutor` ya no
+dependen de `assert`, que desaparece al ejecutar Python optimizado. Ahora
+devuelven errores explícitos cuando el filtro o la conexión no están
+inicializados. El transporte clientless y el parser de oHmap también expresan
+sus estados imposibles con errores o fallback definidos.
+
+Verificación: Bloom y DB pasan **79 tests**; Black, Ruff y Mypy pasan en los
+seis archivos modificados. El análisis Bandit de producción (`w3af` excluyendo
+fixtures de tests) queda en **0 hallazgos**, frente a los 8 avisos de asserts
+detectados antes. La prueba de transferencia real sigue dependiendo de que el
+entorno permita completar una descarga local y no se usa como evidencia de esta
+corrección cuando `can_transfer()` falla por infraestructura.

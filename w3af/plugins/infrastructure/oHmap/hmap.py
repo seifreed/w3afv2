@@ -188,7 +188,11 @@ class response:
         response_lines = text.split(line_splitter)
         self.response_line = response_lines[0]
         response_line_match = RESPONSE_LINE_RE.search(text)
-        assert response_line_match is not None
+        if response_line_match is None:
+            self.response_code = "NO_RESPONSE_CODE"
+            self.response_text = "NONE"
+            self.body = text
+            return
         self.response_code, self.response_text = response_line_match.groups()[1:]
 
         blank_index = len(response_lines)
