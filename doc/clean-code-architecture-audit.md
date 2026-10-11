@@ -4382,3 +4382,16 @@ distintas y se cancelan de forma independiente. Verificación: **12 tests** de
 profiling y **9 tests** de estrategia pasan; Black, Ruff y mypy focales pasan.
 El score global sigue en **9.99/10**: quedan otros estados globales de proceso,
 la suite y los gates globales, y los módulos heredados de gran tamaño.
+
+## Actualización verificada: lecturas SQLite acotadas por lotes
+
+`SQLiteDBMS.select()` conserva su contrato histórico para los callers que
+necesitan una lista, pero las rutas iterativas de `DiskList`, `DiskDict` y
+`DBKnowledgeBase` usan ahora `select_in_batches()`. Cada consulta retiene como
+máximo el lote configurado de filas, evitando que un `SELECT` con muchos blobs
+serializados convierta toda una tabla temporal en RAM de una sola vez.
+
+La regresión cubre paginación ordenada y tamaños inválidos. Verificación: **72
+tests** de DB y **68 tests** de Knowledge Base pasan; Black, Ruff y mypy sobre
+los módulos modificados pasan. El score global continúa en **9.99/10** hasta
+resolver los estados globales restantes y los gates completos.

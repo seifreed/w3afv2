@@ -46,6 +46,7 @@ POISON = "POISON"
 
 JOURNAL_MODE = "OFF"
 CACHE_SIZE = 2000
+SELECT_BATCH_SIZE = 100
 
 DB_MALFORMED_ERROR = (
     "SQLite raised a database disk image is malformed"
@@ -161,6 +162,24 @@ class SQLiteDBMS:
         """
         future = self.sql_executor.select(query, parameters)
         return future.result()
+
+    def select_in_batches(self, query, parameters=(), batch_size=SELECT_BATCH_SIZE):
+        """Yield SELECT rows in bounded batches instead of one large list."""
+        if batch_size <= 0:
+            raise ValueError("batch_size must be greater than zero")
+
+        offset = 0
+        while True:
+            batch_query = f"{query} LIMIT ? OFFSET ?"
+            batch_parameters = (*parameters, batch_size, offset)
+            rows = self.select(batch_query, batch_parameters)
+
+            yield from rows
+
+            if len(rows) < batch_size:
+                return
+
+            offset += batch_size
 
     @verify_started
     def select_one(self, query, parameters=()):

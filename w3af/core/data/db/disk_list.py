@@ -211,7 +211,7 @@ class DiskList:
         # How do I avoid loading all items in memory?
         objects = []
         query = "SELECT pickle FROM %s"
-        results = self.db.select(query % self.table_name)
+        results = self.db.select_in_batches(query % self.table_name)
 
         for r in results:
             obj = self._load(r[0])
@@ -225,7 +225,7 @@ class DiskList:
 
         # TODO: How do I make the __iter__ thread safe?
         query = "SELECT pickle FROM %s"
-        results = self.db.select(query % self.table_name)
+        results = self.db.select_in_batches(query % self.table_name)
         for r in results:
             obj = self._load(r[0])
             yield obj
@@ -235,7 +235,7 @@ class DiskList:
 
         # TODO: How do I make the __iter__ thread safe?
         query = "SELECT pickle FROM %s ORDER BY index_ DESC"
-        results = self.db.select(query % self.table_name)
+        results = self.db.select_in_batches(query % self.table_name)
         for r in results:
             obj = self._load(r[0])
             yield obj

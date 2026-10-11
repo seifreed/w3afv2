@@ -204,7 +204,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             query = "SELECT pickle FROM %s WHERE location_a = ?" " and location_b = ?"
             params = (location_a, location_b)
 
-        for r in self.db.select(query % self.table_name, params):
+        for r in self.db.select_in_batches(query % self.table_name, params):
             obj = loads(r[0])
 
             if check_types and not isinstance(obj, (Info, InfoSet, Shell)):
@@ -227,11 +227,11 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             query = "SELECT uniq_id FROM %s WHERE uniq_id IN (%s)"
             query %= (self.table_name, bindings)
 
-            result = self.db.select(query, parameters=include_ids)
+            result = self.db.select_in_batches(query, parameters=include_ids)
 
         else:
             query = "SELECT uniq_id FROM %s"
-            result = self.db.select(query % self.table_name)
+            result = self.db.select_in_batches(query % self.table_name)
 
         for (uniq_id,) in result:
             yield uniq_id
@@ -291,7 +291,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         query = "SELECT uniq_id, pickle FROM %s WHERE uniq_id NOT IN (%s)"
         query %= (self.table_name, bindings)
 
-        results = self.db.select(query, parameters=exclude_ids)
+        results = self.db.select_in_batches(query, parameters=exclude_ids)
 
         for (
             uniq_id,
@@ -308,7 +308,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
                  HIGH)
         """
         query = "SELECT pickle FROM %s"
-        results = self.db.select(query % self.table_name)
+        results = self.db.select_in_batches(query % self.table_name)
 
         result_lst = []
 
@@ -327,7 +327,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :return: A list of all info instances with severity eq INFORMATION
         """
         query = "SELECT pickle FROM %s"
-        results = self.db.select(query % self.table_name)
+        results = self.db.select_in_batches(query % self.table_name)
 
         result_lst = []
 

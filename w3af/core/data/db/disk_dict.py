@@ -59,7 +59,7 @@ class DiskDict:
 
     def keys(self):
         query = "SELECT key FROM %s"
-        pickled_keys = self.db.select(query % self.table_name)
+        pickled_keys = self.db.select_in_batches(query % self.table_name)
         result_list = []
 
         for r in pickled_keys:

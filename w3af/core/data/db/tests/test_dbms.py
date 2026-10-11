@@ -167,6 +167,22 @@ class TestDBMS(unittest.TestCase):
 
         self.assertIsNone(db.select_one("SELECT * FROM TEST"))
 
+    def test_select_in_batches(self):
+        db = self.new_db()
+        db.create_table("TEST", [("id", "INT")]).result()
+        for value in range(5):
+            db.execute("INSERT INTO TEST VALUES (?)", (value,)).result()
+
+        rows = db.select_in_batches("SELECT id FROM TEST ORDER BY id", batch_size=2)
+
+        self.assertEqual(list(rows), [(0,), (1,), (2,), (3,), (4,)])
+
+    def test_select_in_batches_rejects_non_positive_batch_size(self):
+        db = self.new_db()
+
+        with self.assertRaises(ValueError):
+            list(db.select_in_batches("SELECT 1", batch_size=0))
+
     def test_invalid_filename(self):
         threads = threading.active_count()
 
