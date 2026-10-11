@@ -7854,3 +7854,16 @@ Verificación: **74 tests** de respuesta, serialización y parser cache pasan;
 Black, Ruff, mypy dirigido, Bandit dirigido y la prueba de capas pasan. La
 suite mantiene únicamente las notas informativas de mypy sobre funciones
 antiguas sin anotaciones.
+
+## Actualización verificada: métricas de peticiones aisladas
+
+El contador de peticiones y la suma RTT por `debugging_id` salieron de
+`ExtendedUrllib` y pasaron a `RequestMetrics`. Se conservaron los dos ciclos
+de limpieza existentes: el reset de sesión solo reinicia el contador y
+`clear()` también vacía la caché RTT. La LRU mantiene su límite de 128
+identificadores para impedir crecimiento indefinido durante tests o escaneos.
+
+Verificación: **80 tests HTTP** pasan; la cobertura del componente nuevo es
+**100%**; la prueba de capas, Black, Ruff, mypy dirigido y Bandit dirigido
+pasan. La suite solo conserva dos warnings deprecados en dependencias
+externas (`ldap3/pyasn1`).

@@ -26,6 +26,9 @@ import unittest
 from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.http_response import HTTPResponse
 
 TookMessage = tuple[tuple[str, str], dict[str, object]]
 
@@ -65,7 +68,9 @@ class TestTookHelper(unittest.TestCase):
 
     def test_took_with_rtt(self):
         w3af_core = self.new_core()
-        w3af_core.uri_opener._rtt_sum_debugging_id["ML7aEYsa"] = 1.8
+        url = URL("http://w3af.com")
+        response = HTTPResponse(200, "", Headers(), url, url, time=1.8)
+        w3af_core.uri_opener._track_rtt(response, "ML7aEYsa")
 
         sent_message = self.send_took_line(w3af_core)
 
