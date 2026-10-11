@@ -33,12 +33,24 @@ from w3af.core.controllers.plugins.plugin import Plugin
 
 class CorePlugins:
 
-    def __init__(self, w3af_core, output, output_manager):
-        self._w3af_core = w3af_core
+    def __init__(self, plugin_context, output, output_manager):
         self._output = output
         self._output_manager = output_manager
         self._plugin_catalog = PluginCatalog()
-        self._plugin_instance_factory = PluginInstanceFactory(w3af_core, output)
+        self._plugin_instance_factory = PluginInstanceFactory(plugin_context, output)
+        self._get_database = lambda: (
+            plugin_context.database if plugin_context is not None else None
+        )
+        self._set_evasion_plugins_on_opener = lambda plugins: (
+            plugin_context.uri_opener.set_evasion_plugins(plugins)
+            if plugin_context is not None
+            else None
+        )
+        self._set_mangle_plugins_on_opener = lambda plugins: (
+            plugin_context.uri_opener.settings.set_mangle_plugins(plugins)
+            if plugin_context is not None
+            else None
+        )
         self._plugin_selection = PluginSelection(self._plugin_catalog.get_plugin_list)
         self._plugin_state = PluginState()
         self._plugin_runtime = PluginRuntime(
@@ -207,7 +219,7 @@ class CorePlugins:
 
     def get_quick_instance(self, plugin_type, plugin_name, db=None):
         """Create dependency metadata instances on this core's database."""
-        database = self._w3af_core.database if db is None else db
+        database = self._get_database() if db is None else db
         return self._plugin_catalog.get_quick_instance(
             plugin_type, plugin_name, database
         )
@@ -229,10 +241,9 @@ class CorePlugins:
         self._plugin_selection.set_selected("evasion", evasion_plugins)
         self._plugin_setup.create_instances()
 
-        self._w3af_core.uri_opener.set_evasion_plugins(
-            self.get_plugin_instances("evasion")
-        )
+        if self._set_evasion_plugins_on_opener is not None:
+            self._set_evasion_plugins_on_opener(self.get_plugin_instances("evasion"))
 
     def _set_mangle_plugins(self, plugins):
-        if self._w3af_core is not None:
-            self._w3af_core.uri_opener.settings.set_mangle_plugins(plugins)
+        if self._set_mangle_plugins_on_opener is not None:
+            self._set_mangle_plugins_on_opener(plugins)

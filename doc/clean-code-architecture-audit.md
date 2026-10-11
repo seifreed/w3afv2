@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.0/10 | Alta |
-| Clean Architecture | 9.2/10 | Alta |
-| Global | 9.1/10 | Alta |
+| Clean Code | 9.1/10 | Alta |
+| Clean Architecture | 9.3/10 | Alta |
+| Global | 9.2/10 | Alta |
 
 La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
@@ -7979,3 +7979,15 @@ la factoría ya no queda acoplada nominalmente a la clase completa `w3afCore`.
 
 Verificación: **38 tests** de plugins pasan; mypy y Ruff dirigidos no
 encuentran errores, y la factoría no introduce una dependencia nueva de capas.
+
+## Actualización verificada: integración del opener desacoplada
+
+`CorePlugins` ya no consulta directamente `w3afCore` para obtener la base de
+datos ni para actualizar evasiones y mangle. Conserva proveedores perezosos
+porque el composition root crea el registro de plugins antes que `uri_opener`,
+pero la selección, estado y runtime de plugins operan contra sus callbacks y
+contexto explícitos.
+
+Verificación: **38 tests** de plugins pasan; Black, Ruff, mypy, Bandit dirigido
+y la prueba de capas pasan. La suite mantiene únicamente warnings deprecados
+de dependencias externas.
