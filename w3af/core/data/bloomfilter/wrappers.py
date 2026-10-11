@@ -39,12 +39,14 @@ class GenericBloomFilter:
     def __init__(self, capacity, error_rate=0.01):
         self.capacity = capacity
         self.error_rate = error_rate
-        self.bf = None
+        self.bf: GenericBloomFilter | None = None
 
     def __contains__(self, key):
+        assert self.bf is not None
         return key in self.bf
 
     def __len__(self):
+        assert self.bf is not None
         return len(self.bf)
 
     def __repr__(self):
@@ -52,6 +54,7 @@ class GenericBloomFilter:
         return "<{} items={} capacity={} error_rate={}>".format(*args)
 
     def add(self, key):
+        assert self.bf is not None
         return self.bf.add(key)
 
     @staticmethod

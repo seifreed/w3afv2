@@ -70,8 +70,8 @@ def dump_tracemalloc():
     with open(output_file, "wb") as fp:
         dump(snapshot, fp, 2)
 
-    # Make sure the snapshot goes away
-    snapshot = None
+    # Make sure the snapshot goes away before the next scheduled dump.
+    del snapshot
 
 
 @should_dump_tracemalloc

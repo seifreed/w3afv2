@@ -25,6 +25,7 @@ import logging
 import os
 import sys
 import tempfile
+import threading
 import traceback
 from functools import partial, wraps
 
@@ -55,7 +56,7 @@ def start_core_profiling(w3af_core, output_manager):
 
     :return: The timer list owned by this profiling session.
     """
-    save_thread_ptr = []
+    save_thread_ptr: list[threading.Timer] = []
     dd_partial = partial(dump_data, w3af_core, output_manager)
     dump_data_every_thread(dd_partial, DELAY_MINUTES, save_thread_ptr)
     return save_thread_ptr

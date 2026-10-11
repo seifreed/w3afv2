@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: invariantes de profiling y Bloom filters
+
+El detector de delays tipa sus respuestas, los timers de profiling declaran su
+contenedor y los snapshots de tracemalloc se liberan explícitamente. El
+wrapper Bloom valida su backend antes de delegar operaciones, haciendo visible
+la precondición que ya exigían sus implementaciones concretas.
+
+Verificación: delay detection, profiling y Bloom filters pasan **18 tests**;
+mypy estricto, Ruff y Black están limpios. El score global continúa en
+**9.99/10**, con los gates globales heredados y la cobertura global todavía
+pendientes.
+
 ## Actualización verificada: contrato de `CachedResponse`
 
 `CachedResponse` expone ahora la firma de lectura compatible con

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from typing import ClassVar
 
 from w3af.core.controllers.delay_detection.aprox_delay import AproxDelay
+from w3af.core.data.url.http_response import HTTPResponse
 
 LINEARLY = 1
 EXPONENTIALLY = 2
@@ -112,7 +113,7 @@ class AproxDelayController:
         these aprox delays are usually related with CPU bound functions (not
         sleep). If we start with the highest maybe we could break something.
         """
-        responses = []
+        responses: list[HTTPResponse] = []
 
         original_rtt = self.uri_opener.get_average_rtt_for_mutant(
             mutant=self.mutant, debugging_id=self.get_debugging_id()
