@@ -6759,3 +6759,14 @@ de crear la conexión HTTP.
 Verificación: Black, Ruff y Mypy no muestran errores propios en los cuatro
 archivos modificados. La colección dinámica queda bloqueada en este entorno por
 la dependencia local ausente `vulndb`; el score global continúa en **9.99/10**.
+
+## Actualización verificada: cierre de ProcessPool en tests de memoria
+
+El helper común de `test_pebble_limit_memory_usage` registra `stop` y `join`
+como cleanup de cada caso. Así los seis tests liberan sus workers aunque una
+aserción o una excepción interrumpa el cuerpo, evitando acumular procesos y RAM
+entre casos.
+
+Verificación: Black y Ruff pasan. La ejecución dinámica queda bloqueada en este
+entorno porque falta la dependencia `pebble`; el score global continúa en
+**9.99/10**.

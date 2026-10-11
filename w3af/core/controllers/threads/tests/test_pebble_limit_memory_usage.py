@@ -204,4 +204,6 @@ class TestPebbleMemoryUsage(unittest.TestCase):
         pool = ProcessPool(
             initializer=limit_memory_usage, initargs=[self.MEMORY_LIMIT], max_workers=3
         )
+        self.addCleanup(pool.join)
+        self.addCleanup(pool.stop)
         return pool
