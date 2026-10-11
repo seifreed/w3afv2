@@ -248,7 +248,7 @@ def get_match_rate(variable_name, variable_name_db):
 
     :return: A match rate between variable_name and variable_name_db.
     """
-    match_rate = len(variable_name)
+    match_rate: int | float = len(variable_name)
     if variable_name.startswith(variable_name_db):
         match_rate += len(variable_name) / 2
     return match_rate

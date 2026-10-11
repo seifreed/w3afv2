@@ -114,8 +114,8 @@ class GetAverageRTTForMutant:
                     " results from another thread. Will send HTTP requests"
                     " and collect the data from the network (did:%s)"
                 )
-                args = (debugging_id,)
-                LOGGER.debug(msg, *args)
+                log_args = (debugging_id,)
+                LOGGER.debug(msg, *log_args)
             else:
                 # The event was set! The other thread finished and we can read
                 # the result from the cache.
@@ -136,8 +136,8 @@ class GetAverageRTTForMutant:
                     " the other thread finished. Will send HTTP requests"
                     " and collect the data from the network (did:%s)"
                 )
-                args = (debugging_id,)
-                LOGGER.debug(msg, *args)
+                timeout_log_args = (debugging_id,)
+                LOGGER.debug(msg, *timeout_log_args)
 
         #
         # There is no other thread getting data for `cache_key`, we'll have to
@@ -155,8 +155,8 @@ class GetAverageRTTForMutant:
             self._rtt_processing_events.pop(cache_key, None)
 
         msg = "Returning fresh average RTT of %.2f seconds for mutant %s (did:%s)"
-        args = (average_rtt, cache_key, debugging_id)
-        LOGGER.debug(msg, *args)
+        result_log_args = (average_rtt, cache_key, debugging_id)
+        LOGGER.debug(msg, *result_log_args)
 
         return average_rtt
 

@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contratos de RTT, formularios y workers
+
+Los argumentos de logging del cálculo de RTT ya no se reutilizan con formas
+incompatibles, el ratio de coincidencia del rellenador declara su resultado
+entero o decimal real y el pool tipa sus colas, cache, workers y threads con
+estado explícito. El worker libera las referencias temporales después de
+entregar cada resultado.
+
+Verificación: las suites afectadas pasan **58 tests**; mypy focal, Ruff y Black
+están limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: detección de hilo principal pública
 
 La utilidad de hilos usa `threading.main_thread()` en lugar de inspeccionar la

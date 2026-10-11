@@ -30,6 +30,7 @@ import traceback
 from functools import partial
 from multiprocessing.dummy import Process
 from multiprocessing.util import Finalize, debug
+from typing import Any
 
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.data.fuzzer.utils import rand_alnum
@@ -39,6 +40,10 @@ from .pool276 import RUN, ThreadPool, mapstar
 __all__ = ["Pool", "one_to_many", "return_args"]
 
 LOGGER = logging.getLogger(__name__)
+
+
+class _StateThread(threading.Thread):
+    _state: int
 
 
 class one_to_many:
@@ -165,8 +170,8 @@ def add_traceback_string(_exception):
     """
     _except_type, _except_class, tb = sys.exc_info()
 
-    tb = traceback.format_exception(type(_exception), _exception, tb)
-    _exception.original_traceback_string = "".join(tb)
+    traceback_lines = traceback.format_exception(type(_exception), _exception, tb)
+    _exception.original_traceback_string = "".join(traceback_lines)
 
 
 class Worker:
@@ -198,11 +203,11 @@ class Worker:
         current_func = self.func
         current_args = self.args
 
-        if current_func is mapstar:
+        if current_func is mapstar and current_args is not None:
             current_func = current_args[0][0]
             current_args = current_args[0][1:]
 
-        if current_func is apply_with_return_error:
+        if current_func is apply_with_return_error and current_args is not None:
             current_func = current_args[0][0]
             current_args = current_args[0][1:]
 
@@ -271,12 +276,7 @@ class Worker:
             put((job, i, result))
 
             # https://bugs.python.org/issue29861
-            task = None
-            job = None
-            result = None
-            func = None
-            args = None
-            kwds = None
+            del task, job, result, func, args, kwds
 
             completed += 1
 
@@ -332,9 +332,9 @@ class Pool(ThreadPool):
             raise ValueError("max_queued_tasks needs to be at least 2")
 
         self._setup_queues(max_queued_tasks - 1)
-        self._taskqueue = queue.Queue(maxsize=1)
+        self._taskqueue: queue.Queue[Any] = queue.Queue(maxsize=1)
 
-        self._cache = {}
+        self._cache: dict[int, Any] = {}
         self._state = RUN
         self._maxtasksperchild = maxtasksperchild
         self._initializer = initializer
@@ -354,17 +354,17 @@ class Pool(ThreadPool):
             raise ValueError("maxtasksperchild must be None or a positive integer")
 
         self._processes = processes
-        self._pool = []
+        self._pool: list[DaemonProcess] = []
         self._repopulate_pool()
 
-        self._worker_handler = threading.Thread(
+        self._worker_handler = _StateThread(
             target=Pool._handle_workers, args=(self,), name="PoolWorkerHandler"
         )
         self._worker_handler.daemon = True
         self._worker_handler._state = RUN
         self._worker_handler.start()
 
-        self._task_handler = threading.Thread(
+        self._task_handler = _StateThread(
             target=Pool._handle_tasks,
             args=(
                 self._taskqueue,
@@ -378,7 +378,7 @@ class Pool(ThreadPool):
         self._task_handler._state = RUN
         self._task_handler.start()
 
-        self._result_handler = threading.Thread(
+        self._result_handler = _StateThread(
             target=Pool._handle_results,
             args=(self._quick_get, self._cache),
             name="PoolResultHandler",
@@ -477,8 +477,8 @@ class Pool(ThreadPool):
         self._repopulate_pool()
 
     def _setup_queues(self, max_queued_tasks):
-        self._inqueue = queue.Queue(maxsize=max_queued_tasks)
-        self._outqueue = queue.Queue()
+        self._inqueue: queue.Queue[Any] = queue.Queue(maxsize=max_queued_tasks)
+        self._outqueue: queue.Queue[Any] = queue.Queue()
         self._quick_put = self._inqueue.put
         self._quick_get = self._outqueue.get
 
