@@ -2,6 +2,7 @@
 
 import base64
 
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem, TraceReadException
 from w3af.core.data.misc.dotdict import dotdict
@@ -12,7 +13,7 @@ from w3af.plugins.output.xml_nodes import CachedXMLNode, XMLNode
 class HTTPTransaction(CachedXMLNode):
     TEMPLATE = "http_transaction.tpl"
 
-    def __init__(self, jinja2_env, _id, db=None):
+    def __init__(self, jinja2_env, _id, db: SQLiteDBMS):
         super().__init__(jinja2_env)
         self._id = _id
         self._db = db
@@ -134,7 +135,7 @@ class ScanStatus(XMLNode):
 class Finding(XMLNode):
     TEMPLATE = "finding.tpl"
 
-    def __init__(self, jinja2_env, info, output, db=None):
+    def __init__(self, jinja2_env, info, output, db: SQLiteDBMS):
         super().__init__(jinja2_env)
         self._info = info
         self._output = output

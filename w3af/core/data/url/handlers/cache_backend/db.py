@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.url.exceptions import CacheStoreException
@@ -56,7 +57,7 @@ def store_error(error, request, response):
 
 class SQLCachedResponse(CachedResponse):
 
-    def __init__(self, req, db=None):
+    def __init__(self, req, db: SQLiteDBMS):
         self._hist_obj = None
         self._db = db
         CachedResponse.__init__(self, req)
@@ -90,7 +91,9 @@ class SQLCachedResponse(CachedResponse):
         return hist_obj
 
     @staticmethod
-    def store_in_cache(request, response, db=None):
+    def store_in_cache(request, response, db: SQLiteDBMS | None = None):
+        if db is None:
+            raise ValueError("SQLCachedResponse requires a database")
         # Create the http response object
         resp = HTTPResponse.from_httplib_resp(response, original_url=request.url_object)
         resp.set_id(response.id)
@@ -107,12 +110,14 @@ class SQLCachedResponse(CachedResponse):
             raise store_error(ex, request, resp) from ex
 
     @staticmethod
-    def init(db=None):
+    def init(db: SQLiteDBMS | None = None):
+        if db is None:
+            raise ValueError("SQLCachedResponse requires a database")
         create_temp_dir()
         HistoryItem(db=db).init()
 
     @staticmethod
-    def clear(db=None):
+    def clear(db: SQLiteDBMS):
         """
         Clear the cache (remove all files and directories associated with it).
         """

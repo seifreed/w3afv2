@@ -4942,3 +4942,16 @@ del proceso y no deja el hilo de persistencia vivo indefinidamente.
 Verificación: la suite de DBMS pasa **23 tests**; Black, Ruff, mypy y Bandit
 focales están limpios. El score global continúa en **9.99/10**, con los gates
 heredados del entorno y la cobertura global todavía pendientes.
+
+## Actualización verificada: DB obligatoria en historial y cache HTTP
+
+`HistoryItem`, `SQLCachedResponse` y los modelos XML ya no crean ni aceptan una
+DB implícita. `OpenerSettings` compone la DB standalone una sola vez cuando no
+hay un core, y el resto de componentes la recibe de forma explícita; los tests
+usan la DB del core o la singleton temporal de manera declarada. Esto evita
+duplicar SQLite por omisión y hace visible quién posee cada recurso.
+
+Verificación: DB/cache pasan **46 tests**, XML **32**, HTML e historial **4**, y
+opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
+El score global continúa en **9.99/10**, con los gates globales heredados y la
+cobertura global todavía pendientes.

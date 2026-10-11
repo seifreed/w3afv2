@@ -40,6 +40,7 @@ import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.constants import severity
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.db.url_tree import URLTree
 from w3af.core.data.dc.headers import Headers
@@ -71,7 +72,7 @@ from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 def xml_file_with_output():
-    plugin = xml_file()
+    plugin = xml_file(db=get_default_temp_db_instance())
     plugin.set_output(om.out)
     return plugin
 
@@ -145,13 +146,14 @@ class TestXMLOutput(PluginTest):
         self.assertEqual(validate_xml(Path(self.FILENAME).read_bytes(), self.XSD), "")
 
     def tearDown(self):
+        self.kb.cleanup()
         super().tearDown()
         with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        self.kb.cleanup()
 
     def test_error_null_byte(self):
         w3af_core = w3afCore(knowledge_base=kb)
+        self.addCleanup(w3af_core.quit)
         w3af_core.status.start()
 
         plugin_instance = xml_file_with_output()
@@ -373,10 +375,10 @@ class TestXMLOutputBinary(PluginTest):
             self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
+        self.kb.cleanup()
         super().tearDown()
         with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        self.kb.cleanup()
 
 
 class TestXML0x0B(PluginTest):
@@ -426,10 +428,10 @@ class TestXML0x0B(PluginTest):
             self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
+        self.kb.cleanup()
         super().tearDown()
         with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        self.kb.cleanup()
 
 
 class TestSpecialCharacterInURL(PluginTest):
@@ -475,10 +477,10 @@ class TestSpecialCharacterInURL(PluginTest):
             self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
+        self.kb.cleanup()
         super().tearDown()
         with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        self.kb.cleanup()
 
 
 class XMLNodeGeneratorTest(unittest.TestCase):
@@ -494,11 +496,11 @@ class TestHTTPTransaction(XMLNodeGeneratorTest):
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
-        HistoryItem().init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=get_default_temp_db_instance()).clear()
         kb.cleanup()
 
     def test_render_simple(self):
@@ -512,14 +514,16 @@ class TestHTTPTransaction(XMLNodeGeneratorTest):
 
         _id = 1
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
         h1.save()
 
         x = xml_file_with_output()
-        http_transaction = HTTPTransaction(x._get_jinja2_env(), _id)
+        http_transaction = HTTPTransaction(
+            x._get_jinja2_env(), _id, db=get_default_temp_db_instance()
+        )
         xml = http_transaction.to_string()
 
         expected = (
@@ -554,14 +558,16 @@ class TestHTTPTransaction(XMLNodeGeneratorTest):
 
         _id = 2
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
         h1.save()
 
         x = xml_file_with_output()
-        http_transaction = HTTPTransaction(x._get_jinja2_env(), _id)
+        http_transaction = HTTPTransaction(
+            x._get_jinja2_env(), _id, db=get_default_temp_db_instance()
+        )
 
         self.assertIsNone(http_transaction.get_node_from_cache())
 
@@ -604,11 +610,11 @@ class TestScanInfo(XMLNodeGeneratorTest):
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
-        HistoryItem().init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=get_default_temp_db_instance()).clear()
         kb.cleanup()
 
     def test_render_simple(self):
@@ -675,7 +681,7 @@ class TestScanStatus(XMLNodeGeneratorTest):
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=get_default_temp_db_instance()).clear()
         kb.cleanup()
 
     def test_render_simple(self):
@@ -776,11 +782,11 @@ class TestFinding(XMLNodeGeneratorTest):
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
-        HistoryItem().init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=get_default_temp_db_instance()).clear()
         kb.cleanup()
 
     def test_render_simple(self):
@@ -796,7 +802,7 @@ class TestFinding(XMLNodeGeneratorTest):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
@@ -804,7 +810,9 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file_with_output()
 
-        finding = Finding(x._get_jinja2_env(), vuln, x._output)
+        finding = Finding(
+            x._get_jinja2_env(), vuln, x._output, db=get_default_temp_db_instance()
+        )
         xml = finding.to_string()
 
         expected = (
@@ -854,7 +862,7 @@ class TestFinding(XMLNodeGeneratorTest):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
@@ -862,7 +870,9 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file_with_output()
 
-        finding = Finding(x._get_jinja2_env(), vuln, x._output)
+        finding = Finding(
+            x._get_jinja2_env(), vuln, x._output, db=get_default_temp_db_instance()
+        )
         xml = finding.to_string()
 
         self.assertNotIn("such as <, & and > which MUST", xml)
@@ -888,7 +898,7 @@ class TestFinding(XMLNodeGeneratorTest):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
@@ -896,7 +906,9 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file_with_output()
 
-        finding = Finding(x._get_jinja2_env(), vuln, x._output)
+        finding = Finding(
+            x._get_jinja2_env(), vuln, x._output, db=get_default_temp_db_instance()
+        )
         xml = finding.to_string()
 
         self.assertNotIn("unicode control characters such as \f and \x09", xml)
@@ -922,7 +934,7 @@ class TestFinding(XMLNodeGeneratorTest):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
@@ -930,7 +942,9 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file_with_output()
 
-        finding = Finding(x._get_jinja2_env(), vuln, x._output)
+        finding = Finding(
+            x._get_jinja2_env(), vuln, x._output, db=get_default_temp_db_instance()
+        )
         xml = finding.to_string()
 
         self.assertNotIn(name, xml)
@@ -945,7 +959,9 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file_with_output()
 
-        finding = Finding(x._get_jinja2_env(), vuln, x._output)
+        finding = Finding(
+            x._get_jinja2_env(), vuln, x._output, db=get_default_temp_db_instance()
+        )
         xml = finding.to_string()
 
         self.assertIn("á", xml)
@@ -970,7 +986,7 @@ class TestFinding(XMLNodeGeneratorTest):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
@@ -978,7 +994,9 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file_with_output()
 
-        finding = Finding(x._get_jinja2_env(), vuln, x._output)
+        finding = Finding(
+            x._get_jinja2_env(), vuln, x._output, db=get_default_temp_db_instance()
+        )
         xml = finding.to_string()
 
         expected = (
@@ -1034,11 +1052,11 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
-        HistoryItem().init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=get_default_temp_db_instance()).clear()
         kb.cleanup()
 
     def test_cache_works_as_expected(self):
@@ -1066,7 +1084,7 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(_id)
         h1.response = res
@@ -1087,7 +1105,7 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
 
-        h2 = HistoryItem()
+        h2 = HistoryItem(db=get_default_temp_db_instance())
         h2.request = request
         res.set_id(_id)
         h2.response = res
@@ -1217,13 +1235,13 @@ class TestXMLFileEdgeCases(unittest.TestCase):
         create_temp_dir()
         CachedXMLNode.create_cache_path()
         FindingsCache.create_cache_path()
-        HistoryItem().init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
 
         self.output_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=get_default_temp_db_instance()).clear()
         kb.cleanup()
 
     def test_took_returns_the_result_of_slow_functions(self):
@@ -1268,7 +1286,12 @@ class TestXMLFileEdgeCases(unittest.TestCase):
         vuln = MockVuln(_id=4242)
 
         plugin = xml_file_with_output()
-        xml = Finding(plugin._get_jinja2_env(), vuln, plugin._output).to_string()
+        xml = Finding(
+            plugin._get_jinja2_env(),
+            vuln,
+            plugin._output,
+            db=get_default_temp_db_instance(),
+        ).to_string()
 
         self.assertIn("<vulnerability", xml)
         self.assertIn("<http-transactions>\n    </http-transactions>", xml)

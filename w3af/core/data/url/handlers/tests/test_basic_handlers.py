@@ -25,6 +25,7 @@ import unittest
 import urllib.request
 import zlib
 
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
 from w3af.core.data.url.handlers.cache import CacheHandler
@@ -61,7 +62,7 @@ class TestGzipProcessor(unittest.TestCase):
         ).start()
         self.addCleanup(self.server.stop)
         self.gzip_processor = HTTPGzipProcessor()
-        self.cache = CacheHandler()
+        self.cache = CacheHandler(db=get_default_temp_db_instance())
         self.addCleanup(self.cache.clear)
         self.opener = build_opener(
             CustomOpenerDirector, [HTTPHandler(), self.gzip_processor, self.cache]

@@ -26,7 +26,7 @@ from functools import wraps
 from shutil import rmtree
 from typing import ClassVar
 
-from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.db.history_repository import HistoryRepository
 from w3af.core.data.db.history_trace_compressor import (
     HistoryTraceCompressor,
@@ -104,8 +104,8 @@ class HistoryItem:
     time = 0.2
     charset = None
 
-    def __init__(self, db=None):
-        self._db = get_default_temp_db_instance() if db is None else db
+    def __init__(self, db: SQLiteDBMS):
+        self._db = db
         self._history_lock = threading.RLock()
 
         self._session_dir = os.path.join(

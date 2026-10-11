@@ -134,6 +134,7 @@ class xml_file(OutputPlugin):
         # Keep internal state
         self._is_working = False
         self._jinja2_env = self._get_jinja2_env()
+        self._db = db
 
         # List with additional xml elements
         self._errors = DiskList(db=db)
@@ -365,7 +366,7 @@ class xml_file(OutputPlugin):
             uniq_id = finding.get_uniq_id()
             processed_uniq_ids.append(uniq_id)
             core = self.get_w3af_core()
-            database = None if core is None else core.database
+            database = self._db if core is None else core.database
             node = Finding(
                 self._jinja2_env,
                 finding,

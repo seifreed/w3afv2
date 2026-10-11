@@ -37,7 +37,7 @@ class TestHistoryAccess(CountTestMixin):
 
         target_url = self.server.url("/")
 
-        history_item = HistoryItem()
+        history_item = HistoryItem(db=self.w3afcore.database)
         self.assertTrue(history_item.load(1))
         self.assertEqual(history_item.id, 1)
         self.assertEqual(history_item.get_request().get_uri().url_string, target_url)

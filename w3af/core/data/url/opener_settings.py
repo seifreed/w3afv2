@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 
 from w3af.core.configurable import Configurable
+from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
 from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.url.authentication_settings import AuthenticationSettings
@@ -52,7 +53,7 @@ class OpenerSettings(Configurable):
         configuration=None,
         resolver=None,
         id_generator=None,
-        db=None,
+        db: SQLiteDBMS | None = None,
     ):
 
         self._configuration = Config() if configuration is None else configuration
@@ -63,7 +64,8 @@ class OpenerSettings(Configurable):
         # Set the openers to None
         self._proxy = ProxySettings(cfg, LOGGER.debug)
         self._url_parameter = URLParameterSettings(cfg)
-        self._lifecycle = OpenerLifecycle(cfg, self._id_generator, db=db)
+        self._db = get_default_temp_db_instance() if db is None else db
+        self._lifecycle = OpenerLifecycle(cfg, self._id_generator, db=self._db)
         self._request_limits = RequestLimitsSettings(cfg)
         self._defaults = OpenerDefaults(cfg)
         self._options = OpenerOptions(cfg)
@@ -85,7 +87,7 @@ class OpenerSettings(Configurable):
         self._headers = HeaderSettings(cfg, LOGGER.debug)
 
         # By default, don't mangle any request/responses
-        self._mangle_plugins = []
+        self._mangle_plugins: list[object] = []
         self._option_applier = OpenerOptionApplier(
             cfg,
             self._authentication,

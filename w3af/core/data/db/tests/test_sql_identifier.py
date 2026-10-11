@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.db.sql_identifier import require_safe_identifier
 from w3af.core.filesystem import create_temp_dir
@@ -40,7 +41,7 @@ class TestRequireSafeIdentifier(unittest.TestCase):
 
     def test_history_search_rejects_unsafe_columns(self):
         create_temp_dir()
-        history = HistoryItem()
+        history = HistoryItem(db=get_default_temp_db_instance())
         history.init()
         self.addCleanup(history.clear)
 

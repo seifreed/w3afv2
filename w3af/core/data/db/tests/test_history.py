@@ -56,16 +56,16 @@ class TestHistoryItem(unittest.TestCase):
     def setUp(self):
         kb.cleanup()
         create_temp_dir()
-        HistoryItem().init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
 
     def tearDown(self):
         remove_temp_dir()
-        HistoryItem().clear()
+        HistoryItem(db=get_default_temp_db_instance()).clear()
         kb.cleanup()
 
     def test_single_db(self):
-        h1 = HistoryItem()
-        h2 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
+        h2 = HistoryItem(db=get_default_temp_db_instance())
         self.assertEqual(h1._db, h2._db)
 
     def test_compression_state_is_local_to_each_history_session(self):
@@ -133,7 +133,7 @@ class TestHistoryItem(unittest.TestCase):
 
             hdr = Headers([("Content-Type", "text/html")])
             res = HTTPResponse(code, "<html>", hdr, url, url, charset="UTF-8")
-            h1 = HistoryItem()
+            h1 = HistoryItem(db=get_default_temp_db_instance())
             h1.request = request
             res.set_id(i)
             h1.response = res
@@ -143,7 +143,7 @@ class TestHistoryItem(unittest.TestCase):
                 h1.tag = tag_value
             h1.save()
 
-        h2 = HistoryItem()
+        h2 = HistoryItem(db=get_default_temp_db_instance())
         self.assertEqual(len(h2.find([("tag", "%" + tag_value + "%", "like")])), 1)
         self.assertEqual(len(h2.find([("code", 302, "=")])), 1)
         self.assertEqual(len(h2.find([("mark", 1, "=")])), 1)
@@ -160,18 +160,18 @@ class TestHistoryItem(unittest.TestCase):
             request = HTTPRequest(url, data="a=1")
             hdr = Headers([("Content-Type", "text/html")])
             res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
-            h1 = HistoryItem()
+            h1 = HistoryItem(db=get_default_temp_db_instance())
             h1.request = request
             res.set_id(i)
             h1.response = res
             h1.mark = i == mark_id
             h1.save()
 
-        h2 = HistoryItem()
+        h2 = HistoryItem(db=get_default_temp_db_instance())
         h2.load(mark_id)
         self.assertTrue(h2.mark)
 
-        h3 = HistoryItem()
+        h3 = HistoryItem(db=get_default_temp_db_instance())
         h3.load(mark_id - 1)
         self.assertFalse(h3.mark)
 
@@ -183,20 +183,20 @@ class TestHistoryItem(unittest.TestCase):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(i)
         h1.response = res
         h1.save()
 
-        h2 = HistoryItem()
+        h2 = HistoryItem(db=get_default_temp_db_instance())
         h2.load(i)
 
         self.assertEqual(h1.request.to_dict(), h2.request.to_dict())
         self.assertEqual(h1.response.body, h2.response.body)
 
     def test_load_not_exists(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         self.assertRaises(DBException, h.load, 1)
 
     def test_save_load_compressed(self):
@@ -215,7 +215,7 @@ class TestHistoryItem(unittest.TestCase):
             response = HTTPResponse(200, body, headers, url, url, charset="UTF-8")
             response.set_id(i)
 
-            h = HistoryItem()
+            h = HistoryItem(db=get_default_temp_db_instance())
             h.request = request
             h.response = response
             h.save()
@@ -234,7 +234,7 @@ class TestHistoryItem(unittest.TestCase):
         self.assertEqual(_zip.namelist(), expected_files)
 
         for i in range(1, 100):
-            h = HistoryItem()
+            h = HistoryItem(db=get_default_temp_db_instance())
             h.load(i)
 
             self.assertEqual(h.request.get_uri(), url)
@@ -247,7 +247,7 @@ class TestHistoryItem(unittest.TestCase):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(1)
         h1.response = res
@@ -273,7 +273,7 @@ class TestHistoryItem(unittest.TestCase):
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         res.set_id(1)
         h1.response = res
@@ -284,8 +284,8 @@ class TestHistoryItem(unittest.TestCase):
 
     def test_init_init(self):
         # No exceptions should be raised
-        HistoryItem().init()
-        HistoryItem().init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
+        HistoryItem(db=get_default_temp_db_instance()).init()
 
     def test_tag(self):
         tag_id = secrets.randbelow(499) + 501
@@ -296,7 +296,7 @@ class TestHistoryItem(unittest.TestCase):
             request = HTTPRequest(url, data="a=1")
             hdr = Headers([("Content-Type", "text/html")])
             res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
-            h1 = HistoryItem()
+            h1 = HistoryItem(db=get_default_temp_db_instance())
             h1.request = request
             res.set_id(i)
             h1.response = res
@@ -304,7 +304,7 @@ class TestHistoryItem(unittest.TestCase):
                 h1.tag = tag_value
             h1.save()
 
-        h2 = HistoryItem()
+        h2 = HistoryItem(db=get_default_temp_db_instance())
         h2.load(tag_id)
         self.assertEqual(h2.tag, tag_value)
 
@@ -316,12 +316,12 @@ class TestHistoryItem(unittest.TestCase):
         res = HTTPResponse(200, "<html>", headers, url, url, charset="UTF-8")
         res.set_id(1)
 
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=get_default_temp_db_instance())
         h1.request = request
         h1.response = res
         h1.save()
 
-        h2 = HistoryItem()
+        h2 = HistoryItem(db=get_default_temp_db_instance())
         h2.load(1)
 
         self.assertEqual(h1.request.to_dict(), h2.request.to_dict())
@@ -334,7 +334,7 @@ class TestHistoryItem(unittest.TestCase):
         res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
         res.set_id(_id)
 
-        item = HistoryItem()
+        item = HistoryItem(db=get_default_temp_db_instance())
         item.request = HTTPRequest(url, data="a=1")
         item.response = res
         item.save()
@@ -343,7 +343,7 @@ class TestHistoryItem(unittest.TestCase):
     def test_read(self):
         self.save_item(7)
 
-        item = HistoryItem().read(7)
+        item = HistoryItem(db=get_default_temp_db_instance()).read(7)
 
         self.assertEqual(item.id, 7)
         self.assertEqual(item.url, "http://w3af.com/a/b/c.php")
@@ -352,8 +352,12 @@ class TestHistoryItem(unittest.TestCase):
     def test_found_items_load_traffic_lazily(self):
         self.save_item(8, url="http://w3af.com/lazy.php")
 
-        (response_first,) = HistoryItem().find([("id", 8, "=")])
-        (request_first,) = HistoryItem().find([("id", 8, "=")])
+        (response_first,) = HistoryItem(db=get_default_temp_db_instance()).find(
+            [("id", 8, "=")]
+        )
+        (request_first,) = HistoryItem(db=get_default_temp_db_instance()).find(
+            [("id", 8, "=")]
+        )
 
         self.assertEqual(response_first.response.get_body(), "<html>")
         self.assertEqual(
@@ -363,16 +367,20 @@ class TestHistoryItem(unittest.TestCase):
         self.assertEqual(request_first.response.get_code(), 200)
 
     def test_invalid_search(self):
-        self.assertRaises(DBException, HistoryItem().find, [("id", 1, "nonsense")])
+        self.assertRaises(
+            DBException,
+            HistoryItem(db=get_default_temp_db_instance()).find,
+            [("id", 1, "nonsense")],
+        )
 
     def test_load_without_table(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         h._db.drop_table(h.get_table_name()).result()
 
         self.assertRaises(DBException, h.load, 1)
 
     def test_methods_require_a_database(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         h.clear()
 
         self.assertRaises(RuntimeError, h.find, [])
@@ -380,7 +388,7 @@ class TestHistoryItem(unittest.TestCase):
         self.assertRaises(RuntimeError, h.read, 1)
 
     def test_load_from_string_errors(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
 
         self.assertRaises(TraceReadException, h._load_from_string, b"\x01\x02")
         self.assertRaises(TraceReadException, h._load_from_string, msgpack.dumps(None))
@@ -392,17 +400,21 @@ class TestHistoryItem(unittest.TestCase):
         self.assertRaises(TraceReadException, h._load_from_trace_file, 404)
 
     def test_load_from_file_without_trace_nor_zip(self):
-        self.assertRaises(TraceReadException, HistoryItem().load_from_file, 404)
+        self.assertRaises(
+            TraceReadException,
+            HistoryItem(db=get_default_temp_db_instance()).load_from_file,
+            404,
+        )
 
     def test_load_from_corrupt_trace_file_times_out(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         with open(h._get_trace_filename_for_id(9), "wb") as trace_file:
             trace_file.write(msgpack.dumps(None))
 
         self.assertRaises(DBException, h.load_from_file, 9)
 
     def test_load_from_invalid_zip_file(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         with open(os.path.join(h.get_session_dir(), "1-150.zip"), "wb") as zip_file:
             zip_file.write(b"not a zip file")
 
@@ -410,7 +422,7 @@ class TestHistoryItem(unittest.TestCase):
         self.assertRaises(TraceReadException, h.load_from_file, 3)
 
     def test_load_from_zip_without_the_trace(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         zip_path = os.path.join(h.get_session_dir(), "1-150.zip")
         with zipfile.ZipFile(zip_path, mode="w") as zip_file:
             zip_file.writestr("1.trace", b"")
@@ -427,10 +439,13 @@ class TestHistoryItem(unittest.TestCase):
         with zipfile.ZipFile(os.path.join(session_dir, "1-3.zip")) as zip_file:
             self.assertEqual(zip_file.namelist(), ["1.trace"])
 
-        self.assertEqual(HistoryItem().read(1).response.get_body(), "<html>")
+        self.assertEqual(
+            HistoryItem(db=get_default_temp_db_instance()).read(1).response.get_body(),
+            "<html>",
+        )
 
     def test_save_without_traces_directory(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         session_dir = h.get_session_dir()
         shutil.rmtree(session_dir)
 
@@ -442,7 +457,7 @@ class TestHistoryItem(unittest.TestCase):
         )
 
     def test_save_fails_with_existing_directories(self):
-        h = HistoryItem()
+        h = HistoryItem(db=get_default_temp_db_instance())
         os.mkdir(h._get_trace_filename_for_id(11))
 
         self.assertRaises(IsADirectoryError, self.save_item, 11)

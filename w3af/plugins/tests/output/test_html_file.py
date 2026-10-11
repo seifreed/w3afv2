@@ -179,13 +179,13 @@ class TestHTMLRendering(PluginTest):
         super().setUp()
         self.plugin = self.w3afcore.plugins.get_plugin_inst("output", "html_file")
 
-        HistoryItem().init()
+        HistoryItem(db=self.w3afcore.database).init()
 
         url = URL("http://w3af.com/a/b/c.php")
         request = HTTPRequest(url, data="a=1")
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>", hdr, url, url)
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=self.w3afcore.database)
         h1.request = request
         res.set_id(1)
         h1.response = res
@@ -195,7 +195,7 @@ class TestHTMLRendering(PluginTest):
         request = HTTPRequest(url, data="text=xss")
         hdr = Headers([("Content-Type", "text/html")])
         res = HTTPResponse(200, "<html>empty</html>", hdr, url, url)
-        h1 = HistoryItem()
+        h1 = HistoryItem(db=self.w3afcore.database)
         h1.request = request
         res.set_id(4)
         h1.response = res

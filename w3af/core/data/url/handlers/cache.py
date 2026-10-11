@@ -24,6 +24,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from w3af.core.data.db.dbms import SQLiteDBMS
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse
@@ -46,7 +47,9 @@ class CacheHandler(urllib.request.BaseHandler):
     :author: Version 0.3 by Javier Andalia <jandalia =at= gmail.com>
     """
 
-    def __init__(self, id_generator=None, db=None):
+    def __init__(self, id_generator=None, db: SQLiteDBMS | None = None):
+        if db is None:
+            raise ValueError("CacheHandler requires a database")
         self._id_generator = NumberGenerator() if id_generator is None else id_generator
         self._db = db
         CacheClass.init(db=self._db)

@@ -25,6 +25,7 @@ import unittest
 import urllib.response
 from email.message import Message
 
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
@@ -47,7 +48,8 @@ from w3af.core.exceptions import ScanMustStopException
 class TestCacheHandler(unittest.TestCase):
     def setUp(self):
         self.id_generator = NumberGenerator()
-        self.cache = CacheHandler(self.id_generator)
+        self.db = get_default_temp_db_instance()
+        self.cache = CacheHandler(self.id_generator, db=self.db)
         self.addCleanup(self.cache.clear)
         self.server = RouteServer(
             {"/": Response(body="spameggs", headers=[("X-Test", "cached")])}
@@ -55,6 +57,10 @@ class TestCacheHandler(unittest.TestCase):
         self.addCleanup(self.server.stop)
         self.url = URL(self.server.url())
         self.opener = build_opener(CustomOpenerDirector, [HTTPHandler(), self.cache])
+
+    def test_database_is_required(self):
+        with self.assertRaisesRegex(ValueError, "requires a database"):
+            CacheHandler()
 
     def test_responses_are_served_from_the_cache(self):
         live = self.opener.open(HTTPRequest(self.url, cache=True))
@@ -93,12 +99,12 @@ class TestCacheHandler(unittest.TestCase):
         response.set_id(self.id_generator.inc())
         response.set_alias(gen_hash(request))
 
-        history = HistoryItem()
+        history = HistoryItem(db=get_default_temp_db_instance())
         history.request = request
         history.response = response
         history.save()
 
-        cached_response = SQLCachedResponse(request)
+        cached_response = SQLCachedResponse(request, db=self.db)
         self.assertEqual(cached_response.info()["Content-Type"], "text/html")
         self.assertRaises(ValueError, cached_response._get_from_response, "PART_FOO")
 
@@ -135,6 +141,10 @@ class TestCachedResponseInterface(unittest.TestCase):
             CachedResponse,
             HTTPRequest(URL("http://w3af.org/")),
         )
+
+    def test_sql_cache_requires_a_database(self):
+        self.assertRaises(ValueError, SQLCachedResponse.store_in_cache, None, None)
+        self.assertRaises(ValueError, SQLCachedResponse.init)
 
 
 class CacheIntegrationTest(unittest.TestCase):
