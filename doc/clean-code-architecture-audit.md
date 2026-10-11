@@ -6190,3 +6190,13 @@ contrato de la capa de datos.
 Verificación: shells y `ExecShell` pasan **25 tests**; Mypy con cuerpos no
 tipados, Ruff y Black pasan en el módulo. El score global continúa en
 **9.99/10**.
+
+## Actualización verificada: estado aislado en PHP eggs
+
+`php_eggs` deja de guardar su base mutable como `ClassVar` compartida y la
+mantiene por instancia. La función original de consulta queda separada del
+wrapper `one_to_many`, eliminando la reasignación ambigua y evitando que una
+instancia contamine a otra.
+
+Verificación: el plugin pasa **7 tests**; Mypy con cuerpos no tipados, Ruff y
+Black pasan en producción y fixture. El score global continúa en **9.99/10**.

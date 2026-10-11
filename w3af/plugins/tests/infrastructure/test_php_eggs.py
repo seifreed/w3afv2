@@ -27,6 +27,7 @@ from typing import ClassVar
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -146,7 +147,8 @@ class TestPHPEggsVersionExtraction(unittest.TestCase):
         self.addCleanup(kb.cleanup)
         self.plugin = php_eggs()
         self.plugin.set_knowledge_base(kb)
-        self.plugin.EGG_DB = {
+        self.plugin.set_output(om.out)
+        self.plugin._egg_db = {
             "5.3.2": dict(EGG_HASHES),
             "5.2.0": {**EGG_HASHES, "credits": md5_hash("other")},
         }

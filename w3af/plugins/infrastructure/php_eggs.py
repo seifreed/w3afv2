@@ -51,9 +51,6 @@ class php_eggs(InfrastructurePlugin):
         ("?=PHPE9568F36-D428-11d2-A769-00AA001ACF42", "PHP Logo 2"),
     ]
 
-    # Empty EGG_DB array, will be filled with external data
-    EGG_DB: ClassVar[dict[str, dict[str, str]]] = {}
-
     def __init__(self):
         InfrastructurePlugin.__init__(self)
 
@@ -64,6 +61,7 @@ class php_eggs(InfrastructurePlugin):
         self._db_file = os.path.join(
             ROOT_PATH, "plugins", "infrastructure", "php_eggs", "eggs.json"
         )
+        self._egg_db: dict[str, dict[str, str]] = {}
         self._load_egg_db()
 
     def _load_egg_db(self):
@@ -71,7 +69,7 @@ class php_eggs(InfrastructurePlugin):
         Get data from external JSON file and fill EGG_DB array
         """
         data = self.read_jsondata(self._db_file)
-        self.EGG_DB = self.fill_egg_array(data)
+        self._egg_db = self.fill_egg_array(data)
 
     def read_jsondata(self, jsonfile):
         """
@@ -87,7 +85,7 @@ class php_eggs(InfrastructurePlugin):
         Fill an array with data from a JSON input file.
         :return: An array with PHP-versions with corresponding MD5 hashes.
         """
-        egg_db = {}
+        egg_db: dict[str, dict[str, str]] = {}
 
         for egg in json_egg_data["db"]:
             version = egg["version"]
@@ -145,10 +143,10 @@ class php_eggs(InfrastructurePlugin):
         # Send the requests using threads:
         query_results = []
 
-        http_get = one_to_many(http_get)
+        http_get_many = one_to_many(http_get)
         fr_repeater = repeat(fuzzable_request)
         args_iterator = list(zip(fr_repeater, self.PHP_EGGS))
-        pool_results = self.worker_pool.imap_unordered(http_get, args_iterator)
+        pool_results = self.worker_pool.imap_unordered(http_get_many, args_iterator)
 
         for response, egg_URL, egg_desc in pool_results:
             eqr = EggQueryResult(response, egg_desc, egg_URL)
@@ -217,7 +215,7 @@ class php_eggs(InfrastructurePlugin):
 
         matching_versions = [
             version
-            for version, version_hashes in self.EGG_DB.items()
+            for version, version_hashes in self._egg_db.items()
             if hash_set.issubset(version_hashes.values())
         ]
 
