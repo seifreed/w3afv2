@@ -5772,3 +5772,14 @@ mutante. No cambia la generación ni el orden de los mutantes.
 Verificación: la suite focal de fuzzer pasa **30 tests**; mypy global baja a
 **680 errores en 267 archivos** desde 681, y Black, Ruff y Bandit del módulo
 pasan sin hallazgos. El score global continúa en **9.99/10**.
+
+## Actualización verificada: configuración tipada de XML
+
+`xml_file._get_jinja2_env` pasa las opciones de Jinja como argumentos
+nombrados, en lugar de expandir un diccionario genérico que ocultaba los
+tipos aceptados por `Environment`. La configuración efectiva y el streaming
+del informe permanecen sin cambios.
+
+Verificación: la suite de XML pasa **32 tests**; mypy global baja a **670
+errores en 266 archivos** desde 680, y Black, Ruff y Bandit del módulo pasan
+sin hallazgos. El score global continúa en **9.99/10**.

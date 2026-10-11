@@ -416,13 +416,12 @@ class xml_file(OutputPlugin):
 
         :return: A jinja2 environment
         """
-        env_config = {
-            "undefined": StrictUndefined,
-            "trim_blocks": True,
-            "lstrip_blocks": True,
-        }
-
-        jinja2_env = Environment(autoescape=True, **env_config)
+        jinja2_env = Environment(
+            autoescape=True,
+            undefined=StrictUndefined,
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
         jinja2_env.loader = FileSystemLoader(TEMPLATE_ROOT)
         jinja2_env.filters["escape_attr"] = jinja2_attr_value_escape_filter
         jinja2_env.filters["escape_text"] = jinja2_text_value_escape_filter
