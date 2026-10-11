@@ -56,7 +56,7 @@ class recording_output(OutputPlugin):
         :return: The messages of the given kind, after the output manager
                  processed every message that was queued before this call.
         """
-        (self._manager or om.manager).process_all_messages()
+        (self._manager or om._get_default_manager()).process_all_messages()
         return [message for msg_kind, message in self.messages if msg_kind == kind]
 
 
@@ -66,12 +66,12 @@ def start_recording_output(manager=None):
 
     :return: The recording_output instance
     """
-    output_manager = manager or om.manager
+    output_manager = manager or om._get_default_manager()
     output_plugins = output_manager.get_output_plugin_inst()
     output_plugins[:] = [
         plugin for plugin in output_plugins if not isinstance(plugin, recording_output)
     ]
 
-    recorder = recording_output(manager)
+    recorder = recording_output(output_manager)
     output_manager.set_output_plugin_inst(recorder)
     return recorder

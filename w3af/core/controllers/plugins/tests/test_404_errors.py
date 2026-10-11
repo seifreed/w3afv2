@@ -55,10 +55,11 @@ class Test404Errors(unittest.TestCase):
         create_temp_dir()
         kb.cleanup()
         self.plugin = meta_tags()
-        self.plugin.set_output(om.out)
+        output = om._get_default_output()
+        self.plugin.set_output(output)
         self.plugin.set_configuration(cf)
         self.fingerprint_404 = Fingerprint404(
-            om.out, cf, db=get_default_temp_db_instance()
+            output, cf, db=get_default_temp_db_instance()
         )
         self.plugin.set_fingerprint_404(self.fingerprint_404)
 

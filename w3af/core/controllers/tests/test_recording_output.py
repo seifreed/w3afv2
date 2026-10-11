@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.output_manager.manager import OutputManager
 from w3af.core.controllers.tests.recording_output import start_recording_output
 
@@ -36,3 +37,16 @@ class TestRecordingOutput(unittest.TestCase):
 
         self.assertIsNot(first, second)
         self.assertEqual(manager.get_output_plugin_inst(), [second])
+
+    def test_start_uses_the_active_default_manager(self):
+        previous_manager = om._get_default_manager()
+        replacement_manager = OutputManager()
+        replacement_manager.start()
+        om.manager = replacement_manager
+        self.addCleanup(replacement_manager.stop)
+        self.addCleanup(setattr, om, "manager", previous_manager)
+
+        recorder = start_recording_output()
+
+        self.assertIs(replacement_manager.get_output_plugin_inst()[0], recorder)
+        self.assertIs(recorder._manager, replacement_manager)
