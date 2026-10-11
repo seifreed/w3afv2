@@ -6039,3 +6039,13 @@ un valor. El comportamiento visible conserva `unknown` como fallback.
 Verificación: ReadShell y shells relacionados pasan **16 tests**; Mypy
 estricto, Ruff, Black y Bandit pasan en los módulos modificados. El score
 global continúa en **9.99/10**.
+
+## Actualización verificada: argumentos de logging en fingerprinting 404
+
+Las ramas de detección 404 usan nombres locales distintos para los argumentos
+de sus mensajes, evitando reutilizar tuplas con longitudes y tipos diferentes.
+El flujo de comparación, cache y generación de respuestas permanece intacto.
+
+Verificación: las pruebas de fingerprinting y generación 404 pasan **39 tests**;
+Mypy estricto, Ruff y Black pasan en ambos módulos. El score global continúa en
+**9.99/10**.

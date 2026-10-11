@@ -309,12 +309,12 @@ def send_404(uri_opener, url_404, output, debugging_id=None):
         )
     except HTTPRequestException as hre:
         message = 'Exception found while detecting 404: "%s" (did:%s)'
-        args = (hre, debugging_id)
-        output.debug(message % args)
-        raise FourOhFourDetectionException(message % args)
+        exception_args = (hre, debugging_id)
+        output.debug(message % exception_args)
+        raise FourOhFourDetectionException(message % exception_args)
     else:
         msg = "Received response for 404 URL %s (id:%s, did:%s, len:%s)"
-        args = (url_404, response.id, debugging_id, len(response.body))
-        output.debug(msg % args)
+        response_args = (url_404, response.id, debugging_id, len(response.body))
+        output.debug(msg % response_args)
 
     return response

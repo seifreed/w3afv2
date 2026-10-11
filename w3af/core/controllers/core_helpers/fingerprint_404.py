@@ -223,7 +223,7 @@ class Fingerprint404:
                 '"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
                 " [known 404 with ID %s uses 404 code]"
             )
-            args = (
+            large_response_args = (
                 http_response.get_url(),
                 http_response.id,
                 http_response.get_code(),
@@ -231,7 +231,7 @@ class Fingerprint404:
                 debugging_id,
                 known_404.id,
             )
-            self._output.debug(msg % args)
+            self._output.debug(msg % large_response_args)
             return False
 
         # Since the fuzzy_equal function is CPU-intensive we want to
@@ -260,7 +260,7 @@ class Fingerprint404:
                 '"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
                 " [string equals with 404 DB entry with ID %s]"
             )
-            args = (
+            similarity_args = (
                 http_response.get_url(),
                 http_response.id,
                 http_response.get_code(),
@@ -268,7 +268,7 @@ class Fingerprint404:
                 debugging_id,
                 known_404.id,
             )
-            self._output.debug(msg % args)
+            self._output.debug(msg % similarity_args)
             return True
 
         is_fuzzy_equal = fuzzy_equal(known_404.body, query.body, IS_EQUAL_RATIO)
@@ -278,7 +278,7 @@ class Fingerprint404:
                 '"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
                 " [similarity_ratio < %s with known 404 with ID %s]"
             )
-            args = (
+            fuzzy_equal_args = (
                 http_response.get_url(),
                 http_response.id,
                 http_response.get_code(),
@@ -287,7 +287,7 @@ class Fingerprint404:
                 IS_EQUAL_RATIO,
                 known_404.id,
             )
-            self._output.debug(msg % args)
+            self._output.debug(msg % fuzzy_equal_args)
             return False
 
         if len(query.body) < MAX_FUZZY_LENGTH:
@@ -319,7 +319,7 @@ class Fingerprint404:
                 '"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
                 " [similarity_ratio > %s with 404 DB entry with ID %s]"
             )
-            args = (
+            large_fuzzy_args = (
                 http_response.get_url(),
                 http_response.id,
                 http_response.get_code(),
@@ -328,7 +328,7 @@ class Fingerprint404:
                 IS_EQUAL_RATIO,
                 known_404.id,
             )
-            self._output.debug(msg % args)
+            self._output.debug(msg % large_fuzzy_args)
             return True
 
         else:
