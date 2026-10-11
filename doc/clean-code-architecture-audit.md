@@ -6672,3 +6672,12 @@ también valida el resultado de su expresión regular antes de extraer la URL.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en cuatro
 fixtures; API/Web/estrategia pasan **15 tests**. Pytest muestra nueve warnings
 de dependencias deprecadas. El score global continúa en **9.99/10**.
+
+## Actualización verificada: lifecycle de servidores locales URL
+
+`RawServer` y `UpperDaemon` estrechan sus servidores y threads antes de leer
+puertos o apagarlos. El handler dinámico que mantiene `requests` se expresa
+como `Protocol`, y `SSLServer` valida el tipo TLS antes del handshake.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en los tres
+helpers; sus **2 tests** pasan. El score global continúa en **9.99/10**.

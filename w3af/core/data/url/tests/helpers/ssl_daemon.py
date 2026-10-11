@@ -90,6 +90,9 @@ class SSLServer(threading.Thread):
     def accept(self):
         newsocket, _ = self.sock.accept()
 
+        if not isinstance(newsocket, ssl.SSLSocket):
+            raise TypeError("SSL server accepted a non-TLS socket")
+
         try:
             newsocket.do_handshake()
         except ssl.SSLError:

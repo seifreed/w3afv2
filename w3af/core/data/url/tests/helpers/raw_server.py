@@ -42,7 +42,12 @@ class RawServer:
 
     @property
     def port(self):
-        return self._server.server_address[1]
+        return self._get_server().server_address[1]
+
+    def _get_server(self) -> socketserver.ThreadingTCPServer:
+        if self._server is None:
+            raise RuntimeError("Raw server has not been started")
+        return self._server
 
     def start(self):
         owner = self
@@ -64,8 +69,11 @@ class RawServer:
         return self
 
     def stop(self):
-        self._server.shutdown()
-        self._server.server_close()
+        server = self._get_server()
+        if self._thread is None:
+            raise RuntimeError("Raw server thread has not been started")
+        server.shutdown()
+        server.server_close()
         self._thread.join(SOCKET_TIMEOUT)
 
     def __enter__(self):

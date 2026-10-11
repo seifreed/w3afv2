@@ -23,6 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socketserver
 import threading
 import time
+from typing import Protocol, cast
+
+
+class RequestTrackingHandler(Protocol):
+    requests: list[object]
 
 
 class UpperTCPHandler(socketserver.BaseRequestHandler):
@@ -72,6 +77,11 @@ class UpperDaemon(threading.Thread):
     def get_host_port(self):
         return f"127.0.0.1:{self.get_port()}"
 
+    def _get_server(self) -> socketserver.TCPServer:
+        if self.server is None:
+            raise RuntimeError("Upper daemon has not been started")
+        return self.server
+
     def get_port(self):
         if self.server is not None:
             port = self.server.server_address[1]
@@ -83,12 +93,17 @@ class UpperDaemon(threading.Thread):
             time.sleep(0.5)
 
     @property
-    def requests(self):
-        return self.server.RequestHandlerClass.requests
+    def requests(self) -> list[object]:
+        handler = cast(
+            type[RequestTrackingHandler], self._get_server().RequestHandlerClass
+        )
+        return handler.requests
 
     def shutdown(self):
-        self.server.RequestHandlerClass.requests = []
-        self.server.shutdown()
+        server = self._get_server()
+        handler = cast(type[RequestTrackingHandler], server.RequestHandlerClass)
+        handler.requests = []
+        server.shutdown()
 
 
 class ThreadingUpperDaemon(UpperDaemon):
