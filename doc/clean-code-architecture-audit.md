@@ -7505,3 +7505,14 @@ opener directo necesario para probar la excepción real, sin convertirla en el
 
 Verificación: la suite de `find_vhosts` pasa **6 tests**; Black, Ruff y mypy
 pasan en los dos fixtures modificados.
+
+## Actualización verificada: ciclo de vida coherente del output manager
+
+El reemplazo de `OutputManager` podía dejar `manager`/`_manager` y
+`out`/`_out` apuntando a generaciones distintas. Los helpers por defecto ahora
+descartan managers detenidos, recrean el sink cuando su cola no coincide y
+`fresh_output_manager_inst()` renueva ambos recursos juntos. El logger de
+fichero de los tests fuerza además el flush antes de inspeccionar el archivo.
+
+Verificación: **101 tests** de output manager, crawling e infraestructura pasan;
+Black, Ruff y mypy pasan en los módulos modificados.

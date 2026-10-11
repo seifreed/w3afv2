@@ -74,9 +74,10 @@ class CannedServerPluginTest(unittest.TestCase):
         self.plugin = self.plugin_class()
         self.plugin.set_url_opener(self.uri_opener)
         self.plugin.set_knowledge_base(kb)
-        self.plugin.set_output(om.out)
+        output = om._get_default_output()
+        self.plugin.set_output(output)
         self.plugin.set_configuration(cf)
-        self.fingerprint_404 = Fingerprint404(om.out, cf, db=self.database)
+        self.fingerprint_404 = Fingerprint404(output, cf, db=self.database)
         self.plugin.set_fingerprint_404(self.fingerprint_404)
         self.addCleanup(self.fingerprint_404.cleanup)
 

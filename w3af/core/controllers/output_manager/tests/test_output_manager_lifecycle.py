@@ -399,6 +399,14 @@ print(
         self.assertIsNot(fresh, running)
         self.assertIs(om.manager, fresh)
 
+    def test_fresh_instance_replaces_the_output_sink(self):
+        fresh = fresh_output_manager_inst()
+        self.addCleanup(fresh.stop)
+
+        self.assertIs(om.out.om_queue, fresh.get_in_queue())
+        self.assertIs(om._get_default_manager(), fresh)
+        self.assertIs(om._get_default_output().om_queue, fresh.get_in_queue())
+
     def test_decorated_method_starts_the_global_manager(self):
         idle = OutputManager()
         om.manager = idle

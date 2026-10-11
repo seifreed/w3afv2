@@ -58,6 +58,8 @@ def fresh_output_manager_inst():
         globals()["manager"] = new_manager
     else:
         _manager = new_manager
+
+    log_sink_factory(new_manager.get_in_queue())
     return new_manager
 
 
@@ -67,23 +69,47 @@ def log_sink_factory(om_queue):
 
     :return: A reference to the newly created instance
     """
+    global _out
+
     output = LogSink(om_queue)
+    _out = output
     globals()["out"] = output
     return output
 
 
 def _get_default_manager() -> OutputManager:
     global _manager
-    if _manager is None:
+
+    explicit_manager = globals().get("manager")
+    if explicit_manager is not None and explicit_manager.is_alive():
+        _manager = explicit_manager
+        return explicit_manager
+
+    if _manager is None or not _manager.is_alive():
         _manager = OutputManager()
         _manager.start()
+
+    globals()["manager"] = _manager
     return _manager
 
 
 def _get_default_output() -> LogSink:
     global _out
-    if _out is None:
-        _out = LogSink(_get_default_manager().get_in_queue())
+
+    manager = _get_default_manager()
+    explicit_output = globals().get("out")
+    if (
+        explicit_output is not None
+        and not explicit_output._closed
+        and explicit_output.om_queue is manager.get_in_queue()
+    ):
+        _out = explicit_output
+        return explicit_output
+
+    if _out is None or _out._closed or _out.om_queue is not manager.get_in_queue():
+        _out = LogSink(manager.get_in_queue())
+
+    globals()["out"] = _out
     return _out
 
 

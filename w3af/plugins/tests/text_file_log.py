@@ -72,6 +72,7 @@ class TextFileLog:
             yield self
         finally:
             output_manager.process_all_messages()
+            plugin.flush()
             output_manager.get_output_plugin_inst().remove(plugin)
             plugin.end()
 
