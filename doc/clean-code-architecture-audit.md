@@ -4543,6 +4543,19 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: detección de charset sin duplicar cuerpos grandes
+
+Cuando una respuesta no trae `Content-Type` pero incluye un charset en HTML,
+`ResponseBodyDecoder` necesita una copia temporal para buscar la etiqueta
+`meta`. Esa copia se libera ahora antes de decodificar el cuerpo definitivo,
+evitando mantener dos representaciones completas de una respuesta grande al
+mismo tiempo y conservando la detección existente.
+
+Verificación: **69 tests** de HTTPResponse y ExtendedUrllib pasan; Black, Ruff,
+mypy y Bandit focales pasan. El score global continúa en **9.99/10**, con los
+gates heredados, el fallback standalone y otros módulos grandes todavía
+pendientes.
+
 ## Actualización verificada: decodificación HTTP idempotente bajo lock
 
 `HTTPResponse.get_body()` y `get_charset()` comparten ahora `_decode_body()`.

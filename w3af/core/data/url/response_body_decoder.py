@@ -46,6 +46,8 @@ class ResponseBodyDecoder:
             body_text = self._decode_for_detection(raw_body)
             if CHARSET_META_RE.search(body_text):
                 charset = self.guess_charset(raw_body, self._headers)
+                # Do not keep the detection copy while decoding the body.
+                del body_text
                 body = smart_unicode(
                     raw_body, charset, errors=ESCAPED_CHAR, on_error_guess=False
                 )
