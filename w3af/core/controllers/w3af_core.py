@@ -99,9 +99,9 @@ NO_MEMORY_MSG = (
 
 
 def _stop_core_resources(output_manager, dns_cache, parser_cache, database):
-    output_manager.stop()
-    dns_cache.clear()
     parser_cache.clear()
+    dns_cache.clear()
+    output_manager.stop()
     if database is not None:
         database.close()
 

@@ -4982,6 +4982,19 @@ archivo queda limpio. El score global continúa en **9.99/10**, con los gates
 globales heredados, los avisos de cierre del `LogSink` en esa suite y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: orden de cierre de productores y cola
+
+El finalizer de `w3afCore` detiene primero el pool de parsers y limpia sus
+recursos; después cierra DNS y el `OutputManager`. Así ningún worker de parsing
+intenta publicar en una cola ya cerrada y la memoria de esos procesos se libera
+antes de cerrar el consumidor de mensajes.
+
+Verificación: core y parser pasan **24 tests**, y la suite XML pasa **32 tests**.
+El aviso de `LogSink` se reduce de dos mensajes a uno, por lo que todavía queda
+una ruta tardía de logging que requiere una reproducción más aislada. El score
+global continúa en **9.99/10**, con los gates heredados y la cobertura global
+todavía pendientes.
+
 ## Actualización verificada: comandos Docker sin shell injection
 
 Los helpers Docker propios dejaron de interpolar comandos en `shell=True`.
