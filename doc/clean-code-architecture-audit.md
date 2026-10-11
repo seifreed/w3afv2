@@ -5919,6 +5919,17 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: importación streaming de resultados
+
+`import_results` procesa el fichero Base64 línea a línea, evitando cargar todas
+las entradas en memoria antes de encolarlas. `BurpParser` declara el callback
+`comment` de `lxml` y valida que existan fragmentos antes de unirlos; su
+fixture usa un output real para comprobar también los caminos de error.
+
+Verificación: import results pasa **10 tests**; Mypy con cuerpos no tipados,
+Ruff y Black pasan en producción y fixture. El score global continúa en
+**9.99/10**.
+
 ## Actualización verificada: enumeración RIA sin cargar wordlists completas
 
 `ria_enumerator` itera el wordlist por extensión y línea, conservando el orden

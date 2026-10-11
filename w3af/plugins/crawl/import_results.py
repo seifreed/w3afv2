@@ -72,25 +72,22 @@ class import_results(CrawlPlugin):
 
         try:
             with open(self._input_base64, "rb") as file_handler:
-                lines = file_handler.readlines()
+                for line in file_handler:
+                    line = line.strip()
+
+                    # Support empty lines and comments
+                    if not line or line.startswith(b"#"):
+                        continue
+
+                    try:
+                        fuzzable_request = FuzzableRequest.from_base64(line)
+                    except (ValueError, BaseFrameworkException):
+                        self._output.debug(f'Invalid import_results input: "{line!r}"')
+                    else:
+                        self.output_queue.put(fuzzable_request)
         except OSError as e:
             msg = 'An error was found while trying to read "%s": "%s".'
             self._output.error(msg % (self._input_base64, e))
-            return
-
-        for line in lines:
-            line = line.strip()
-
-            # Support empty lines and comments
-            if not line or line.startswith(b"#"):
-                continue
-
-            try:
-                fuzzable_request = FuzzableRequest.from_base64(line)
-            except (ValueError, BaseFrameworkException):
-                self._output.debug(f'Invalid import_results input: "{line!r}"')
-            else:
-                self.output_queue.put(fuzzable_request)
 
     def _load_data_from_burp(self):
         """
@@ -212,11 +209,18 @@ class BurpParser:
         if self._request_chunks is not None:
             self._request_chunks.append(data)
 
+    def comment(self, data):
+        return
+
     def end(self, tag):
         if tag != "request":
             return
 
-        request_text = "".join(self._request_chunks)
+        request_chunks = self._request_chunks
+        if request_chunks is None:
+            return
+
+        request_text = "".join(request_chunks)
         self._request_chunks = None
         self.requests.append(self._parse_request(request_text))
 

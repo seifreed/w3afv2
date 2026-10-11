@@ -24,9 +24,11 @@ import os
 import re
 import tempfile
 import unittest
+from queue import Queue
 from typing import ClassVar
 
 from w3af import ROOT_PATH
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.multipart_container import MultipartContainer
 from w3af.plugins.crawl.import_results import import_results
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -284,6 +286,7 @@ class TestImportResultsInputs(unittest.TestCase):
 
     def setUp(self):
         self.plugin = import_results()
+        self.plugin.set_output(LogSink(Queue()))
         self.temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp_dir.cleanup)
 
