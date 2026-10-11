@@ -46,6 +46,11 @@ def propfind_responder(mock_response, request, uri, response_headers):
     return 207, response_headers, PROPFIND_LISTING
 
 
+def put_forbidden(mock_response, request, uri, response_headers):
+    response_headers["Content-Type"] = "text/html"
+    return 403, response_headers, "<html>Forbidden</html>"
+
+
 class WritableDirResponder(MockResponse):
     """A directory where PUT uploads a file that GET then serves."""
 
@@ -116,24 +121,18 @@ class TestDavNoPrivileges(PluginTest):
 
     target_url = "http://mock/webdav/no-privileges/"
 
-    def put_forbidden(self, mock_response, request, uri, response_headers):
-        response_headers["Content-Type"] = "text/html"
-        return 403, response_headers, "<html>Forbidden</html>"
-
-    def setUp(self):
-        self.MOCK_RESPONSES = [
-            MockResponse(
-                re.compile(r"http://mock/webdav/no-privileges/\w+$"),
-                self.put_forbidden,
-                method="PUT",
-            ),
-            MockResponse(
-                re.compile(r"http://mock/webdav/no-privileges/$"),
-                propfind_responder,
-                method="PROPFIND",
-            ),
-        ]
-        super().setUp()
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            re.compile(r"http://mock/webdav/no-privileges/\w+$"),
+            put_forbidden,
+            method="PUT",
+        ),
+        MockResponse(
+            re.compile(r"http://mock/webdav/no-privileges/$"),
+            propfind_responder,
+            method="PROPFIND",
+        ),
+    ]
 
     def test_no_privileges(self):
         self._scan(self.target_url, CONFIG)

@@ -48,7 +48,10 @@ class AuthorDllResponse(MockResponse):
 
     def get_response(self, http_request, uri, response_headers):
         header, _, content = http_request.body.decode("utf-8").partition("\n")
-        document_name = DOCUMENT_NAME_RE.search(header).group(1)
+        document_match = DOCUMENT_NAME_RE.search(header)
+        if document_match is None:
+            raise ValueError("FrontPage upload has no document name")
+        document_name = document_match.group(1)
         self.documents.contents["/" + document_name.lstrip("/")] = content
         return super().get_response(http_request, uri, response_headers)
 

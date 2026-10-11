@@ -6738,3 +6738,12 @@ de integración dejan de mutar el diccionario global de configuración.
 
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **14 tests**
 de global redirect pasan. El score global continúa en **9.99/10**.
+
+## Actualización verificada: aislamiento de fixtures DAV y FrontPage
+
+La fixture de FrontPage valida el resultado de la regex antes de extraer el
+nombre del documento. DAV usa un callback de módulo y `MOCK_RESPONSES` de clase,
+evitando reasignaciones por instancia y estado compartido accidental.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; FrontPage y DAV
+pasan **4 tests**. El score global continúa en **9.99/10**.
