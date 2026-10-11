@@ -20,10 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import errno
-import pprint
 import threading
-import traceback
 import weakref
 
 from w3af.core.controllers.core_helpers.core_resource_lifecycle import (
@@ -45,6 +42,7 @@ from w3af.core.controllers.core_helpers.scan_environment_validator import (
 from w3af.core.controllers.core_helpers.scan_stop_controller import (
     ScanStopController,
 )
+from w3af.core.controllers.core_helpers import scan_strategy_runner
 from w3af.core.controllers.core_helpers.status import (
     PAUSED,
     RUNNING,
@@ -85,22 +83,13 @@ from w3af.core.data.misc.number_generator import NumberGenerator
 from w3af.core.data.parsers.mp_document_parser import MultiProcessingDocumentParser
 from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.exceptions import (
-    ScanMustStopByUnknownReasonExc,
-    ScanMustStopByUserRequest,
-    ScanMustStopException,
-)
 from w3af.core.filesystem import remove_temp_dir
 from w3af.core.paths import get_home_dir
 
-NO_MEMORY_MSG = (
-    "The operating system was unable to allocate memory for"
-    " the Python interpreter (MemoryError). This usually happens"
-    " when the OS does not have a mounted swap disk, the"
-    " hardware where w3af is running has less than 1GB RAM,"
-    " there are many processes running and consuming memory,"
-    " or w3af is using more memory than expected."
-)
+NO_MEMORY_MSG = scan_strategy_runner.NO_MEMORY_MSG
+ThreadingResourceError = scan_strategy_runner.ThreadingResourceError
+handle_threading_error = scan_strategy_runner.handle_threading_error
+ScanStrategyRunner = scan_strategy_runner.ScanStrategyRunner
 
 
 class w3afCore:
@@ -252,6 +241,7 @@ class w3afCore:
             lambda: self.STOP_TIMEOUT,
             lambda: self.STOP_LOOP_DELAY,
         )
+        self._strategy_runner = ScanStrategyRunner(output, get_home_dir)
 
         # Keep track of first scan to call cleanup or not
         self._first_scan = True
@@ -361,70 +351,7 @@ class w3afCore:
 
     def _run_strategy(self):
         """Run the strategy and translate expected scan-level failures."""
-        try:
-            self.strategy.start()
-        except MemoryError:
-            print(NO_MEMORY_MSG)
-            self._output.error(NO_MEMORY_MSG)
-
-        except OSError as os_err:
-            # https://github.com/andresriancho/w3af/issues/10186
-            # OSError: [Errno 12] Cannot allocate memory
-            if os_err.errno == errno.ENOMEM:
-                print(NO_MEMORY_MSG)
-                self._output.error(NO_MEMORY_MSG)
-
-            # https://github.com/andresriancho/w3af/issues/9653
-            # IOError: [Errno 28] No space left on device
-            elif os_err.errno == errno.ENOSPC:
-                msg = (
-                    "The w3af scan will stop because the file system"
-                    ' is running low on free space. Check the "%s" directory'
-                    " size, overall disk usage and start the scan again."
-                )
-                msg %= get_home_dir()
-
-                print(msg)
-                self._output.error(msg)
-            else:
-                raise
-
-        except threading.ThreadError as te:
-            handle_threading_error(self.status.scans_completed, te)
-
-        except ScanMustStopByUserRequest as sbur:
-            # I don't have to do anything here, since the user is the one that
-            # requested the scanner to stop. From here the code continues at the
-            # "finally" clause, which simply shows a message saying that the
-            # scan finished.
-            self._output.information(f"{sbur}")
-
-        except ScanMustStopByUnknownReasonExc:
-            #
-            # If the extended_urllib module raises this type of exception we'll
-            # just re-raise. This leads to the exception_handler catching the
-            # exception, and if we're lucky users reporting it to our issue
-            # tracker
-            #
-            raise
-
-        except ScanMustStopException as wmse:
-            error = (
-                "The following error was detected and could not be" " resolved:\n%s\n"
-            )
-            self._output.error(error % wmse)
-
-        except Exception as e:
-            msg = 'Unhandled exception "%s", traceback:\n%s'
-
-            # Exceptions raised in the consumers carry the traceback of the
-            # thread where they were originally raised
-            traceback_string = getattr(
-                e, "original_traceback_string", traceback.format_exc()
-            )
-
-            self._output.error(msg % (e, traceback_string))
-            raise
+        self._strategy_runner.run(self.strategy, self.status.scans_completed)
 
     @property
     def worker_pool(self):
@@ -609,33 +536,3 @@ class w3afCore:
 
         # Disable some internal checks so the exploits can "bend" the matrix
         self.uri_opener.set_exploit_mode(True)
-
-
-class ThreadingResourceError(Exception):
-    """
-    Raised when the process is unable to create or manage more threads.
-    """
-
-
-def handle_threading_error(scans_completed, threading_error):
-    """
-    Catch threading errors such as "error: can't start new thread"
-    and handle them in a specific way
-    """
-    active_threads = threading.active_count()
-
-    def nice_thread_repr(alive_threads):
-        repr_alive = [repr(x) for x in alive_threads]
-        repr_alive.sort()
-        return pprint.pformat(repr_alive)
-
-    pprint_threads = nice_thread_repr(threading.enumerate())
-
-    msg = (
-        'A "%s" threading error was found.\n'
-        " The current process has a total of %s active threads and has"
-        " completed %s scans. The complete list of threads follows:\n\n%s"
-    )
-    raise ThreadingResourceError(
-        msg % (threading_error, active_threads, scans_completed, pprint_threads)
-    )

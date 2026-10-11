@@ -47,10 +47,10 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Responsabilidades concentradas
 
-- `w3af/core/controllers/w3af_core.py` (648 líneas) construye varios servicios,
+- `w3af/core/controllers/w3af_core.py` (538 líneas) construye varios servicios,
   configura estado global y coordina inicialización, estrategia, perfiles,
   estado, objetivos y ejecución.
-- `w3af/core/controllers/core_helpers/plugins.py` (239 líneas) mezcla
+- `w3af/core/controllers/core_helpers/plugins.py` (240 líneas) mezcla
   descubrimiento del filesystem, importación dinámica, configuración, orden de
   dependencias, creación de instancias y coordinación con output.
 - `w3af/core/data/url/extended_urllib.py` (838 líneas) concentra transporte,
@@ -7548,3 +7548,14 @@ plugins sobrevivan a un cambio de perfil o al final de un scan.
 
 Verificación: **68 tests** de plugins, perfiles y core pasan; Black y Ruff
 pasan en los módulos modificados.
+
+## Actualización verificada: ejecución de estrategia separada del core
+
+La traducción de errores de ejecución de una estrategia (memoria, espacio en
+disco, parada solicitada, errores de hilos y tracebacks remotos) vive ahora en
+`ScanStrategyRunner`. `w3afCore` conserva la fachada y los nombres públicos
+históricos mediante aliases explícitos, pero ya no contiene la política de
+errores ni el inventario de hilos.
+
+Verificación: **42 tests** de excepciones y core pasan, con 7 subtests;
+Black, Ruff y mypy pasan en el runner.
