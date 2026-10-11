@@ -5919,6 +5919,16 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: contrato de cookies
+
+`CookieMixIn` hereda ahora del modelo `Info` que realmente extiende: un
+diccionario con soporte de resaltado. `CookieInfo` usa esa base y
+`CookieVuln` mantiene su herencia de `Vuln`, eliminando accesos dinámicos
+indefinidos sin cambiar la representación de las cookies en la KB.
+
+Verificación: analyze cookies pasa **17 tests**; Mypy con cuerpos no tipados,
+Ruff y Black pasan en el módulo. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: estado opcional de cross-domain JavaScript
 
 `cross_domain_js` conserva el modo desactivado cuando no existe el fichero de

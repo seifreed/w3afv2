@@ -404,7 +404,7 @@ class analyze_cookies(GrepPlugin):
         """
 
 
-class CookieMixIn:
+class CookieMixIn(Info):
     def set_cookie_keys(self, keys):
         self[COOKIE_KEYS] = keys
 
@@ -421,7 +421,7 @@ class CookieMixIn:
         return self[COOKIE_OBJECT]
 
 
-class CookieInfo(Info, CookieMixIn):
+class CookieInfo(CookieMixIn):
     pass
 
 
