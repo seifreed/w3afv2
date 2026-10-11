@@ -24,9 +24,11 @@ import re
 import unittest
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL, parse_qs
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -132,10 +134,11 @@ class TestCSRF(PluginTest):
     def setUp(self):
         super().setUp()
         self.csrf_plugin = csrf()
+        self.csrf_plugin.set_output(om.out)
+        self.csrf_plugin.set_configuration(self.configuration)
         self.uri_opener = ExtendedUrllib()
-        self.uri_opener.settings.set_proxy(
-            self.canned_server.host, self.canned_server.port
-        )
+        canned_server = self.get_canned_server()
+        self.uri_opener.settings.set_proxy(canned_server.host, canned_server.port)
         self.csrf_plugin.set_url_opener(self.uri_opener)
         self.addCleanup(self.uri_opener.end)
 
@@ -257,6 +260,8 @@ class TestLowLevelCSRF(unittest.TestCase):
     def setUp(self):
         super().setUp()
         self.csrf_plugin = csrf()
+        self.csrf_plugin.set_output(om.out)
+        self.csrf_plugin.set_configuration(Config())
 
     def test_shannon_entropy(self):
         self.assertEqual(0, self.csrf_plugin.shannon_entropy(b""))

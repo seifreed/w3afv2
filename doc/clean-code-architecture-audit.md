@@ -6720,3 +6720,12 @@ parser multipart de XSS valida que cada payload sea bytes antes de decodificarlo
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en cuatro
 fixtures; History pasa **26 tests** y XSS **16 tests**. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: setup real de CSRF y proxy interceptador
+
+La fixture de CSRF configura explícitamente el output manager y la
+configuración de scan tanto para el flujo completo como para los tests de bajo
+nivel. La cola del proxy interceptador declara sus respuestas HTTP reales.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; CSRF pasa **23
+tests** y el proxy **14 tests**. El score global continúa en **9.99/10**.

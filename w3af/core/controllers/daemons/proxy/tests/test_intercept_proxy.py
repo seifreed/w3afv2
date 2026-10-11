@@ -28,6 +28,7 @@ import time
 import unittest
 import urllib.error
 import urllib.request
+import urllib.response
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons.proxy import InterceptProxy
@@ -81,7 +82,9 @@ class TestInterceptProxy(unittest.TestCase):
         Send a request through the proxy from another thread, the response (or
         the HTTPError) is put in the returned queue.
         """
-        results = queue.Queue()
+        results: queue.Queue[urllib.response.addinfourl | urllib.error.HTTPError] = (
+            queue.Queue()
+        )
 
         def send_request():
             try:
