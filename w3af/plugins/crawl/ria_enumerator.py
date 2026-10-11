@@ -83,13 +83,11 @@ class ria_enumerator(CrawlPlugin):
         :return: URLs
         """
         # Google Gears
-        with open(wordlist) as wordlist_fh:
-            words = wordlist_fh.readlines()
-
         for ext in extensions:
-            for word in words:
-                manifest_url = base_url.url_join(word.strip() + ext)
-                yield manifest_url
+            with open(wordlist) as wordlist_fh:
+                for word in wordlist_fh:
+                    manifest_url = base_url.url_join(word.strip() + ext)
+                    yield manifest_url
 
         # CrossDomain.XML
         cross_domain_url = base_url.url_join("crossdomain.xml")
@@ -168,11 +166,11 @@ class ria_enumerator(CrawlPlugin):
 
             return
 
-        tag, attribute = self.FILE_TAG_ATTR.get(file_name)
+        tag, attribute = self.FILE_TAG_ATTR[file_name]
         url_list = dom.getElementsByTagName(tag)
 
-        for policy_url in url_list:
-            policy_url = policy_url.getAttribute(attribute)
+        for policy_node in url_list:
+            policy_url = policy_node.getAttribute(attribute)
 
             if policy_url == "*":
                 desc = (

@@ -5919,6 +5919,16 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: enumeración RIA sin cargar wordlists completas
+
+`ria_enumerator` itera el wordlist por extensión y línea, conservando el orden
+de generación pero evitando `readlines()` y su copia completa en memoria. El
+parseo XML usa el acceso indexado tras validar el nombre de fichero y separa el
+nodo DOM del valor de política.
+
+Verificación: RIA enumerator pasa **5 tests**; Mypy con cuerpos no tipados,
+Ruff y Black pasan en el módulo. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: parsing tipado de sitemap
 
 `sitemap_xml` mantiene separados el nodo DOM, el texto de la URL y el objeto
