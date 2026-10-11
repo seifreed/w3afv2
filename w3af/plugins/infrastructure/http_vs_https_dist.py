@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import Any
+
 from scapy.error import Scapy_Exception
 
 from w3af.core.controllers.misc.decorators import runonce
@@ -202,6 +204,8 @@ def _traceroute(domain, port):
 
     :return: The scapy trace dict for a TCP traceroute to domain:port
     """
-    from scapy.all import traceroute
+    from scapy import all as scapy
 
+    scapy_symbols: dict[str, Any] = vars(scapy)
+    traceroute: Any = scapy_symbols["traceroute"]
     return traceroute(domain, dport=port, verbose=0)[0].get_trace()

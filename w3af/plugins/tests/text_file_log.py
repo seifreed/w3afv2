@@ -66,12 +66,13 @@ class TextFileLog:
             options[name].set_value(value)
         plugin.set_options(options)
 
-        om.manager.set_output_plugin_inst(plugin)
+        output_manager = om._get_default_manager()
+        output_manager.set_output_plugin_inst(plugin)
         try:
             yield self
         finally:
-            om.manager.process_all_messages()
-            om.manager.get_output_plugin_inst().remove(plugin)
+            output_manager.process_all_messages()
+            output_manager.get_output_plugin_inst().remove(plugin)
             plugin.end()
 
     def contains(self, log_type, message):

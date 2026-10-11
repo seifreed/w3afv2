@@ -6200,3 +6200,14 @@ instancia contamine a otra.
 
 Verificación: el plugin pasa **7 tests**; Mypy con cuerpos no tipados, Ruff y
 Black pasan en producción y fixture. El score global continúa en **9.99/10**.
+
+## Actualización verificada: frontera diferida de Scapy
+
+`http_vs_https_dist` obtiene `traceroute` desde el namespace dinámico de Scapy
+solo cuando se ejecuta el trazado, siguiendo el patrón existente de carga
+diferida y evitando imports pesados durante la inicialización. Su fixture usa
+el output real y el helper de logging accede al manager tipado.
+
+Verificación: infraestructura HTTP/HTTPS pasa **14 tests**; Mypy con cuerpos
+no tipados, Ruff y Black pasan en producción y tests. El score global continúa
+en **9.99/10**.

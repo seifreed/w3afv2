@@ -26,6 +26,7 @@ from typing import ClassVar
 import pytest
 from scapy.error import Scapy_Exception
 
+import w3af.core.controllers.output_manager as om
 import w3af.plugins.infrastructure.http_vs_https_dist as hvshsdist
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -68,6 +69,7 @@ class test_http_vs_https_dist(unittest.TestCase):
         kb.cleanup()
         self.plugininst = hvshsdist.http_vs_https_dist()
         self.plugininst.set_knowledge_base(kb)
+        self.plugininst.set_output(om.out)
 
     def _different_route_traces(self):
         """
