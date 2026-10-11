@@ -4916,7 +4916,18 @@ inicia inmediatamente. Antes se podía crear solo la cola y dejar mensajes de
 se drena durante la ejecución y el cierre `atexit` conserva la responsabilidad
 de liberarla.
 
-Verificación: la suite del output manager pasa **27 tests** y las suites de
-output/DNS pasan **12 tests**; Black, Ruff, mypy y Bandit focales están limpios.
-El score global continúa en **9.99/10**, con los gates heredados del entorno
-todavía pendientes.
+Verificación: la suite del output manager pasa **27 tests**; Black, Ruff, mypy
+y Bandit focales están limpios. El score global continúa en **9.99/10**, con
+los gates heredados del entorno todavía pendientes.
+
+## Actualización verificada: desmontaje ordenado del logging global
+
+`close_default_output_manager()` retira ahora el handler de `core.data` antes
+de cerrar la cola. Así ningún logger conserva un `LogSink` apuntando a una
+conexión ya cerrada, y las fixtures que comparten el manager no reutilizan un
+recurso detenido.
+
+Verificación: lifecycle y manager pasan **35 tests** y el bridge de logging
+pasa **4 tests**, sin mensajes de cola cerrada; Black, Ruff, mypy y Bandit
+focales están limpios. El score global continúa en **9.99/10**, con los gates
+heredados del entorno todavía pendientes.

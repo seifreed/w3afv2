@@ -327,7 +327,6 @@ class TestOutputManagerPlugins(unittest.TestCase):
 class TestOutputManagerModule(unittest.TestCase):
     def test_default_manager_starts_when_first_requested(self):
         manager = om.manager
-        self.addCleanup(close_default_output_manager)
 
         self.assertTrue(manager.is_alive())
 
