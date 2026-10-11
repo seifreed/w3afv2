@@ -252,6 +252,20 @@ class TestDiskList(unittest.TestCase):
 
         self.assertEqual(["aaa", "abc", "def"], sorted_dl)
 
+    def test_ordered_iter_merges_sorted_batches(self):
+        dl = DiskList()
+        dl.extend([3, 1, 6, 2, 5, 4])
+
+        sorted_dl = list(dl.ordered_iter(batch_size=2))
+
+        self.assertEqual([1, 2, 3, 4, 5, 6], sorted_dl)
+
+    def test_ordered_iter_rejects_invalid_batch_size(self):
+        dl = DiskList()
+
+        with self.assertRaises(ValueError):
+            list(dl.ordered_iter(batch_size=0))
+
     def test_reverse_iteration(self):
         dl = DiskList()
         dl.append(1)

@@ -23,11 +23,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # magic
 import builtins
 import hashlib
+import heapq
+import os
+import tempfile
+from contextlib import ExitStack
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
+from w3af.core.data.misc.serialize import dump as serialize_dump
+from w3af.core.data.misc.serialize import load as serialize_load
 from w3af.core.data.misc.serialize import loads
 
 # Disk list states
@@ -205,21 +211,55 @@ class DiskList:
         for value in value_list:
             self.append(value)
 
-    def ordered_iter(self):
+    def ordered_iter(self, batch_size=1000):
         self._require_open()
 
-        # TODO: How do I make the __iter__ thread safe?
-        # How do I avoid loading all items in memory?
-        objects = []
+        if batch_size <= 0:
+            raise ValueError("batch_size must be greater than zero")
+
+        # Sort bounded runs on disk and merge them to avoid retaining the full
+        # list in memory while reporting large collections.
         query = "SELECT pickle FROM %s"
-        results = self.db.select_in_batches(query % self.table_name)
+        results = self.db.select_in_batches(
+            query % self.table_name, batch_size=batch_size
+        )
 
-        for r in results:
-            obj = self._load(r[0])
-            objects.append(obj)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_paths = []
+            batch = []
+            for row in results:
+                batch.append(self._load(row[0]))
+                if len(batch) == batch_size:
+                    run_paths.append(
+                        self._write_sorted_run(temp_dir, batch, len(run_paths))
+                    )
+                    batch = []
 
-        for obj in sorted(objects):
-            yield obj
+            if batch:
+                run_paths.append(
+                    self._write_sorted_run(temp_dir, batch, len(run_paths))
+                )
+
+            with ExitStack() as stack:
+                run_files = [
+                    stack.enter_context(open(path, "rb")) for path in run_paths
+                ]
+                runs = [self._read_sorted_run(run_file) for run_file in run_files]
+                yield from heapq.merge(*runs)
+
+    def _write_sorted_run(self, temp_dir, objects, run_number):
+        run_path = os.path.join(temp_dir, f"run-{run_number}")
+        with open(run_path, "wb") as run_file:
+            for obj in sorted(objects):
+                serialize_dump(obj, run_file)
+        return run_path
+
+    def _read_sorted_run(self, run_file):
+        while True:
+            try:
+                yield serialize_load(run_file)
+            except EOFError:
+                return
 
     def __iter__(self):
         self._require_open()

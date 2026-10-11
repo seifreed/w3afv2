@@ -4543,6 +4543,20 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: ordenación externa de `DiskList`
+
+`DiskList.ordered_iter()` ya no materializa toda la colección para ordenarla.
+Construye runs ordenados por lotes en almacenamiento temporal y los combina con
+`heapq.merge`, manteniendo la salida ordenada y limitando el pico de RAM al lote
+activo. `ExitStack` garantiza el cierre de los ficheros también si el consumidor
+abandona la iteración antes de terminar; esto protege especialmente el listado
+de enlaces rotos de `web_spider`.
+
+Verificación: **45 tests** de `DiskList` y `web_spider` pasan; Black, Ruff, mypy
+y Bandit focales pasan. El score global continúa en **9.99/10**, con los gates
+heredados, callers standalone de bajo nivel y otros módulos grandes todavía
+pendientes.
+
 ## Actualización verificada: ownership de DB en `OutputManager`
 
 Los `OutputManager` sin `w3afCore` ya no dejan que `xml_file` o `html_file`
