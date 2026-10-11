@@ -5841,3 +5841,15 @@ rompa el contrato de ciclo de vida de los threads.
 Verificación: `test_seed.py` pasa **5 tests**; mypy global baja a **633 errores
 en 261 archivos** desde 634, y Black, Ruff y Bandit del consumidor pasan sin
 hallazgos. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contratos del router de estrategia
+
+El router de `CoreStrategy` declara como conjuntos las colecciones de
+consumidores terminados y forzados, y `CoreProfiles` declara la lista de
+mensajes de validación como texto. Se elimina inferencia ambigua en dos
+coordinadores centrales sin cambiar sus transiciones ni mensajes.
+
+Verificación: las suites de estrategia y perfiles pasan **21 tests y 7
+subtests**; mypy global baja a **629 errores en 258 archivos** desde 633,
+Black, Ruff y Bandit de los dos módulos pasan sin hallazgos. Persisten dos
+warnings de `ldap3/pyasn1` externo. El score global continúa en **9.99/10**.

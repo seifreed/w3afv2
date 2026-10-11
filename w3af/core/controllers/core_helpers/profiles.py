@@ -127,7 +127,7 @@ class CoreProfiles:
                                        problem, or the plugins are incorrectly
                                        configured.
         """
-        error_messages = []
+        error_messages: list[str] = []
 
         self._reset_configuration()
 

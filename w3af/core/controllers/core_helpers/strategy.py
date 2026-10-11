@@ -305,8 +305,8 @@ class CoreStrategy:
         _other = [self._audit_consumer, self._auth_consumer, self._grep_consumer]
         _other = [_f for _f in _other if _f]
 
-        finished = set()
-        consumer_forced_end = set()
+        finished: set[object] = set()
+        consumer_forced_end: set[object] = set()
 
         while True:
             # Get results and handle exceptions
