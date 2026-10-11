@@ -21,9 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
-| Clean Code | 9.1/10 | Alta |
-| Clean Architecture | 9.3/10 | Alta |
-| Global | 9.2/10 | Alta |
+| Clean Code | 9.2/10 | Alta |
+| Clean Architecture | 9.4/10 | Alta |
+| Global | 9.3/10 | Alta |
 
 La puntuación refleja el estado revalidado: Black y Ruff globales pasan, la
 regla de capas pasa y `core.data` no importa `controllers` desde producción.
@@ -50,7 +50,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 - `w3af/core/controllers/w3af_core.py` (452 líneas) construye varios servicios,
   configura estado global y coordina inicialización, estrategia, perfiles,
   estado, objetivos y ejecución.
-- `w3af/core/controllers/core_helpers/plugins.py` (240 líneas) mezcla
+- `w3af/core/controllers/core_helpers/plugins.py` (249 líneas) mezcla
   descubrimiento del filesystem, importación dinámica, configuración, orden de
   dependencias, creación de instancias y coordinación con output.
 - `w3af/core/data/url/extended_urllib.py` (663 líneas) concentra transporte,
@@ -62,7 +62,7 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Calidad y verificabilidad
 
-- Black global pasa: **1689 archivos** sin cambios requeridos.
+- Black global pasa: **1693 archivos** sin cambios requeridos.
 - Ruff global pasa sin hallazgos.
 - `mypy --check-untyped-defs w3af` pasa en **1627 archivos**; el comando
   literal `mypy .` todavía inspecciona `venv/bin/activate_this.py` y falla en
@@ -7991,3 +7991,14 @@ contexto explícitos.
 Verificación: **38 tests** de plugins pasan; Black, Ruff, mypy, Bandit dirigido
 y la prueba de capas pasan. La suite mantiene únicamente warnings deprecados
 de dependencias externas.
+
+## Actualización verificada: proveedores perezosos del runtime de plugins
+
+La integración de `CorePlugins` con el composition root usa ahora proveedores
+que resuelven la base de datos, evasiones y mangle cuando el opener ya está
+construido. Esto elimina el acceso directo durante la construcción, respeta el
+orden de inicialización existente y mantiene el contrato de `CorePlugins(None,
+...)` usado por los listados estáticos.
+
+Verificación: **38 tests** de plugins pasan; la regresión de construcción
+temprana fue reproducida y corregida; Black, Ruff y mypy dirigido pasan.
