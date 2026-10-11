@@ -94,6 +94,9 @@ class PhishTankHandler:
         if self.inside_detail:
             self.phish_detail_url += ch
 
+    def comment(self, ch):
+        return None
+
     def end(self, name):
         # name parameters are strings (as sent by lxml) so we use strings here
         # to avoid the conversion

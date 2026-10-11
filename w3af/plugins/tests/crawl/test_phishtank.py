@@ -24,8 +24,10 @@ import os
 import unittest
 from pathlib import Path
 
+import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.data.constants.severity import MEDIUM
+from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -68,6 +70,8 @@ class TestPhishtank(unittest.TestCase):
     def crawl(self, url, phishtank_db=LOCAL_PHISHTANK_DB):
         plugin = phishtank(phishtank_db=phishtank_db)
         plugin.set_knowledge_base(kb)
+        plugin.set_output(om.out)
+        plugin.set_configuration(Config())
         plugin.crawl(FuzzableRequest(url), "debugging-id")
         return plugin
 
@@ -94,6 +98,7 @@ class TestPhishtank(unittest.TestCase):
 
     def test_phishtank_matches_subdomains_only(self):
         plugin = phishtank(phishtank_db=LOCAL_PHISHTANK_DB)
+        plugin.set_output(om.out)
 
         matches = plugin._is_in_phishtank({"example.org"})
 
@@ -121,7 +126,9 @@ class TestPhishtank(unittest.TestCase):
         for phishing_url, detail_url in (entries[0], entries[-1]):
             domain = URL(phishing_url).get_domain()
 
-            matches = phishtank()._is_in_phishtank({domain})
+            plugin = phishtank()
+            plugin.set_output(om.out)
+            matches = plugin._is_in_phishtank({domain})
 
             self.assertIn(
                 (phishing_url, detail_url),

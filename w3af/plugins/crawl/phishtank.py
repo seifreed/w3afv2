@@ -50,7 +50,7 @@ class phishtank(CrawlPlugin):
     def __init__(self, phishtank_db=PHISHTANK_DB):
         CrawlPlugin.__init__(self)
         self._phishtank_db = phishtank_db
-        self._multi_in = None
+        self._multi_in: MultiIn | None = None
 
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):
@@ -158,7 +158,11 @@ class phishtank(CrawlPlugin):
         :return: A PhishTankMatch if url matches what we're looking for, None
                  if there is no match
         """
-        for target_host in self._multi_in.query(phishing_url):
+        multi_in = self._multi_in
+        if multi_in is None:
+            raise RuntimeError("PhishTank domains are not initialized")
+
+        for target_host in multi_in.query(phishing_url):
             phish_url = URL(phishing_url)
             phish_domain = phish_url.get_domain()
 

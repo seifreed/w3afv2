@@ -6114,3 +6114,15 @@ Verificación: los **18 módulos** pasan Mypy con cuerpos no tipados, Ruff,
 Black y compilación Python. Sus 20 tests de integración no pudieron arrancar
 porque el entorno no resuelve el host externo `fallback`; no se considera una
 regresión del cambio. El score global continúa en **9.99/10**.
+
+## Actualización verificada: parser y ciclo de vida de PhishTank
+
+El conversor de PhishTank implementa el callback `comment` requerido por
+`lxml` y mantiene el procesamiento streaming. El plugin de crawl valida que
+sus dominios estén inicializados antes de consultar `MultiIn`; sus tests
+directos configuran output y configuración reales.
+
+Verificación: PhishTank pasa **7 tests**; **3 tests históricos de memoria**
+siguen omitidos por su propia marca de consumo excesivo. Mypy con cuerpos no
+tipados, Ruff y Black pasan en producción y tests modificados. El score global
+continúa en **9.99/10**.
