@@ -392,18 +392,9 @@ class OutputManager(Process):
         #
         # We want all plugin instances to get the chance to run their .end()
         # and we also don't want to ignore exceptions
-        first_exception = None
-
-        for o_plugin in self._output_plugin_instances:
-            try:
-                o_plugin.end()
-            except Exception as exception:
-                LOGGER.debug("Output plugin end() failed", exc_info=True)
-                if first_exception is None:
-                    first_exception = exception
-
-        if first_exception is not None:
-            raise first_exception
+        output_plugins = self._output_plugin_instances
+        self._output_plugin_instances = []
+        self._end_output_plugin_instances(output_plugins)
 
         # This is a neat trick which basically removes all plugin references
         # from memory. Those plugins might have pointers to memory parts that
@@ -423,6 +414,20 @@ class OutputManager(Process):
 
         # Process messages again, we removed the plugins which were ended
         self._is_shutting_down = False
+
+    def _end_output_plugin_instances(self, output_plugins):
+        """Release output plugin resources and preserve the first failure."""
+        first_exception = None
+        for output_plugin in output_plugins:
+            try:
+                output_plugin.end()
+            except Exception as exception:
+                LOGGER.debug("Output plugin end() failed", exc_info=True)
+                if first_exception is None:
+                    first_exception = exception
+
+        if first_exception is not None:
+            raise first_exception
 
     @start_thread_on_demand
     def log_enabled_plugins(self, enabled_plugins, plugins_options):
@@ -490,7 +495,9 @@ class OutputManager(Process):
                                will be used.
         :return: No value is returned.
         """
+        previous_plugins = self._output_plugin_instances
         self._output_plugin_instances = []
+        self._end_output_plugin_instances(previous_plugins)
         self._output_plugin_names = output_plugins
 
         for plugin_name in self._output_plugin_names:

@@ -220,6 +220,15 @@ class TestOutputManagerFlush(unittest.TestCase):
 
 
 class TestOutputManagerPlugins(unittest.TestCase):
+    def test_replacing_plugins_ends_previous_instances(self):
+        previous = EventfulOutput()
+        manager = OutputManager()
+        manager.set_output_plugin_inst(previous)
+
+        manager.set_output_plugins([])
+
+        self.assertTrue(previous.ended.is_set())
+
     def test_end_raises_first_plugin_exception_after_ending_all(self):
         first = EventfulOutput(failure=RuntimeError("first"))
         second = EventfulOutput(failure=ValueError("second"))

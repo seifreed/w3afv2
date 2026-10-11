@@ -4500,3 +4500,18 @@ La regresión cubre colas, variantes, consumidores y el ciclo real de cierre.
 Verificación: **99 tests** pasan; Black, Ruff y mypy focales pasan. El score
 global continúa en **9.99/10**, con los gates globales, el fallback standalone
 y los módulos heredados de gran tamaño todavía pendientes.
+
+## Actualización verificada: ciclo de vida del OutputManager
+
+`set_output_plugins()` ya no descarta instancias anteriores sin ejecutar
+`end()`. El cierre está centralizado, conserva la primera excepción después de
+dar oportunidad a todos los plugins y evita el doble cierre cuando el final de
+scan conserva `console`. Esto libera ficheros, cachés y estructuras de salida
+cuando se reinicializa la configuración o la API cambia a su salida REST.
+
+La regresión cubre reemplazo de plugins, errores durante `end()`, reconfiguración
+de opciones, final de scan y el flujo API. Verificación: **31 tests** del output
+manager, **49 tests** de core/plugins y **8 tests** API con subtests pasan;
+Black, Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**
+por los gates heredados, el fallback standalone y los módulos grandes aún no
+refactorizados.
