@@ -8244,3 +8244,18 @@ ahora configuran las settings que ya pertenecen al opener, manteniendo una
 Verificación: **7 tests** de Bing y **4 tests** del proxy HTTP pasan con tráfico
 local; Black, Ruff y mypy focales pasan. La suite larga alcanzó **2.800 tests**
 antes de detectar esta regresión y se detuvo correctamente con `--maxfail=1`.
+
+## Regresión corregida: controlador de pausa con status obsoleto
+
+La repetición de la suite detectó que el endpoint de pausa devolvía 200 pero el
+status REST nunca llegaba a `Paused`. `w3afCore` reemplaza el `CoreStatus` al
+crear cada runtime de scan, mientras `ScanPauseController` conservaba la
+instancia inicial. El controlador ahora resuelve el status actual desde
+`ScanRuntimeContext`, manteniendo la pausa sincronizada con el opener.
+
+Verificación: **5 tests** y **6 subtests** de ciclo de vida REST pasan; también
+pasa el caso equivalente del core. La suite con cobertura alcanzó **3.322
+tests** antes de encontrar esta regresión. Durante la ejecución larga el RSS
+tuvo un pico puntual cercano a 631 MiB en tests de integración y no mostró un
+crecimiento continuo posterior; queda pendiente repetir la medición completa
+tras esta corrección.

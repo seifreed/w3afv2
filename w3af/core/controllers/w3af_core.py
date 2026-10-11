@@ -249,7 +249,10 @@ class w3afCore:
             lambda: core_reference.STOP_LOOP_DELAY,
         )
         self._scan_context.bind_stop(self._stop_controller.stop)
-        self._pause_controller = ScanPauseController(self.status, self.uri_opener)
+        self._pause_controller = ScanPauseController(
+            self._scan_context.get_status,
+            self.uri_opener,
+        )
         self._strategy_runner = ScanStrategyRunner(output, get_home_dir)
         self._scan_start_lifecycle = ScanStartLifecycle(
             lambda: self.status,
