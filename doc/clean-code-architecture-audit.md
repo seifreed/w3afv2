@@ -8212,3 +8212,7 @@ la prueba de capas pasa **40 tests**; Black, Ruff y mypy con
 `--check-untyped-defs` pasan en los módulos modificados. La extracción reduce
 la concentración restante de `CorePlugins` sin cambiar la API consumida por
 las interfaces de usuario, perfiles o tests.
+
+El estrechamiento de tipo usado por el test de ciclo de vida se expresa ahora
+con una validación explícita en lugar de un `assert`, por lo que la revisión
+Bandit focal del módulo vuelve a quedar limpia sin supresiones.
