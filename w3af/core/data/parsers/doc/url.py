@@ -25,7 +25,7 @@ import re
 import socket
 import urllib.parse
 from collections import OrderedDict
-from functools import wraps
+from functools import lru_cache, wraps
 
 from tldextract import TLDExtract
 
@@ -38,6 +38,11 @@ from w3af.core.data.misc.encoding import (
     smart_unicode,
 )
 from w3af.core.data.misc.ip_address import is_ip_address
+
+
+@lru_cache(maxsize=1)
+def _get_tld_extractor():
+    return TLDExtract(suffix_list_urls=(), fallback_to_snapshot=True)
 
 
 def set_changed(meth):
@@ -623,8 +628,7 @@ class URL(DiskItem):
         if is_ip_address(self.netloc):
             return self.netloc
 
-        extract = TLDExtract(suffix_list_urls=(), fallback_to_snapshot=True)
-        extract_result = extract(self.get_domain())
+        extract_result = _get_tld_extractor()(self.get_domain())
         return f"{extract_result.domain}.{extract_result.suffix}"
 
     def get_domain_path(self):

@@ -4543,6 +4543,18 @@ Verificación: **31 tests** XML pasan; Black, Ruff, mypy y Bandit focales pasan.
 El score global continúa en **9.99/10**, con los gates heredados, el fallback
 standalone y otros módulos grandes todavía pendientes.
 
+## Actualización verificada: extractor de dominios compartido y acotado
+
+`URL.get_root_domain()` ya no construye un `TLDExtract` por llamada. Usa una
+caché lazy de tamaño uno para el extractor configurado con la snapshot local;
+el recurso es inmutable y la caché no puede crecer con el número de URLs. Se
+mantiene el mismo resultado para dominios e IPs.
+
+Verificación: **138 tests** de URL pasan y 1 queda omitido por la suite; Black,
+Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**, con
+los gates heredados, el fallback standalone y otros módulos grandes todavía
+pendientes.
+
 ## Actualización verificada: detección de charset sin duplicar cuerpos grandes
 
 Cuando una respuesta no trae `Content-Type` pero incluye un charset en HTML,
