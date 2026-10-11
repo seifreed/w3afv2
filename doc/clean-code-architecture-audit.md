@@ -8207,7 +8207,8 @@ con el `OutputManager` cuando corresponde y aplicarlas a la instancia viva.
 `CorePlugins` conserva su fachada pública, pero ya no coordina directamente
 esa responsabilidad ni duplica el acceso al estado de opciones.
 
-Verificación: la suite de plugins pasa **39 tests**; Black, Ruff y mypy con
+Verificación: la suite de plugins pasa **39 tests** y la suite combinada con
+la prueba de capas pasa **40 tests**; Black, Ruff y mypy con
 `--check-untyped-defs` pasan en los módulos modificados. La extracción reduce
 la concentración restante de `CorePlugins` sin cambiar la API consumida por
 las interfaces de usuario, perfiles o tests.

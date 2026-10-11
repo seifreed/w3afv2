@@ -41,7 +41,6 @@ class CorePlugins:
 
     def __init__(self, plugin_context, output, output_manager):
         self._output = output
-        self._output_manager = output_manager
         self._plugin_catalog = PluginCatalog()
         self._plugin_integration = PluginCoreIntegration(plugin_context)
         self._plugin_instance_factory = PluginInstanceFactory(plugin_context, output)
