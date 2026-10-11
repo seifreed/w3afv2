@@ -5904,3 +5904,17 @@ serializarlo, evitando conservar referencias a los locales de los frames.
 Verificación: `mypy --check-untyped-defs` del handler pasa sin errores, Ruff y
 Black pasan, y las pruebas de excepciones pasan **29 tests**. El score global
 continúa en **9.99/10**.
+
+## Actualización verificada: contrato binario del cliente SOCKS del agente
+
+El cliente remoto del agente declara sus requests SOCKS4 con un `TypedDict`,
+decodifica bytes directamente y construye respuestas binarias sin mezclar
+texto con datos de red. También elimina el estado opcional del logger, corrige
+la consulta de errores de sockets para Python 3 y hace estático el parser de
+requests.
+
+Verificación: `mypy --check-untyped-defs` del cliente pasa sin errores; Ruff,
+Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
+**3 tests**. La deuda estricta de producción de este módulo baja a **0
+errores**; quedan otros módulos legacy pendientes. El score global continúa en
+**9.99/10**.

@@ -7,6 +7,7 @@ import struct
 import sys
 import threading
 import time
+from typing import TypedDict, cast
 
 # SOCKS replies carry a bound-address field; this is the protocol's
 # "unspecified address" value, not a listening socket.
@@ -134,32 +135,35 @@ class logger:
     def __init__(self, printDebug=False):
         self._printDebug = printDebug
 
-    def parse_msg(self, msg):
-        try:
-            msg = " ".join([str(x) for x in list(msg)])
-            return msg
-        except (TypeError, ValueError):
-            return msg
+    def parse_msg(self, msg: tuple[object, ...]) -> str:
+        return " ".join(str(value) for value in msg)
 
-    def info(self, *msg):
-        msg = self.parse_msg(msg)
-        msg = "[ " + now() + " ][info] " + msg + "\n"
-        sys.stdout.write(msg)
+    def info(self, *msg: object) -> None:
+        formatted = self.parse_msg(msg)
+        formatted = "[ " + now() + " ][info] " + formatted + "\n"
+        sys.stdout.write(formatted)
 
-    def error(self, *msg):
-        msg = self.parse_msg(msg)
-        msg = "[ " + now() + " ][error] " + msg + "\n"
-        sys.stderr.write(msg)
+    def error(self, *msg: object) -> None:
+        formatted = self.parse_msg(msg)
+        formatted = "[ " + now() + " ][error] " + formatted + "\n"
+        sys.stderr.write(formatted)
 
-    def debug(self, *msg):
-        msg = self.parse_msg(msg)
-        msg = "[ " + now() + " ][debug] " + msg + "\n"
+    def debug(self, *msg: object) -> None:
+        formatted = self.parse_msg(msg)
+        formatted = "[ " + now() + " ][debug] " + formatted + "\n"
         if self._printDebug:
-            sys.stdout.write(msg)
+            sys.stdout.write(formatted)
 
 
-# Global log object
-log = None
+# Global log object used by the standalone agent process.
+log: logger = logger()
+
+
+class SocksRequest(TypedDict, total=False):
+    version: int
+    command: int
+    address: tuple[str, int]
+    userid: bytes
 
 
 def string2port(port_str):
@@ -248,7 +252,7 @@ class ConnectionManager(threading.Thread):
         self, w3afAgentServer_address, w3afAgentServer_port, connectionPoolLen=20
     ):
         threading.Thread.__init__(self)
-        self._connections = []
+        self._connections: list[socket.socket] = []
         self._w3afAgentServer_address = w3afAgentServer_address
         self._w3afAgentServer_port = w3afAgentServer_port
         self._connectionPoolLen = connectionPoolLen
@@ -282,19 +286,20 @@ class ConnectionManager(threading.Thread):
                 self._connections, [], []
             )
 
-            for sock in in_error:
-                self._connections.remove(sock)
+            for error_socket in cast(list[socket.socket], in_error):
+                self._connections.remove(error_socket)
 
-            for sock in ready_to_read:
-                req = self.decode_request(sock.recv(1024))
-                handler = SocksHandler(sock, req)
+            for ready_socket in ready_to_read:
+                req = self.decode_request(ready_socket.recv(1024))
+                handler = SocksHandler(ready_socket, req)
                 handler.set_bind_address(self._bindAddy)
                 handler.start()
-                self._connections.remove(sock)
+                self._connections.remove(ready_socket)
 
             self.gen_connections(self._connectionPoolLen)
 
-    def decode_request(self, data):
+    @staticmethod
+    def decode_request(data: bytes) -> SocksRequest:
         """This function reads the request socket for the request data, decodes
         it and checks that it is well formed.
         """
@@ -303,15 +308,15 @@ class ConnectionManager(threading.Thread):
             raise Request_Invalid_Format(data)
 
         # Extracting components of the request. Checks are made at each step.
-        req = {}
+        req: SocksRequest = {}
 
         # SOCKS version of the request.
-        req["version"] = ord(data[0])
+        req["version"] = data[0]
         if req["version"] != SOCKS_VERSION:
             raise Request_Bad_Version(req)
 
         # Command used.
-        req["command"] = ord(data[1])
+        req["command"] = data[1]
         if req["command"] not in COMMANDS:
             raise Request_Unknown_Command(req)
 
@@ -323,7 +328,7 @@ class ConnectionManager(threading.Thread):
         # Address and port legitimity are later checked in validate_request.
 
         # Requester user ID. May not be provided.
-        req["userid"] = data[8:].strip("\x00")
+        req["userid"] = data[8:].strip(b"\x00")
 
         # If we are here, then the request is well-formed. Let us return it to
         # the caller.
@@ -333,7 +338,7 @@ class ConnectionManager(threading.Thread):
 class SocksHandler(threading.Thread):
     """This request handler class handles Socks 4 requests."""
 
-    def __init__(self, client_socketet, request):
+    def __init__(self, client_socketet, request: SocksRequest):
         threading.Thread.__init__(self)
         self.client_socketet = client_socketet
         self.request = request
@@ -409,16 +414,17 @@ class SocksHandler(threading.Thread):
         except Connection_Closed:
             pass
 
-    def validate_socks4a(self, req):
+    def validate_socks4a(self, req: SocksRequest) -> SocksRequest:
         """This method verifies the extension to socks4 that allows the client
         to send 0.0.0.x as IP address to indicate to the server that it should resolve the hostname
         sent in the ID field and then connect to it.
         """
         ipAddress = req["address"][0]
         if ipAddress.startswith("0.0.0."):
-            if req["userid"] != "":
+            if req["userid"] != b"":
                 # resolve the hostname and reassign the address to the request
-                req["address"] = socket.gethostbyname(req["userid"]), req["address"][1]
+                hostname = req["userid"].decode("ascii")
+                req["address"] = socket.gethostbyname(hostname), req["address"][1]
             else:
                 log.debug("Invalid socks4a request.")
 
@@ -461,17 +467,16 @@ class SocksHandler(threading.Thread):
                 # Collecting information about the socket to store it in the
                 # "waiting binds" list.
                 socket_ip, socket_port = remote.getsockname()
-            except OSError:
+            except OSError as error:
                 # A "connection reset by peer" here means the client has closed
                 # the connection.
-                _exception, value, _traceback = sys.exc_info()
-                if value[0] == ERR_CONNECTION_RESET_BY_PEER:
+                if error.errno == ERR_CONNECTION_RESET_BY_PEER:
                     raise Client_Connection_Closed(
                         (
                             ERR_CONNECTION_RESET_BY_PEER,
-                            socket.errorTab[ERR_CONNECTION_RESET_BY_PEER],
+                            error.strerror or str(error),
                         )
-                    )
+                    ) from error
                 else:
                     # We may be able to make a more precise diagnostic, but
                     # in fact, it doesn't seem useful here for now.
@@ -554,15 +559,14 @@ class SocksHandler(threading.Thread):
             # The only connection that can be reset here is the one of the
             # client, so we don't need to answer. Any other socket
             # exception forces us to try to answer to the client.
-            except OSError:
-                _exception, value, _traceback = sys.exc_info()
-                if value[0] == ERR_CONNECTION_RESET_BY_PEER:
+            except OSError as error:
+                if error.errno == ERR_CONNECTION_RESET_BY_PEER:
                     raise Client_Connection_Closed(
                         (
                             ERR_CONNECTION_RESET_BY_PEER,
-                            socket.errorTab[ERR_CONNECTION_RESET_BY_PEER],
+                            error.strerror or str(error),
                         )
-                    )
+                    ) from error
                 else:
                     raise Remote_Connection_Failed
             except (ValueError, TypeError, IndexError):
@@ -605,10 +609,7 @@ class SocksHandler(threading.Thread):
         try:
             ip = socket.inet_aton(ip_str)
             port = port2string(port_int)
-            packet = chr(0)  # Version number is 0 in answer
-            packet += chr(code)  # Error code
-            packet += port
-            packet += ip
+            packet = b"\x00" + bytes((code,)) + port + ip
             log.debug(
                 _thread.get_ident(),
                 "Sending back:",
@@ -654,7 +655,7 @@ class SocksHandler(threading.Thread):
                         raise Connection_Closed
 
                     # Only a precaution.
-                    data = ""
+                    data = b""
 
                     # Just in case we would be in the improbable case of data
                     # awaiting to be read on both sockets, we treat the
@@ -688,9 +689,8 @@ class SocksHandler(threading.Thread):
                             # This means a poorly detected connection close.
                             raise Connection_Closed
             # If one peer closes its conenction, we have finished our work.
-            except OSError:
-                _exception, value, _traceback = sys.exc_info()
-                if value[0] == ERR_CONNECTION_RESET_BY_PEER:
+            except OSError as error:
+                if error.errno == ERR_CONNECTION_RESET_BY_PEER:
                     raise Connection_Closed
                 raise
         finally:
