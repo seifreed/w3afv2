@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import os
 import tempfile
+from itertools import count
 
 from w3af.core.ui.api.db.master import SCANS, ScanInfo
 
@@ -30,6 +31,7 @@ PROFILE_EXTENSION = ".pw3af"
 PROFILE_ENCODING = "utf-8"
 
 logger = logging.getLogger(__name__)
+_scan_ids = count()
 
 
 def get_scan_info_from_id(scan_id: int) -> ScanInfo | None:
@@ -37,7 +39,7 @@ def get_scan_info_from_id(scan_id: int) -> ScanInfo | None:
 
 
 def get_new_scan_id() -> int:
-    return len(SCANS)
+    return next(_scan_ids)
 
 
 def create_temp_profile(scan_profile: str) -> tuple[str, str]:

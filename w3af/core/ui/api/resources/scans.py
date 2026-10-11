@@ -190,7 +190,7 @@ def scan_delete(scan_id):
         abort(403, "Scan is not ready to be cleared")
 
     scan_info.cleanup()
-    SCANS[scan_id] = None
+    SCANS.pop(scan_id, None)
 
     return jsonify({"message": "Success"})
 

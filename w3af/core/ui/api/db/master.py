@@ -24,8 +24,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #       running scans at the same time, results for each, etc. Now we'll only
 #       store one scan
 #
-# Store integer IDs as keys and ScanInfo instances as values
-SCANS: dict[int, "ScanInfo"] = {}
+# Store integer IDs as keys and active ScanInfo instances as values.
+SCANS: dict[int, "ScanInfo | None"] = {}
 
 
 class ScanInfo:

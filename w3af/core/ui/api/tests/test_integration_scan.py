@@ -149,6 +149,8 @@ class APIScanTest(IntegrationTest):
         #
         response = self._request("DELETE", f"{self.api_url}/scans/{scan_id}")
         self.assertEqual(response.json(), {"message": "Success"})
+        response = self._request("GET", f"{self.api_url}/scans/{scan_id}/status")
+        self.assertEqual(response.status_code, 404, response.text)
 
         return scan_id
 

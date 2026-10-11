@@ -4515,3 +4515,17 @@ manager, **49 tests** de core/plugins y **8 tests** API con subtests pasan;
 Black, Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**
 por los gates heredados, el fallback standalone y los módulos grandes aún no
 refactorizados.
+
+## Actualización verificada: registro REST sin entradas muertas
+
+El registro de scans ya elimina la entrada con `pop()` después de limpiar sus
+recursos, en lugar de conservar un `None` por cada scan finalizado. La
+generación de IDs usa un contador monotónico independiente del tamaño del
+registro, por lo que liberar memoria no reutiliza IDs durante la vida del
+proceso. La limpieza de tests también elimina las entradas completas.
+
+La regresión comprueba que un scan borrado deja de estar disponible por API y
+que dos scans consecutivos conservan IDs distintos. Verificación: **19 tests**
+y **17 subtests** de API pasan; Black, Ruff y mypy focales pasan. El score
+global continúa en **9.99/10**, con los gates heredados, el fallback standalone
+y los módulos grandes aún pendientes.
