@@ -5598,3 +5598,13 @@ OpenSSL queda encapsulada en la frontera dinámica ya utilizada por keepalive.
 Verificación: helpers y limpieza de cuerpos pasan **36 tests**; Black, Ruff,
 mypy focal y Bandit focal están limpios. El score global continúa en **9.99/10**,
 con los gates globales heredados y la cobertura global todavía pendientes.
+
+## Actualización verificada: frontera dinámica de autenticación NTLM
+
+`HTTPNtlmAuthHandler` mantiene el cliente `spnego` y su excepción de protocolo
+en la frontera de infraestructura dinámica. El handshake, los reintentos y el
+transporte de la conexión desafiada permanecen sin cambios.
+
+Verificación: NTLM pasa **8 tests**; Black, Ruff, mypy focal y Bandit focal están
+limpios. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.

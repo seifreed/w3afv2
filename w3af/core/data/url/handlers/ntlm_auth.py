@@ -13,12 +13,14 @@
 # or <http://www.gnu.org/licenses/lgpl.txt>.
 
 import base64
+import importlib
 import struct
 import urllib.error
 import urllib.request
+from typing import Any
 
-import spnego
-from spnego.exceptions import SpnegoError
+spnego: Any = importlib.import_module("spnego")
+SpnegoError: Any = importlib.import_module("spnego.exceptions").SpnegoError
 
 MAX_RETRIES = 3
 
