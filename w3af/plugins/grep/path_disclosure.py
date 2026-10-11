@@ -72,6 +72,9 @@ class path_disclosure(GrepPlugin):
             return
 
         self.setup()
+        signature_re = self._signature_re
+        if signature_re is None:
+            return
 
         if self.find_path_disclosure(request, response):
             self._update_kb_path_list()
@@ -83,8 +86,11 @@ class path_disclosure(GrepPlugin):
         match_list = []
         body_text = response.get_body()
         real_url = response.get_url().url_decode()
+        signature_re = self._signature_re
+        if signature_re is None:
+            return
 
-        for match, _, _ in self._signature_re.query(body_text):
+        for match, _, _ in signature_re.query(body_text):
             match_list.append(match.group(1))
 
         # Sort by the longest match, this is needed for filtering out
@@ -246,6 +252,8 @@ class path_disclosure(GrepPlugin):
         # this is done taking the longest_match as a reference, so... if we
         # don't have a longest_match, then nothing is actually done
         if not longest_match:
+            return
+        if longest_path_disc_vuln is None:
             return
 
         # Get the webroot

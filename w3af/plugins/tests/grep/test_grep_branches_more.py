@@ -25,6 +25,7 @@ import tempfile
 from pathlib import Path
 
 from w3af import ROOT_PATH
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.grep.html_comments import html_comments
@@ -181,7 +182,9 @@ class TestPathDisclosureBranches(GrepPluginTestCase):
     BODY = "<html> /var/www/foobar/htdocs/article.php </html>"
 
     def test_shorter_match_of_reported_path_is_ignored(self):
-        plugin = self.configure_plugin(path_disclosure())
+        plugin = self.configure_plugin(
+            path_disclosure(db=get_default_temp_db_instance())
+        )
         plugin.grep(make_request(), make_response(body=self.BODY))
         plugin.grep(make_request(), make_response(body=self.BODY, _id=2))
         shorter = "<html> /htdocs/article.php </html>"
@@ -192,13 +195,17 @@ class TestPathDisclosureBranches(GrepPluginTestCase):
         self.assertEqual(vulns[0]["path"], "/var/www/foobar/htdocs/article.php")
 
     def test_path_sent_in_request(self):
-        plugin = self.configure_plugin(path_disclosure())
+        plugin = self.configure_plugin(
+            path_disclosure(db=get_default_temp_db_instance())
+        )
         url = "http://www.w3af.com/?f=/var/www/foobar/htdocs/article.php"
         plugin.grep(make_request(url), make_response(url, body=self.BODY))
         self.assertEqual(kb.get("path_disclosure", "path_disclosure"), [])
 
     def test_path_equal_to_known_url_path_has_no_webroot(self):
-        plugin = self.configure_plugin(path_disclosure())
+        plugin = self.configure_plugin(
+            path_disclosure(db=get_default_temp_db_instance())
+        )
         disclosed = "/var/www/index.php"
         plugin.grep(make_request(), make_response(body=f"<p> {disclosed} </p>"))
 

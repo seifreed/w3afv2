@@ -5919,6 +5919,17 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: ciclo de vida de path disclosure
+
+`path_disclosure` valida el `MultiRE` y la vulnerabilidad seleccionada antes
+de usarlos, evitando accesos a estado opcional durante el análisis. Sus tests
+históricos pasan ahora una DB temporal, parser cache y output reales, igual
+que el contrato actual del plugin.
+
+Verificación: private IP y path disclosure pasan **22 tests**; Mypy con
+cuerpos no tipados, Ruff y Black pasan en producción y fixtures. El score
+global continúa en **9.99/10**.
+
 ## Actualización verificada: frontera tipada del plugin Vulners
 
 El plugin `vulners_db` separa ahora el JSON externo de reglas y la API opcional
