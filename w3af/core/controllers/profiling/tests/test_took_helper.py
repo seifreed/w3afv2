@@ -80,6 +80,16 @@ class TestTookHelper(unittest.TestCase):
             r" took \d+\.\d{2}s to run \(1.80s \d+% sending HTTP requests\)$",
         )
 
+    def test_took_with_zero_wall_time_omits_rtt_percentage(self):
+        took_line = TookLine(
+            self.new_core(),
+            "plugin_name",
+            "method_name",
+            log_sink=LogSink(queue.Queue()),
+        )
+
+        self.assertIsNone(took_line._format_rtt(1.8, 0))
+
     def test_took_with_cpu_bound_work(self):
         w3af_core = self.new_core()
         messages: queue.Queue[TookMessage] = queue.Queue()

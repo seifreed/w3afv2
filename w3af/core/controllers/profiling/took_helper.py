@@ -27,7 +27,7 @@ from w3af.core.controllers.profiling.thread_time import thread_active_time
 class TimeStamp:
     def __init__(self):
         self.thread_cpu_time = thread_active_time()
-        self.wall_time = time.time()
+        self.wall_time = time.monotonic()
 
 
 class TookLine:
@@ -109,16 +109,15 @@ class TookLine:
         #
         rtt = self._scan_context.uri_opener.get_rtt_for_debugging_id(self._debugging_id)
 
-        if rtt is not None and rtt >= 0.01:
+        rtt_message = self._format_rtt(rtt, spent_wall_time)
+        if rtt_message is not None:
             #
             # Note to self: When you see something like "583% sending HTTP requests" it is not
             #               a bug, it simply indicates that many threads were used to send
             #               your HTTP requests and thus the sum(RTT) is higher than the wall
             #               time
             #
-            msg = "%.2fs %i%% sending HTTP requests"
-            msg %= (rtt, rtt / spent_wall_time * 100)
-            parentheses_data.append(msg)
+            parentheses_data.append(rtt_message)
 
         #
         #   Only show the CPU time for this thread if it is worth it: short
@@ -154,3 +153,11 @@ class TookLine:
             msg += " ({})".format(", ".join(parentheses_data))
 
         self._log_sink.debug(msg)
+
+    @staticmethod
+    def _format_rtt(rtt, spent_wall_time):
+        if rtt is None or rtt < 0.01 or spent_wall_time <= 0:
+            return None
+
+        msg = "%.2fs %i%% sending HTTP requests"
+        return msg % (rtt, rtt / spent_wall_time * 100)
