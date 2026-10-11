@@ -28,6 +28,7 @@ from typing import ClassVar
 from ds_store import DSStore
 
 from w3af import ROOT_PATH
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.plugins.crawl.dot_ds_store import DsStore, dot_ds_store
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -37,9 +38,12 @@ RUN_PLUGINS = {"crawl": (PluginConfig("dot_ds_store"),)}
 def build_ds_store(*filenames):
     with tempfile.TemporaryDirectory() as temp_dir:
         path = os.path.join(temp_dir, "DS_Store")
-        with DSStore.open(path, "w+") as store:
+        store = DSStore.open(path, "w+")
+        try:
             for filename in filenames:
                 store[filename]["Iloc"] = (10, 20)
+        finally:
+            store.close()
         return Path(path).read_bytes()
 
 
@@ -108,4 +112,5 @@ class TestDsStoreParser(unittest.TestCase):
         self.assertEqual(store.get_file_entries(), {"secret.txt"})
 
     def test_long_description(self):
-        self.assertIn(".DS_Store", dot_ds_store().get_long_desc())
+        plugin = dot_ds_store(db=get_default_temp_db_instance())
+        self.assertIn(".DS_Store", plugin.get_long_desc())

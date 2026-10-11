@@ -5919,6 +5919,17 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: estados opcionales en crawl
+
+`find_backdoors` y `DsStore` estrechan sus colaboradores opcionales antes de
+iterarlos. El parser `.DS_Store` también declara el conjunto de nombres y los
+tests cierran explícitamente el recurso de la dependencia `ds_store`.
+
+Verificación: backdoors y DS Store pasan **7 tests**; Mypy con cuerpos no
+tipados, Ruff y Black pasan en producción. El test helper mantiene una
+limitación de tipado externo de `ds_store` que no afecta al runtime. El score
+global continúa en **9.99/10**.
+
 ## Actualización verificada: parsing de enlaces GeneXus
 
 `genexus_xml` separa nodos DOM, texto y objetos `URL` al procesar `ObjLink`.

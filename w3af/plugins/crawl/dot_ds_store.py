@@ -151,9 +151,12 @@ class DsStore:
         self._store = DSStore.open(BytesIO(data), "r")
 
     def get_file_entries(self):
-        entries = set()
+        entries: set[str] = set()
+        store = self._store
+        if store is None:
+            return entries
 
-        for entry in self._store:
+        for entry in store:
             filename = entry.filename
             if filename in (".", ".."):
                 continue
