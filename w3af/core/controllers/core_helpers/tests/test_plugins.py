@@ -147,20 +147,21 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.assertEqual(options_1, options_2)
 
     def test_output_plugin_options_reach_the_output_manager(self):
-        previous_output_plugins = list(om.manager.get_output_plugins())
+        output_manager = self.core._output_manager
+        previous_output_plugins = list(output_manager.get_output_plugins())
         default_options = self.core.plugins.get_plugin_inst(
             "output", "console"
         ).get_options()
-        self.addCleanup(om.manager.set_output_plugins, previous_output_plugins)
-        self.addCleanup(om.manager.set_plugin_options, "console", default_options)
+        self.addCleanup(output_manager.set_output_plugins, previous_output_plugins)
+        self.addCleanup(output_manager.set_plugin_options, "console", default_options)
 
         options = self.core.plugins.get_plugin_inst("output", "console").get_options()
         options["use_colors"].set_value(not options["use_colors"].get_value())
         self.core.plugins.set_plugin_options("output", "console", options)
 
-        om.manager.set_output_plugins(["console"])
+        output_manager.set_output_plugins(["console"])
 
-        console = om.manager.get_output_plugin_inst()[0]
+        console = output_manager.get_output_plugin_inst()[0]
         self.assertEqual(
             console.get_options()["use_colors"].get_value(),
             options["use_colors"].get_value(),

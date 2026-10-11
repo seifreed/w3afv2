@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import gc
 import os
 import shutil
 import signal
@@ -95,6 +96,17 @@ class TestW3afCore(unittest.TestCase):
         self.core.quit()
 
         self.assertFalse(self.core._output_manager.is_alive())
+
+    def test_unreferenced_core_stops_output_manager(self):
+        core = w3afCore()
+        core.plugins.set_plugins(["console"], "output")
+        core.plugins.init_plugins()
+        manager = core._output_manager
+
+        del core
+        gc.collect()
+
+        self.assertFalse(manager.is_alive())
 
     def test_target_is_required(self):
         self.core.plugins.initialized = True

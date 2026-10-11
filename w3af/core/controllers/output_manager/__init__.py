@@ -85,8 +85,8 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-_manager = None
-_out = None
+_manager: OutputManager | None = None
+_out: LogSink | None = None
 
 # The import machinery exposes the child module as ``manager`` on this package.
 # Remove that name so module attribute access reaches the lazy provider above.

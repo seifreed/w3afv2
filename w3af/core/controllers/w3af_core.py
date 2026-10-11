@@ -24,6 +24,7 @@ import errno
 import pprint
 import threading
 import traceback
+import weakref
 
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
 from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
@@ -137,6 +138,7 @@ class w3afCore:
         manager, output = create_output_manager()
         configure_data_logging(output)
         register_parser_multiprocessing(manager)
+        self._output_manager_finalizer = weakref.finalize(self, manager.stop)
         self._output = output
         self._output_manager = manager
         self.knowledge_base = (
@@ -465,7 +467,7 @@ class w3afCore:
         self.uri_opener.end()
 
         remove_data_logging(self._output)
-        self._output_manager.stop()
+        self._output_manager_finalizer()
 
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #

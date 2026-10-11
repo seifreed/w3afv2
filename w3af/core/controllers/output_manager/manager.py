@@ -29,6 +29,7 @@ import threading
 import time
 from functools import wraps
 from multiprocessing.dummy import Process
+from weakref import ReferenceType, proxy, ref
 
 from w3af import ROOT_PATH
 from w3af.core.constants import POISON_PILL
@@ -127,9 +128,14 @@ class OutputManager(Process):
         self._worker_pool = None
 
     def set_w3af_core(self, w3af_core, output):
-        self._w3af_core = w3af_core
+        self._w3af_core = ref(w3af_core)
         self._output = output
         self.set_knowledge_base(w3af_core.knowledge_base)
+
+    def _get_w3af_core(self):
+        if isinstance(self._w3af_core, ReferenceType):
+            return self._w3af_core()
+        return self._w3af_core
 
     def set_knowledge_base(self, knowledge_base):
         self._knowledge_base = knowledge_base
@@ -304,7 +310,8 @@ class OutputManager(Process):
             LOGGER.debug("{}.flush() took {:.2f}s to run".format(*args))
 
     def _handle_output_plugin_exception(self, o_plugin, exception):
-        if self._w3af_core is None:
+        w3af_core = self._get_w3af_core()
+        if w3af_core is None:
             return
 
         # Smart error handling, much better than just crashing.
@@ -327,7 +334,7 @@ class OutputManager(Process):
 
         exec_info = sys.exc_info()
         enabled_plugins = "n/a"
-        self._w3af_core.exception_handler.handle(
+        w3af_core.exception_handler.handle(
             status, exception, exec_info, enabled_plugins
         )
 
@@ -526,10 +533,11 @@ class OutputManager(Process):
 
     def _get_plugin_instance(self, plugin_name):
         plugin = factory(f"w3af.plugins.output.{plugin_name}")
-        plugin.set_w3af_core(self._w3af_core)
+        w3af_core = self._get_w3af_core()
+        plugin.set_w3af_core(proxy(w3af_core) if w3af_core is not None else None)
         plugin.set_output(self._output)
-        if self._w3af_core is not None:
-            plugin.set_configuration(self._w3af_core.configuration)
+        if w3af_core is not None:
+            plugin.set_configuration(w3af_core.configuration)
         if self._knowledge_base is not None:
             plugin.set_knowledge_base(self._knowledge_base)
 
