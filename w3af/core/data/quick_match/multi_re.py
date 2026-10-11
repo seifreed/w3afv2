@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from collections.abc import Iterable
 
 from multiregex import RegexMatcher
 
@@ -120,11 +121,12 @@ class MultiRE:
         else:
             matcher_target = target_str.decode(DEFAULT_ENCODING, "surrogateescape")
 
+        regexes: Iterable[str]
         if self._matcher is None:
             regexes = self._re_cache
         else:
             candidate_patterns = self._matcher.get_pattern_candidates(matcher_target)
-            candidate_counts = {}
+            candidate_counts: dict[str, int] = {}
             regexes = []
             for candidate_pattern in candidate_patterns:
                 candidate_index = candidate_counts.get(candidate_pattern, 0)

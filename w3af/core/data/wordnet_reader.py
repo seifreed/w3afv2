@@ -75,8 +75,10 @@ class WordNetReader:
 
     @cached_property
     def _synsets(self):
-        records = {}
-        indexes = {}
+        records: dict[tuple[str, int], tuple[tuple[str, ...], tuple[_Pointer, ...]]] = (
+            {}
+        )
+        indexes: dict[str, list[tuple[str, int]]] = {}
         with ZipFile(self.database) as archive:
             for pos, filename in (
                 ("n", "noun"),
@@ -107,7 +109,7 @@ class WordNetReader:
                     words = tuple(fields[4 + index * 2] for index in range(word_count))
                     pointer_start = 4 + word_count * 2
                     pointer_count = int(fields[pointer_start])
-                    pointers = []
+                    pointers: list[_Pointer] = []
                     for index in range(pointer_count):
                         start = pointer_start + 1 + index * 4
                         symbol, target_offset, target_pos, word_indexes = fields[

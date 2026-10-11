@@ -129,7 +129,7 @@ def find_vulns(response):
              "desc" and "severity", both as String data type.
              Access example: vulns[CSP_DIRECTIVE_DEFAULT][0].desc
     """
-    vulns = {}
+    vulns: dict[str, list[CSPVulnerability]] = {}
 
     # Extract and merge all policies
     non_report_only_policies = retrieve_csp_policies(response, False, True)

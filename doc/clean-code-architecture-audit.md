@@ -5015,6 +5015,17 @@ Verificación: tests locales TCP/UDP pasan **2 tests**, mypy estricto focal, Ruf
 y Black están limpios. El score global continúa en **9.99/10**, con la
 cobertura global y los errores transitivos históricos aún pendientes.
 
+## Actualización verificada: colecciones tipadas en analizadores
+
+Los analizadores CSP, WordNet y MultiRE declaran ahora los diccionarios, listas
+y conjuntos que ya imponía su algoritmo. En MultiRE se explicita además que la
+ruta rápida acepta cualquier iterable de expresiones, mientras la ruta
+optimizada construye una lista de candidatos.
+
+Verificación: las suites relacionadas pasan **51 tests**, mypy estricto focal,
+Ruff y Black están limpios. El score global continúa en **9.99/10**, con los
+errores transitivos restantes y la cobertura global todavía pendientes.
+
 ## Actualización verificada: fixtures deterministas y hashes no criptográficos
 
 El fake shell de payloads ya no usa `subprocess.getoutput`: ejecuta argumentos
