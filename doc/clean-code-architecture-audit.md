@@ -5919,6 +5919,15 @@ Black, Bandit y compilación pasan. Las regresiones de frames SOCKS reales pasan
 errores**; quedan otros módulos legacy pendientes. El score global continúa en
 **9.99/10**.
 
+## Actualización verificada: parsing de enlaces GeneXus
+
+`genexus_xml` separa nodos DOM, texto y objetos `URL` al procesar `ObjLink`.
+Los nodos vacíos o sin texto se descartan explícitamente y la lista entregada
+al worker solo contiene URLs resueltas, sin reutilización ambigua de variables.
+
+Verificación: GeneXus XML pasa **4 tests**; Mypy con cuerpos no tipados, Ruff y
+Black pasan en el módulo. El score global continúa en **9.99/10**.
+
 ## Actualización verificada: lectura robusta del GHDB
 
 `ghdb` separa los nodos XML de sus textos y usa iteradores para tratar de forma

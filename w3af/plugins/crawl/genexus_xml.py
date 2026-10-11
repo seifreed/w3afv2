@@ -27,6 +27,7 @@ from defusedxml import DefusedXmlException, minidom
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import RunOnce
 
@@ -97,20 +98,29 @@ class genexus_xml(CrawlPlugin):
             return
 
         raw_url_list = dom.getElementsByTagName("ObjLink")
-        parsed_url_list = []
+        parsed_url_list: list[URL] = []
 
-        for url in raw_url_list:
+        for url_node in raw_url_list:
             try:
-                url = url.childNodes[0].data
-                url = base_url.url_join(url)
-            except ValueError as ve:
-                msg = '"%s" file had an invalid URL "%s"'
-                self._output.debug(msg % (file_name, ve))
-            except (IndexError, AttributeError):
+                text_node = next(iter(url_node.childNodes))
+            except StopIteration:
                 msg = '"%s" file had an invalid format'
                 self._output.debug(msg % file_name)
+                continue
+
+            url_text = getattr(text_node, "data", None)
+            if not isinstance(url_text, str):
+                msg = '"%s" file had an invalid format'
+                self._output.debug(msg % file_name)
+                continue
+
+            try:
+                parsed_url = base_url.url_join(url_text)
+            except ValueError as error:
+                msg = '"%s" file had an invalid URL "%s"'
+                self._output.debug(msg % (file_name, error))
             else:
-                parsed_url_list.append(url)
+                parsed_url_list.append(parsed_url)
 
         self.worker_pool.map(self.http_get_and_parse, parsed_url_list)
 
