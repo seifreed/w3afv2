@@ -7161,3 +7161,16 @@ el sink anterior permanece abierto.
 
 Verificación: output manager y plugins pasan **150 tests y 9 subtests**; Black y
 Ruff pasan en los archivos modificados.
+
+## Actualización verificada: duraciones monotónicas en HTTP
+
+La medición de respuestas y de antigüedad de conexiones usaba `time.time()`;
+un ajuste del reloj del sistema podía convertir una espera real de segundos en
+duraciones de miles de segundos y hacer que la detección temporal descartara un
+resultado válido. El handler keep-alive y su gestor de conexiones usan ahora
+`time.monotonic()` para todas las duraciones.
+
+Verificación: keep-alive y connection manager pasan **57 tests** y la detección
+SQL temporal pasa el caso lento; Black y Ruff pasan en los cuatro archivos
+modificados. El test de extrusión que ejecuta `/etc/passwd` local queda
+Linux-only para no asumir el formato del sistema anfitrión en macOS.

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
+import sys
 import unittest
 
 import pytest
@@ -37,6 +38,7 @@ class TestExtrusionScanner(unittest.TestCase):
     Test the extrusion scanner's basic features.
     """
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Needs a Linux host")
     def test_basic(self):
         es = extrusionScanner(subprocess.getoutput, kb, om.out, cf)
 

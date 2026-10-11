@@ -136,7 +136,7 @@ class KeepAliveHandler:
                 resp, start = self._get_response(conn, req)
             else:
                 # We'll try to use a previously created connection
-                start = time.time()
+                start = time.monotonic()
                 resp = self._reuse_connection(conn, req, host)
 
                 # If the resp is None it means that connection is bad. It was
@@ -190,7 +190,7 @@ class KeepAliveHandler:
             self._cm.remove_connection(conn, reason="new connection")
 
         # We measure time here because it's the best place we know of
-        elapsed = time.time() - start
+        elapsed = time.monotonic() - start
         resp.set_wait_time(elapsed)
 
         msg = "HTTP response: %s - %s - %s with %s in %s seconds"
@@ -206,7 +206,7 @@ class KeepAliveHandler:
             conn.proxy_setup(request.get_full_url())
 
         conn.is_fresh = False
-        start = time.time()
+        start = time.monotonic()
         self._start_transaction(conn, request)
         resp = conn.getresponse()
 

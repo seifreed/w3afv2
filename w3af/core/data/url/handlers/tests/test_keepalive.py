@@ -705,12 +705,12 @@ class TestConnectionManager(unittest.TestCase):
         stuck = self.get()
         idle_start = self.get()
         busy = self.get()
-        stuck.current_request_start = time.time() - 1000
+        stuck.current_request_start = time.monotonic() - 1000
         idle_start.current_request_start = None
 
         stale = self.get()
         self.cm.free_connection(stale)
-        stale.connection_manager_move_ts = time.time() - 1000
+        stale.connection_manager_move_ts = time.monotonic() - 1000
         unmoved = self.get()
         self.cm.free_connection(unmoved)
         unmoved.connection_manager_move_ts = None

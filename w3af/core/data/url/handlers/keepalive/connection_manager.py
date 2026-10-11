@@ -91,7 +91,7 @@ class ConnectionManager:
                 self._used_conns.discard(conn)
                 self._free_conns.add(conn)
                 conn.current_request_start = None
-                conn.connection_manager_move_ts = time.time()
+                conn.connection_manager_move_ts = time.monotonic()
 
     def replace_connection(self, bad_conn, req, conn_factory):
         """
@@ -106,8 +106,8 @@ class ConnectionManager:
 
         # Create the new one
         new_conn = conn_factory(req)
-        new_conn.current_request_start = time.time()
-        new_conn.connection_manager_move_ts = time.time()
+        new_conn.current_request_start = time.monotonic()
+        new_conn.connection_manager_move_ts = time.monotonic()
         with self._lock:
             self._used_conns.add(new_conn)
 
@@ -155,7 +155,7 @@ class ConnectionManager:
                 # In use, but the request wasn't sent yet
                 continue
 
-            spent = time.time() - start
+            spent = time.monotonic() - start
             args = (conn.id, spent)
             connection_infos.append("({}, {:.2f} sec)".format(*args))
 
@@ -194,8 +194,8 @@ class ConnectionManager:
 
                 self._free_conns.remove(conn)
                 self._used_conns.add(conn)
-                conn.current_request_start = time.time()
-                conn.connection_manager_move_ts = time.time()
+                conn.current_request_start = time.monotonic()
+                conn.connection_manager_move_ts = time.monotonic()
 
                 msg = "Reusing free %s to use in %s"
                 args = (conn, req)
@@ -218,8 +218,8 @@ class ConnectionManager:
 
             self._free_conns.remove(conn)
             self._used_conns.add(conn)
-            conn.current_request_start = time.time()
-            conn.connection_manager_move_ts = time.time()
+            conn.current_request_start = time.monotonic()
+            conn.connection_manager_move_ts = time.monotonic()
 
         debug(f"Reusing preferred {conn} to use in {req}")
         return conn
@@ -244,8 +244,8 @@ class ConnectionManager:
 
         # Create a new connection
         conn = conn_factory(req)
-        conn.current_request_start = time.time()
-        conn.connection_manager_move_ts = time.time()
+        conn.current_request_start = time.monotonic()
+        conn.connection_manager_move_ts = time.monotonic()
 
         # Store it internally
         with self._lock:
@@ -411,7 +411,7 @@ class ConnectionManager:
 
         :return: None
         """
-        now = time.time()
+        now = time.monotonic()
 
         for conn in self._used_conns.copy():
             current_request_start = conn.current_request_start
