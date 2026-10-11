@@ -26,7 +26,7 @@ import sys
 import time
 from functools import wraps
 from multiprocessing.dummy import Process
-from queue import Empty
+from queue import Empty, Queue
 
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
@@ -92,7 +92,7 @@ class BaseConsumer(Process):
         """
         super().__init__(name=f"{thread_name}Controller")
 
-        self.in_queue = CachedQueue(
+        self.in_queue: Queue[object] = CachedQueue(
             maxsize=max_in_queue_size,
             name=thread_name + "In",
             db=w3af_core.database,

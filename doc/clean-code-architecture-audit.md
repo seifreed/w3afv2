@@ -5853,3 +5853,15 @@ Verificación: las suites de estrategia y perfiles pasan **21 tests y 7
 subtests**; mypy global baja a **629 errores en 258 archivos** desde 633,
 Black, Ruff y Bandit de los dos módulos pasan sin hallazgos. Persisten dos
 warnings de `ldap3/pyasn1` externo. El score global continúa en **9.99/10**.
+
+## Actualización verificada: cola y pool de CrawlInfrastructure
+
+La cola de entrada de `BaseConsumer` se expresa con el contrato común de
+`queue.Queue`, permitiendo la sustitución válida por `OrderedCachedQueue`.
+`CrawlInfrastructure` captura el pool local antes de programar trabajo y
+abandona la tarea si el teardown ya lo liberó; además separa argumentos de
+logging con formas distintas.
+
+Verificación: las suites de consumidores pasan **31 tests**; mypy global baja
+a **626 errores en 258 archivos** desde 629, y Black, Ruff y Bandit de los dos
+módulos pasan sin hallazgos. El score global continúa en **9.99/10**.

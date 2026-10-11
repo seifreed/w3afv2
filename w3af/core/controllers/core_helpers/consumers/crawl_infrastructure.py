@@ -213,7 +213,11 @@ class CrawlInfrastructure(BaseConsumer):
             # TODO: unittest what happens if an exception (which is not handled
             #       by the exception handler) is raised. Who's doing a .get()
             #       on those ApplyResults generated here?
-            self._threadpool.apply_async(
+            threadpool = self._threadpool
+            if threadpool is None:
+                return
+
+            threadpool.apply_async(
                 return_args(self._discover_worker),
                 (
                     plugin,
@@ -567,8 +571,8 @@ class CrawlInfrastructure(BaseConsumer):
             result = plugin.discover_wrapper(fuzzable_request, debugging_id)
         except BaseFrameworkException as e:
             msg = 'An exception was found while running "%s" with "%s": "%s" (did: %s)'
-            args = (plugin.get_name(), fuzzable_request, e, debugging_id)
-            self._output.error(msg % args)
+            error_args = (plugin.get_name(), fuzzable_request, e, debugging_id)
+            self._output.error(msg % error_args)
         except RunOnce:
             # Some plugins are meant to be run only once
             # that is implemented by raising a RunOnce
@@ -586,8 +590,8 @@ class CrawlInfrastructure(BaseConsumer):
             # of the API)
             if result is not None:
                 msg = "The %s plugin did NOT return None (did: %s)"
-                args = (plugin.get_name(), debugging_id)
-                ve = ValueError(msg % args)
+                result_args = (plugin.get_name(), debugging_id)
+                ve = ValueError(msg % result_args)
                 self.handle_exception(
                     plugin.get_type(), plugin.get_name(), fuzzable_request, ve
                 )
