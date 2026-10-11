@@ -7242,3 +7242,14 @@ y un fallo de conexión inicial cierra el descriptor antes de terminar.
 
 Verificación: el cliente del agente pasa **5 tests**; Black, Ruff, Mypy y
 Bandit de producción pasan en el cliente y sus pruebas de ownership.
+
+## Actualización verificada: lifecycle del listener del agente
+
+El `ConnectionManager` del servidor podía conservar el listener cuando fallaba
+el `bind` o después de `stop()`, y cerraba sus conexiones sin sincronizar el
+acceso concurrente. Ahora el listener y las conexiones se limpian en `finally`,
+los sockets de wake-up usan context manager y `get_connection()` extrae bajo el
+mismo lock que protege la lista.
+
+Verificación: servidor y cliente del agente pasan **6 tests**; Black, Ruff,
+Mypy y Bandit de producción pasan en los archivos modificados.

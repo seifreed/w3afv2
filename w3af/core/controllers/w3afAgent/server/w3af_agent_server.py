@@ -57,16 +57,25 @@ class ConnectionManager(Process):
 
     def stop(self):
         self._keep_running = False
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            s.connect((self._ip_address, self._port))
-            s.close()
-        except OSError as e:
-            self._output.debug(f"[w3afAgentServer] Error while stopping: {e}")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as wake_socket:
+            try:
+                wake_socket.connect((self._ip_address, self._port))
+            except OSError as e:
+                self._output.debug(f"[w3afAgentServer] Error while stopping: {e}")
 
-        for conn in self._connections:
-            conn.close()
+        self._close_connections()
+        listener = getattr(self, "sock", None)
+        if listener is not None:
+            listener.close()
         self._output.debug("Stoped connection manager.")
+
+    def _close_connections(self):
+        with self._cmLock:
+            connections = self._connections
+            self._connections = []
+
+        for connection in connections:
+            connection.close()
 
     def run(self):
         """
@@ -76,34 +85,39 @@ class ConnectionManager(Process):
         """
 
         #    Start listening
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.sock.bind((self._ip_address, self._port))
-            self.sock.listen(5)
-        except OSError as e:
-            msg = f"[w3afAgentServer] Failed to bind to {self._ip_address}:{self._port}"
-            msg += f'. Error: "{e}".'
-            raise BaseFrameworkException(msg)
-
-        # loop !
-        while self._keep_running:
             try:
-                newsock, _address = self.sock.accept()
-            except KeyboardInterrupt:
-                self._output.console("Exiting.")
-                break
-            except OSError:
-                # This catches socket timeouts
-                pass
-            else:
-                self._output.debug(
-                    "[ConnectionManager] Adding a new connection to the connection manager."
-                )
-                self._connections.append(newsock)
-                if not self._reportedConnection:
-                    self._reportedConnection = True
-                    self._output.console("w3afAgent service is up and running.")
+                self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                self.sock.bind((self._ip_address, self._port))
+                self.sock.listen(5)
+            except OSError as e:
+                msg = f"[w3afAgentServer] Failed to bind to {self._ip_address}:{self._port}"
+                msg += f'. Error: "{e}".'
+                raise BaseFrameworkException(msg) from e
+
+            # loop !
+            while self._keep_running:
+                try:
+                    newsock, _address = self.sock.accept()
+                except KeyboardInterrupt:
+                    self._output.console("Exiting.")
+                    break
+                except OSError:
+                    # This catches socket timeouts
+                    pass
+                else:
+                    self._output.debug(
+                        "[ConnectionManager] Adding a new connection to the connection manager."
+                    )
+                    with self._cmLock:
+                        self._connections.append(newsock)
+                    if not self._reportedConnection:
+                        self._reportedConnection = True
+                        self._output.console("w3afAgent service is up and running.")
+        finally:
+            self.sock.close()
+            self._close_connections()
 
     def is_working(self):
         """
@@ -112,19 +126,11 @@ class ConnectionManager(Process):
         return self._reportedConnection
 
     def get_connection(self):
+        with self._cmLock:
+            if self._connections:
+                return self._connections.pop(0)
 
-        if self._connections:
-            self._cmLock.acquire()
-
-            res = self._connections[0]
-            self._connections = self._connections[1:]
-
-            self._cmLock.release()
-            return res
-        else:
-            raise BaseFrameworkException(
-                "[ConnectionManager] No available connections."
-            )
+        raise BaseFrameworkException("[ConnectionManager] No available connections.")
 
 
 class PipeThread(Process):
