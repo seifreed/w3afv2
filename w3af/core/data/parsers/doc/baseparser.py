@@ -107,9 +107,9 @@ class BaseParser:
         # information by using the 'ignore' error handling
 
         try:
-            dec_url = dec_url.decode(UTF8)
+            decoded_url = dec_url.decode(UTF8)
         except UnicodeDecodeError:
-            dec_url = dec_url.decode(enc, "ignore")
+            decoded_url = dec_url.decode(enc, "ignore")
         #
         # TODO: Lines below will remain commented until we make a
         # decision regarding which is the (right?) way to decode URLs.
@@ -131,7 +131,7 @@ class BaseParser:
         #            dec_url = (dec_url[:index].decode(enc, 'ignore') +
         #                       dec_url[index:].decode('utf-8', 'ignore'))
 
-        return dec_url
+        return decoded_url
 
     def get_forms(self, configuration=None):
         """

@@ -34,7 +34,7 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
         """
         Override this method in order to provide better error handling.
         """
-        now = time.time()
+        now = int(time.time())
 
         magic = f.readline()
         if not NETSCAPE_MAGIC_RE.search(magic):
@@ -60,8 +60,8 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
 
                 if len(split_values) != 7:
                     msg = "Expected seven tab delimited fields, got %s in %s: %s"
-                    args = (len(split_values), filename, line)
-                    raise LoadError(msg % args)
+                    error_args = (len(split_values), filename, line)
+                    raise LoadError(msg % error_args)
 
                 domain, domain_specified, path, secure, expires, name, value = (
                     split_values
@@ -86,8 +86,8 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
                             " This is not acceptable by the Mozilla Cookie format."
                             " Issue found at %s: %s"
                         )
-                        args = (domain_specified, domain, filename, line)
-                        raise LoadError(msg % args)
+                        domain_error_args = (domain_specified, domain, filename, line)
+                        raise LoadError(msg % domain_error_args)
 
                     else:
                         msg = (
@@ -96,8 +96,8 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
                             " This is not acceptable by the Mozilla Cookie format."
                             " Issue found at %s: %s"
                         )
-                        args = (domain_specified, domain, filename, line)
-                        raise LoadError(msg % args)
+                        domain_error_args = (domain_specified, domain, filename, line)
+                        raise LoadError(msg % domain_error_args)
 
                 discard = False
                 if expires == "":

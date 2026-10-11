@@ -4966,6 +4966,18 @@ Verificación: las suites afectadas pasan **161 tests** con un skip esperado;
 mypy focal, Ruff y Black están limpios. El score global continúa en **9.99/10**,
 con los gates globales heredados y la cobertura global todavía pendientes.
 
+## Actualización verificada: contratos de parsers y cookies
+
+El lector de cookies usa el tipo temporal esperado por `http.cookiejar`, los
+mensajes de error no reutilizan variables con tuplas incompatibles y el parser
+de URLs separa sus estados `bytes` y `str`. El recolector XML implementa
+también el callback de comentarios que exige el protocolo de `lxml`, sin
+incorporarlos al resultado.
+
+Verificación: las suites afectadas pasan **30 tests**; mypy focal, Ruff y
+Black están limpios. El score global continúa en **9.99/10**, con los gates
+globales heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: contrato del request mixin
 
 `RequestMixIn` declara mediante un protocolo privado los métodos que aportan
