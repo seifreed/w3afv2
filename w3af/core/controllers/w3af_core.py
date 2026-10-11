@@ -73,6 +73,7 @@ from w3af.core.controllers.output_manager.logging_bridge import (
 )
 from w3af.core.controllers.parser_worker import get_parser_worker_bootstrap
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
+from w3af.core.data.db.dbms import create_temp_db_instance
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.misc.number_generator import NumberGenerator
@@ -97,10 +98,12 @@ NO_MEMORY_MSG = (
 )
 
 
-def _stop_core_resources(output_manager, dns_cache, parser_cache):
+def _stop_core_resources(output_manager, dns_cache, parser_cache, database):
     output_manager.stop()
     dns_cache.clear()
     parser_cache.clear()
+    if database is not None:
+        database.close()
 
 
 class w3afCore:
@@ -145,22 +148,31 @@ class w3afCore:
         manager, output = create_output_manager()
         configure_data_logging(output)
         log_queue_provider, worker_initializer = get_parser_worker_bootstrap(manager)
+        self._database = create_temp_db_instance()
         self._dns_cache = DNSCache(output)
         self._parser_cache = ParserCache(
             mp_parser=MultiProcessingDocumentParser(
                 log_queue_provider=log_queue_provider,
                 worker_initializer=worker_initializer,
-            )
+            ),
+            db=self._database,
         )
         self._id_generator = NumberGenerator()
         self._output_manager_finalizer = weakref.finalize(
-            self, _stop_core_resources, manager, self._dns_cache, self._parser_cache
+            self,
+            _stop_core_resources,
+            manager,
+            self._dns_cache,
+            self._parser_cache,
+            self._database,
         )
         self._output = output
         self._output_manager = manager
         self._fingerprint_404 = None
         self.knowledge_base = (
-            DBKnowledgeBase() if knowledge_base is None else knowledge_base
+            DBKnowledgeBase(db=self._database)
+            if knowledge_base is None
+            else knowledge_base
         )
         self._worker_pool_manager = WorkerPoolManager(
             output,
@@ -432,6 +444,10 @@ class w3afCore:
     def id_generator(self):
         return self._id_generator
 
+    @property
+    def database(self):
+        return self._database
+
     def can_cleanup(self):
         return self.status.get_simplified_status() == STOPPED
 
@@ -519,9 +535,6 @@ class w3afCore:
         # these files (mostly the HTTP request/response data) for the user to
         # analyze in the GUI after the scan has finished
         remove_temp_dir(ignore_errors=True)
-
-        # Stop the parser subprocess
-        self._parser_cache.clear()
 
         if self._fingerprint_404 is not None:
             self._fingerprint_404.cleanup()

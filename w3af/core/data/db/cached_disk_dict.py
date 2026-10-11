@@ -38,7 +38,7 @@ class CachedDiskDict:
     of memory.
     """
 
-    def __init__(self, max_in_memory=50, table_prefix=None):
+    def __init__(self, max_in_memory=50, table_prefix=None, db=None):
         """
         :param max_in_memory: The max number of items to keep in memory
         """
@@ -48,7 +48,7 @@ class CachedDiskDict:
         table_prefix = self._get_table_prefix(table_prefix)
 
         self._max_in_memory = max_in_memory
-        self._disk_dict = DiskDict(table_prefix=table_prefix)
+        self._disk_dict = DiskDict(table_prefix=table_prefix, db=db)
         self._in_memory = {}
         self._access_count = Counter()
 

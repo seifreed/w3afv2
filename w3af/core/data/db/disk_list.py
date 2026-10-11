@@ -59,13 +59,14 @@ class DiskList:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, table_prefix=None, dump=None, load=None):
+    def __init__(self, table_prefix=None, dump=None, load=None, db=None):
         """
         :param table_prefix: The DBMS table prefix, mostly for debugging.
         :param dump: The function to use to serialize the object
         :param load: The function to use to deserialize the object
+        :param db: The SQLite database that owns this list.
         """
-        self.db = get_default_temp_db_instance()
+        self.db = get_default_temp_db_instance() if db is None else db
 
         prefix = "" if table_prefix is None else (f"{table_prefix}_")
         self.table_name = "disk_list_" + prefix + rand_alpha(30)
@@ -270,7 +271,7 @@ class DiskList:
         stop = slice_inst.stop or len(self)
         step = slice_inst.step or 1
 
-        copy = DiskList()
+        copy = DiskList(db=self.db)
         disk_list_length = len(self)
 
         # TODO: This piece of code is VERY SLOW and can be improved. Please

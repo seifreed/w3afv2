@@ -4408,3 +4408,21 @@ Verificación: **41 tests** de parser worker y **46 tests** de parser cache/core
 pasan; Black, Ruff y mypy focales pasan. El score global continúa en **9.99/10**
 hasta cerrar la base temporal global, los gates completos y los módulos
 heredados de gran tamaño.
+
+## Actualización verificada: SQLite aislada y cerrada por core
+
+`w3afCore` crea una base SQLite temporal propia y la comparte sólo con su
+`DBKnowledgeBase` y su `ParserCache`. El finalizer limpia el parser antes de
+cerrar el executor SQLite; `quit()` ya no intenta limpiar el parser por segunda
+vez después de cerrar la base. Las listas y diccionarios creados standalone
+conservan el fallback temporal existente, mientras que sus constructores,
+`DBKnowledgeBase` y `ParserCache` aceptan una DB explícita para evitar estado
+compartido en los caminos del core.
+
+La regresión cubre bases distintas entre cores, KB externa, creación de
+instancias independientes y cierre real del executor. Verificación: **40 tests**
+de DB/core, **96 tests** de parser/KB y **53 tests** de DiskList/DiskDict/DiskSet
+pasan. Una medición de ocho ciclos core/quit terminó con `sqlite_threads_end=0`
+y RSS máximo de **79.6 MiB**. Ruff y Black pasan en los módulos tocados. El
+score global continúa en **9.99/10** hasta resolver el fallback global standalone,
+los gates completos y los módulos heredados de gran tamaño.

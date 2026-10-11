@@ -54,7 +54,7 @@ class ParserCache(CacheStats):
     MAX_CACHEABLE_BODY_LEN = 1024 * 1024
     DEBUG = is_core_profiling_enabled()
 
-    def __init__(self, mp_parser=None):
+    def __init__(self, mp_parser=None, db=None):
         """
         :param mp_parser: The MultiProcessingDocumentParser that parses the
                           responses which are not in the cache
@@ -67,7 +67,7 @@ class ParserCache(CacheStats):
         self._cache = SynchronizedLRUDict(self.CACHE_SIZE)
         self._can_parse_cache = SynchronizedLRUDict(self.CACHE_SIZE * 10)
         self._parser_finished_events = {}
-        self._parser_blacklist = DiskSet()
+        self._parser_blacklist = DiskSet(db=db)
 
     def clear(self):
         """

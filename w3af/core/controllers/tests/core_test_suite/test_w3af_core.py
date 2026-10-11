@@ -37,6 +37,7 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.filesystem import get_temp_dir
@@ -122,11 +123,30 @@ class TestW3afCore(unittest.TestCase):
     def test_cores_own_id_generators(self):
         first = w3afCore()
         second = w3afCore()
+        self.addCleanup(first.quit)
+        self.addCleanup(second.quit)
 
         first.id_generator.inc()
 
         self.assertEqual(first.id_generator.get(), 1)
         self.assertEqual(second.id_generator.get(), 0)
+
+    def test_cores_own_databases(self):
+        other_core = w3afCore()
+        self.addCleanup(other_core.quit)
+
+        self.core.knowledge_base.setup()
+        other_core.knowledge_base.setup()
+
+        self.assertIsNot(self.core.database, other_core.database)
+        self.assertIs(self.core.knowledge_base.db, self.core.database)
+        self.assertIs(other_core.knowledge_base.db, other_core.database)
+
+    def test_parser_cache_is_local_with_external_knowledge_base(self):
+        core = w3afCore(knowledge_base=DBKnowledgeBase())
+        self.addCleanup(core.quit)
+
+        self.assertIs(core.parser_cache._parser_blacklist.db, core.database)
 
     def test_unreferenced_core_does_not_mutate_dns_resolver(self):
         original = socket.getaddrinfo

@@ -37,8 +37,8 @@ class DiskDict:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, table_prefix=None):
-        self.db = get_default_temp_db_instance()
+    def __init__(self, table_prefix=None, db=None):
+        self.db = get_default_temp_db_instance() if db is None else db
 
         prefix = "" if table_prefix is None else (f"{table_prefix}_")
         self.table_name = "disk_dict_" + prefix + rand_alpha(30)

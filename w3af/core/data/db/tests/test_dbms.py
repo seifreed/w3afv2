@@ -36,6 +36,7 @@ from w3af.core.data.db.dbms import (
     SELECT,
     SQLiteDBMS,
     SQLiteExecutor,
+    create_temp_db_instance,
     get_default_persistent_db_instance,
     get_default_temp_db_instance,
 )
@@ -237,6 +238,15 @@ class TestDBMS(unittest.TestCase):
 
 
 class TestDefaultDB(unittest.TestCase):
+    def test_create_temp_db_instance_is_independent(self):
+        first = create_temp_db_instance()
+        second = create_temp_db_instance()
+        self.addCleanup(TestDBMS.close_db, first)
+        self.addCleanup(TestDBMS.close_db, second)
+
+        self.assertIsNot(first, second)
+        self.assertNotEqual(first.get_file_name(), second.get_file_name())
+
     def test_get_default_temp_db_instance(self):
         self.assertEqual(
             id(get_default_temp_db_instance()), id(get_default_temp_db_instance())

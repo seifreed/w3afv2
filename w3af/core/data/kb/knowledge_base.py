@@ -67,9 +67,10 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         ("pickle", "BLOB"),
     ]
 
-    def __init__(self):
+    def __init__(self, db=None):
         super().__init__()
         self.initialized = False
+        self._db = db
 
     def setup(self):
         """
@@ -83,10 +84,11 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             if self.initialized:
                 return
 
-            self.urls = DiskSet(table_prefix="kb_urls")
-            self.fuzzable_requests = DiskSet(table_prefix="kb_fuzzable_requests")
-
-            self.db = get_default_persistent_db_instance()
+            self.db = self._db or get_default_persistent_db_instance()
+            self.urls = DiskSet(table_prefix="kb_urls", db=self.db)
+            self.fuzzable_requests = DiskSet(
+                table_prefix="kb_fuzzable_requests", db=self.db
+            )
 
             self.table_name = "knowledge_base_" + rand_alpha(30)
             self.db.create_table(self.table_name, self.COLUMNS)
@@ -352,11 +354,13 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
             # Remove the old, create new.
             old_urls = self.urls
-            self.urls = DiskSet(table_prefix="kb_urls")
+            self.urls = DiskSet(table_prefix="kb_urls", db=self.db)
             old_urls.cleanup()
 
             old_fuzzable_requests = self.fuzzable_requests
-            self.fuzzable_requests = DiskSet(table_prefix="kb_fuzzable_requests")
+            self.fuzzable_requests = DiskSet(
+                table_prefix="kb_fuzzable_requests", db=self.db
+            )
             old_fuzzable_requests.cleanup()
 
     @requires_setup

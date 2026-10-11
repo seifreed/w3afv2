@@ -21,10 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
+import os
 import sqlite3
 from concurrent.futures import Future
 from functools import wraps
 from multiprocessing.dummy import Process, Queue
+from uuid import uuid4
 
 from w3af.core.data.db.exceptions import (
     DBException,
@@ -462,12 +464,18 @@ class SQLiteExecutor(Process):
 temp_default_db = None
 
 
+def create_temp_db_instance():
+    """Create an independently owned temporary database instance."""
+    create_temp_dir()
+    filename = os.path.join(get_temp_dir(), f"db-{uuid4().hex}.db")
+    return SQLiteDBMS(filename)
+
+
 def get_default_temp_db_instance():
     global temp_default_db
 
     if temp_default_db is None:
-        create_temp_dir()
-        temp_default_db = SQLiteDBMS(f"{get_temp_dir()}/main.db")
+        temp_default_db = create_temp_db_instance()
 
     return temp_default_db
 
