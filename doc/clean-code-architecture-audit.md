@@ -40,10 +40,10 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
   verificación actual hay **0** coincidencias en producción; las referencias
   restantes están limitadas a tests que ensamblan componentes de integración.
 - Los módulos `w3af/core/data/kb/shell.py`, `read_shell.py` y `exec_shell.py`
-  conocen payload handlers, output manager, controladores y plugins. La
-  Knowledge Base no está aislada como modelo de dominio.
-- `w3af/core/data/kb/knowledge_base.py` publica una instancia global `kb`, que
-  introduce estado compartido y dificulta expresar dependencias explícitas.
+  exponen ahora Protocols para sus colaboradores; el cableado de payloads,
+  salida y transferencia se realiza en la capa de plugins.
+- `w3af/core/data/kb/knowledge_base.py` ya no publica una instancia global
+  `kb`; los almacenes se crean y se inyectan explícitamente.
 
 ### Responsabilidades concentradas
 
@@ -60,23 +60,19 @@ incluye el fichero generado `venv/bin/activate_this.py` y `bandit -r .` recorre
 
 ### Calidad y verificabilidad
 
-- El gate global de Black pasa: 1967 archivos sin cambios requeridos.
-- Ruff global falla con 1260 hallazgos, dominados por nombres indefinidos
-  (645), `except` desnudos (222) y usos de imports estrella (89).
-- Mypy global falla con errores de imports, nombres y tipos en código propio y
-  en el vendor de sqlmap.
-- Bandit global falla y recorrió 2,256,458 líneas, incluyendo `venv` y código
-  vendorizado: 15,358 hallazgos Low, 966 Medium y 787 High. El output incluye
-  warnings del parser, y encontró 16 `# nosec` y 23 hallazgos deshabilitados,
-  incompatibles con la política del proyecto.
-- `pip-audit` no encontró vulnerabilidades conocidas; mostró warnings al leer
-  su caché local.
-- El conjunto de pruebas del gestor de plugins depende del ejecutable externo
-  `retire`; en este entorno, dos pruebas fallan cuando no está instalado.
-- La cobertura observada en el módulo de plugins era 85% antes de este avance.
-  No existe aún evidencia de cobertura global del 100%.
-- El grafo AST ayuda con referencias estáticas, pero la carga dinámica de plugins
-  impide tratarlo como prueba completa de todos los flujos.
+- Black global pasa: **1659 archivos** sin cambios requeridos.
+- Ruff global pasa sin hallazgos.
+- `mypy --check-untyped-defs w3af` pasa en **1620 archivos**; el comando
+  literal `mypy .` todavía inspecciona `venv/bin/activate_this.py` y falla en
+  dos líneas generadas fuera del código fuente.
+- Bandit global no queda limpio porque `bandit -r .` recorre `venv`, vendor,
+  extras y tests; los archivos de producción modificados sí pasan la revisión
+  dirigida. No se añadieron exclusiones ni supresiones.
+- `pip-audit` no encuentra vulnerabilidades conocidas; `mitmproxy` no puede
+  auditarse porque no está publicado en PyPI.
+- No existe aún evidencia de cobertura global del 100%.
+- El grafo AST ayuda con referencias estáticas, pero la carga dinámica de
+  plugins impide tratarlo como prueba completa de todos los flujos.
 
 ## Avance aplicado
 
