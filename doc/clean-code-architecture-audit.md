@@ -6805,3 +6805,15 @@ Verificación: Mypy, Black y Ruff pasan en los **14 archivos** modificados; la
 batería focalizada pasa **54 tests**. Se observan 359 warnings deprecados de
 `jsonschema` en la dependencia `bravado-core`; el score global continúa en
 **9.99/10**.
+
+## Actualización verificada: lifecycle de ParserCache y contratos de profiling
+
+Los tests de autenticación configuran un `ParserCache` real y lo limpian junto
+con el opener HTTP, eliminando la dependencia implícita de un core global. Las
+fixtures de profiling, colas, URL y detección 404 declaran sus contenedores y
+separan variables que cambiaban de tipo; el timeout de deserialización acepta
+valores fraccionarios como usa el runtime.
+
+Verificación: Mypy pasa en los **10 archivos** modificados, Black y Ruff pasan
+globalmente, y `test_auth_plugins` pasa **26 tests**. El score global continúa
+en **9.99/10**.

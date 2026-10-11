@@ -50,7 +50,7 @@ class grep(BaseConsumer):
 
     # Seconds to wait for another thread which is reading the same HTTP
     # request and response from disk
-    DESERIALIZATION_TIMEOUT = 20
+    DESERIALIZATION_TIMEOUT: float = 20.0
 
     EXCLUDE_HEADERS_FOR_HASH = (
         "date",

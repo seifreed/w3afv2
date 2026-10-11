@@ -195,8 +195,8 @@ class TestPreventMultipleThreads(unittest.TestCase):
 
     def test_second_call_for_same_path_waits_for_the_first(self):
         detector = BlockingDetector()
-        first_results = []
-        second_results = []
+        first_results: list[bool] = []
+        second_results: list[bool] = []
 
         first = call_in_thread(
             detector.is_404, build_response("http://w3af.org/x/a.html"), first_results
@@ -220,7 +220,7 @@ class TestPreventMultipleThreads(unittest.TestCase):
     def test_waiting_call_times_out(self):
         detector = BlockingDetector(QuickTimeoutPreventMultipleThreads)
         recorder = record_output(self)
-        first_results = []
+        first_results: list[bool] = []
 
         first = call_in_thread(
             detector.is_404, build_response("http://w3af.org/y/a.html"), first_results

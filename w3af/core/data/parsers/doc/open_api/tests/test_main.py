@@ -306,7 +306,7 @@ class TestOpenAPIMain(unittest.TestCase):
         api_call = next(call for call in api_calls if call.get_method() == "PUT")
 
         e_url = "http://w3af.org/api/pets"
-        e_force_fuzzing_headers = []
+        e_force_fuzzing_headers: list[str] = []
         e_headers = Headers([("Content-Type", "application/vnd.w3af+json")])
         e_post_data_headers = Headers([("Content-Type", "application/vnd.w3af+json")])
         e_all_headers = Headers([("Content-Type", "application/vnd.w3af+json")])
@@ -440,7 +440,7 @@ class TestOpenAPIMain(unittest.TestCase):
 
         self.assertEqual(len(api_calls), 4)
 
-        e_force_fuzzing_headers = []
+        e_force_fuzzing_headers: list[str] = []
 
         #
         # Assertions on call #1
@@ -553,7 +553,7 @@ class TestOpenAPIMain(unittest.TestCase):
 
         api_call = api_calls[0]
         e_url = "http://w3af.org/api/pets"
-        e_force_fuzzing_headers = []
+        e_force_fuzzing_headers: list[str] = []
         e_headers = Headers([("Content-Type", "application/json")])
         e_body = '{"pet": {"age": 42}}'
 

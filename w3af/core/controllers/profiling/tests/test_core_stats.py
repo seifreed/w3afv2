@@ -95,14 +95,14 @@ class TestCoreStats(unittest.TestCase):
         self.assertIn(stats["Parser pool input queue size"], (0, None))
 
     def test_get_queue_size_of_thread_queue(self):
-        thread_queue = queue.Queue()
+        thread_queue: queue.Queue[str] = queue.Queue()
         thread_queue.put("item")
 
         self.assertEqual(get_queue_size(thread_queue), 1)
 
     def test_get_queue_size_of_multiprocessing_queue(self):
         # Where the platform has no sem_getvalue() (macOS) the size is unknown
-        process_queue = multiprocessing.Queue()
+        process_queue: multiprocessing.Queue[str] = multiprocessing.Queue()
 
         self.assertIn(get_queue_size(process_queue), (0, None))
         process_queue.close()

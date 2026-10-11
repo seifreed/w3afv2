@@ -36,7 +36,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.http_response import DEFAULT_WAIT_TIME
+from w3af.core.data.url.http_response import DEFAULT_WAIT_TIME, HTTPResponse
 from w3af.core.data.url.tests.helpers.raw_handlers import (
     EmptyTCPHandler,
     Ok200Handler,
@@ -289,7 +289,7 @@ class TestXUrllib(unittest.TestCase):
         self.assertRaises(ScanMustStopByUserRequest, self.uri_opener.GET, url)
 
     def _send_in_thread(self):
-        output = queue.Queue()
+        output: queue.Queue[HTTPResponse | None] = queue.Queue()
         url = URL(self.server.url())
 
         def send():

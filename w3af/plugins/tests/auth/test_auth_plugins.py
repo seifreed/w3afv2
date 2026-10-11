@@ -27,6 +27,7 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.filesystem import create_temp_dir
@@ -112,6 +113,8 @@ class AuthPluginTestCase(unittest.TestCase):
 
         self.uri_opener = ExtendedUrllib(configuration=cf)
         self.addCleanup(self.uri_opener.end)
+        self.parser_cache = ParserCache()
+        self.addCleanup(self.parser_cache.clear)
 
         self.base = f"http://127.0.0.1:{self.server.port}"
 
@@ -129,6 +132,7 @@ class AuthPluginTestCase(unittest.TestCase):
         plugin.set_url_opener(self.uri_opener)
         plugin.set_configuration(cf)
         plugin.set_knowledge_base(kb)
+        plugin.set_parser_cache(self.parser_cache)
         plugin.set_output(om.out)
         return plugin
 
@@ -242,7 +246,8 @@ class TestAutocomplete(AuthPluginTestCase):
     def test_login_success(self):
         plugin = self._plugin()
         self.assertTrue(plugin.login())
-        self.assertIn(self.url("/login"), cf.get("blacklist_audit"))
+        blacklist = cf.get("blacklist_audit") or []
+        self.assertIn(self.url("/login"), blacklist)
 
     def test_login_success_with_two_login_forms(self):
         self.assertTrue(self._plugin("/two-forms").login())

@@ -80,8 +80,8 @@ class TestURLInSession(unittest.TestCase):
         self.assertEqual(info.get_name(), "Session ID in URL")
 
     def test_url_session_in_body(self):
-        url = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
-        body = f'abc <a href="{url}">def</a> footer'
+        url_string = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
+        body = f'abc <a href="{url_string}">def</a> footer'
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
         request = FuzzableRequest(url, method="GET")
@@ -98,9 +98,9 @@ class TestURLInSession(unittest.TestCase):
         self.assertEqual(info.get_name(), "Session ID in URL")
 
     def test_url_session_in_body_and_url(self):
-        url = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
-        body = f'abc <a href="{url}">def</a> footer'
-        url = URL(url)
+        url_string = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
+        body = f'abc <a href="{url_string}">def</a> footer'
+        url = URL(url_string)
         headers = Headers([("content-type", "text/html")])
         request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(

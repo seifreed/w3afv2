@@ -27,6 +27,8 @@ from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.w3af_core import w3afCore
 
+TookMessage = tuple[tuple[str, str], dict[str, object]]
+
 
 class TestTookHelper(unittest.TestCase):
     def new_core(self):
@@ -35,7 +37,7 @@ class TestTookHelper(unittest.TestCase):
         return core
 
     def send_took_line(self, w3af_core):
-        messages = queue.Queue()
+        messages: queue.Queue[TookMessage] = queue.Queue()
 
         took_line = TookLine(
             w3af_core,
@@ -75,7 +77,7 @@ class TestTookHelper(unittest.TestCase):
 
     def test_took_with_cpu_bound_work(self):
         w3af_core = self.new_core()
-        messages = queue.Queue()
+        messages: queue.Queue[TookMessage] = queue.Queue()
         took_line = TookLine(
             w3af_core,
             "plugin_name",

@@ -96,7 +96,7 @@ class TestSeedConsumer(unittest.TestCase):
 
         self.consumer.terminate()
 
-        self.assertIsNone(self.consumer.join())
+        self.consumer.join()
         self.assertRaises(queue.Empty, self.consumer.get_result)
         self.assertIs(self.consumer.out_queue, self.consumer._out_queue)
         self.assertEqual(self.consumer.get_name(), "Seed")
