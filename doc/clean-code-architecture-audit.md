@@ -4325,3 +4325,25 @@ Verificación: **4 tests** específicos de `DNSCache`, **16 tests** de core y
 resolver inyectado. Black, Ruff y mypy focal pasan. El generador global de IDs
 y `parser_cache.dpc` siguen siendo los dos estados compartidos pendientes de
 aislar antes de poder declarar 10/10.
+
+## Actualización verificada: caché de parsers aislada por core
+
+`ParserCache` ya no crea ni conserva un singleton global (`parser_cache.dpc`).
+Cada caché posee su propio `MultiProcessingDocumentParser`, sus workers y sus
+estructuras LRU/blacklist; `clear()` sólo detiene los workers de esa instancia.
+La caché se inyecta desde `w3afCore` al opener HTTP y a los plugins, y el
+finalizer del core también detiene los workers cuando el core se descarta sin
+pasar por `quit()` o `cleanup()`. Las métricas de profiling consultan la pool
+de la caché concreta, no una pool de proceso ajena.
+
+Las respuestas HTTP serializadas no conservan la referencia al servicio de
+runtime; al reconstruirse requieren una dependencia explícita si vuelven a
+parsearse. Los helpers de tests dejaron de importar el singleton y crean una
+caché real que se limpia por caso.
+
+Verificación: pasan **113 tests** de parser/serialización/profiling, **17 tests**
+de ciclo de vida del core, **22 tests** de plugins que consumen texto y **20
+tests** del bloque de plugins grep con fixtures aislados. Black y Ruff globales
+pasan. Mypy global sigue detenido únicamente por los dos errores preexistentes
+de `venv/bin/activate_this.py`; el generador global de IDs continúa pendiente,
+por lo que el score provisional queda en **9.99/10** y no se declara 10/10.
