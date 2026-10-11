@@ -19,11 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import Literal
+
 import git
 
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 
-ACTIONS = {
+ACTIONS: dict[str, Literal["A", "D", "R", "M"]] = {
     "Added": "A",
     "Deleted": "D",
     "Renamed": "R",

@@ -46,11 +46,10 @@ class UIUpdater:
         vmngr = getattr(self, "__vmngr", None)
         if vmngr is None:
             vmngr = VersionMgr(log=self._logger)
-            [setattr(vmngr, n, c) for n, c in list(self._callbacks.items())]
-            [
-                vmngr.register(ev, val[0], val[1])
-                for ev, val in list(self._registries.items())
-            ]
+            for name, callback in self._callbacks.items():
+                setattr(vmngr, name, callback)
+            for event, (func, message) in self._registries.items():
+                vmngr.register(event, func, message)
             setattr(self, "__vmngr", vmngr)
         return vmngr
 

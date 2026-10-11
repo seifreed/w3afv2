@@ -188,6 +188,7 @@ class response:
         response_lines = text.split(line_splitter)
         self.response_line = response_lines[0]
         response_line_match = RESPONSE_LINE_RE.search(text)
+        assert response_line_match is not None
         self.response_code, self.response_text = response_line_match.groups()[1:]
 
         blank_index = len(response_lines)
@@ -484,7 +485,7 @@ def group_ranges(ranges):
     :param ranges: (size, response code) tuples, sorted by size
     :return: Lists with the consecutive ranges which share the response code
     """
-    grouped_ranges = []
+    grouped_ranges: list[list[tuple[int, str]]] = []
     for r in ranges:
         if grouped_ranges and r[1] == grouped_ranges[-1][-1][1]:
             grouped_ranges[-1].append(r)

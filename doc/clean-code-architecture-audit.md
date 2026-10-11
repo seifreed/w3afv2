@@ -4956,6 +4956,18 @@ opener settings/proxy **30**; Black, Ruff, mypy y Bandit focales están limpios.
 El score global continúa en **9.99/10**, con los gates globales heredados y la
 cobertura global todavía pendientes.
 
+## Actualización verificada: contratos de UI y detección HTTP
+
+La inicialización de `UIUpdater` ya no usa comprensiones por efectos
+laterales; registra callbacks con bucles explícitos. GitPython recibe sus
+acciones como literales válidos, el menú declara el namespace dinámico de la
+consola y oHmap valida/tipifica sus respuestas y rangos antes de procesarlos.
+
+Verificación: las suites afectadas pasan **52 tests**; mypy focal, Ruff y
+Black están limpios. La suite emite nueve avisos deprecados desde dependencias
+externas. El score global continúa en **9.99/10**, con los gates globales
+heredados y la cobertura global todavía pendientes.
+
 ## Actualización verificada: runs temporales de DiskList
 
 La iteración ordenada de `DiskList` declara las rutas de sus runs temporales

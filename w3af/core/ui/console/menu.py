@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import pprint
+from typing import Any
 
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.ui.console.help import HelpContainer, helpMainRepository
@@ -219,7 +220,7 @@ class menu:
             "kb": self._w3af.knowledge_base,
             "w3af_core": self._w3af,
         }
-        small_globals = {}
+        small_globals: dict[str, Any] = {}
 
         eval_variable = " ".join(params)
         try:
