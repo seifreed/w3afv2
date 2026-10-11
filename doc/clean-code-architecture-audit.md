@@ -6616,3 +6616,12 @@ los tests de ciclo de vida comprueban que llegó antes de decodificarlo.
 Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan en las tres
 fixtures; API básica y ciclo de vida pasan **10 tests y 4 subtests**. El score
 global continúa en **9.99/10**.
+
+## Actualización verificada: contrato del dependency check
+
+Las plataformas de prueba respetan ahora el parámetro opcional del método
+estático definido por `Platform`. El test que extrae la ruta del script de
+instalación comprueba primero que la expresión regular encontró una ruta.
+
+Verificación: Mypy con cuerpos no tipados, Ruff y Black pasan; los **19 tests**
+de dependency check pasan. El score global continúa en **9.99/10**.

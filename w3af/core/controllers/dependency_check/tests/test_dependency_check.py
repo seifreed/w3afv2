@@ -64,7 +64,7 @@ class SatisfiedPlatform(DefaultPlatform):
     }
 
     @staticmethod
-    def get_missing_external_commands():
+    def get_missing_external_commands(retirejs_command=None):
         return []
 
 
@@ -82,7 +82,7 @@ class MissingOsPackagesPlatform(SatisfiedPlatform):
 
 class MissingExternalCommandPlatform(SatisfiedPlatform):
     @staticmethod
-    def get_missing_external_commands():
+    def get_missing_external_commands(retirejs_command=None):
         return ["npm install -g retire@2.0.3"]
 
 
@@ -139,7 +139,10 @@ class TestDependencyCheck(DependencyCheckTestCase):
     def test_helper_script_contains_the_install_commands(self):
         _, output = self.check(MissingPipPlatform())
 
-        script_path = re.search(r"created for you at (.*)", output).group(1)
+        script_match = re.search(r"created for you at (.*)", output)
+        if script_match is None:
+            raise AssertionError("Dependency check did not report its script path")
+        script_path = script_match.group(1)
         script = Path(script_path).read_text()
         self.assertTrue(script.startswith("#!/bin/bash\n"))
         self.assertIn("rumbamanager==3.2.1", script)
