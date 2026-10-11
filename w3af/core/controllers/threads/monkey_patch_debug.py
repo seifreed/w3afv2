@@ -21,11 +21,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import multiprocessing.util
+from collections.abc import Callable
 from functools import partial
+from typing import Protocol, cast
 
 from w3af.core.controllers.threads import pool276, threadpool
 
-PATCHED_MODULES = (multiprocessing.util, threadpool, pool276)
+
+class _DebugModule(Protocol):
+    debug: Callable[..., None]
+
+
+PATCHED_MODULES = cast(
+    tuple[_DebugModule, ...], (multiprocessing.util, threadpool, pool276)
+)
 ORIGINAL_DEBUG = multiprocessing.util.debug
 
 

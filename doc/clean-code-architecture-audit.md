@@ -6092,3 +6092,13 @@ el flujo de producción.
 Verificación: fingerprint Google y allowed methods pasan **15 tests**;
 Mypy con cuerpos no tipados, Ruff y Black pasan en los módulos y fixtures
 modificados. El score global continúa en **9.99/10**.
+
+## Actualización verificada: contrato del parche de logging
+
+`monkey_patch_debug` declara mediante un protocolo los módulos que exponen el
+atributo dinámico `debug`. El parche y su restauración mantienen la asignación
+original, pero ahora son verificables por Mypy sin ignorar errores ni alterar
+el ciclo de vida del worker pool.
+
+Verificación: el módulo pasa **3 tests**, Mypy con cuerpos no tipados, Ruff y
+Black. El score global continúa en **9.99/10**.
