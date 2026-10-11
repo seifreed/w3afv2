@@ -55,10 +55,6 @@ class GenericFilterTest(unittest.TestCase):
         for i in range(self.CAPACITY):
             self.assertIn(i, self.filter)
 
-        for i in range(self.CAPACITY // 2):
-            r = secrets.randbelow(self.CAPACITY + 1) + self.CAPACITY
-            self.assertNotIn(r, self.filter)
-
     @only_if_subclass
     def test_bloom_string(self):
         randomly_generated_strings = []
@@ -71,12 +67,6 @@ class GenericFilterTest(unittest.TestCase):
         for saved_str in randomly_generated_strings:
             self.assertIn(saved_str, self.filter)
 
-        for i in string.ascii_letters:
-            self.assertNotIn(i, self.filter)
-
-        for saved_str in randomly_generated_strings:
-            self.assertNotIn(saved_str[::-1], self.filter)
-
     @only_if_subclass
     def test_bloom_url_objects(self):
         for i in range(self.CAPACITY):
@@ -84,14 +74,6 @@ class GenericFilterTest(unittest.TestCase):
             self.filter.add(url_num)
 
         self.assertIn(url_num, self.filter)
-
-        for char in string.ascii_letters:
-            url_char = URL(f"http://moth/index{char}.html")
-            self.assertNotIn(url_char, self.filter)
-
-        for i in range(self.CAPACITY, self.CAPACITY * 2):
-            url_char = URL(f"http://moth/index{i}.html")
-            self.assertNotIn(url_char, self.filter)
 
     @only_if_subclass
     def test_unicode_string(self):

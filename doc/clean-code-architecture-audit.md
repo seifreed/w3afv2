@@ -7440,3 +7440,13 @@ incoherentes y limitar el pico de memoria durante el cierre de conexiones.
 
 Verificación: la suite completa de keep-alive pasa **57 tests**; Black, Ruff y
 mypy pasan en los dos módulos modificados.
+
+## Actualización verificada: tests de Bloom filter sin falsos negativos
+
+Los tests genéricos de Bloom filter exigían que elementos ausentes devolvieran
+siempre `False`, aunque el contrato permite falsos positivos según
+`ERROR_RATE`. Se eliminaron esas aserciones probabilísticas y se conserva la
+verificación estable de que todos los elementos insertados se recuperan.
+
+Verificación: la suite de Bloom filter pasa **55 tests**; Black, Ruff y mypy
+pasan en el test modificado.
