@@ -31,6 +31,14 @@ from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
 
 class TestEchoLinux(unittest.TestCase):
 
+    def test_estimate_transfer_time(self):
+        echo_linux = EchoLinux(subprocess.getoutput, "linux", om.out)
+
+        estimated_time = echo_linux.estimate_transfer_time(30)
+
+        self.assertIsInstance(estimated_time, int)
+        self.assertGreaterEqual(estimated_time, 0)
+
     @unittest.skipUnless(sys.platform.startswith("linux"), "Needs a Linux host")
     def test_upload_file(self):
         exec_method = subprocess.getoutput

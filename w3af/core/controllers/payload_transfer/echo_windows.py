@@ -20,10 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import time
-
 from w3af.core.controllers.payload_transfer.base_payload_transfer import (
     BasePayloadTransfer,
+    estimate_echo_transfer_time,
 )
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -62,22 +61,9 @@ class EchoWindows(BasePayloadTransfer):
             return True
 
     def estimate_transfer_time(self, size):
-        """
-        :return: An estimated transfer time for a file with the specified size.
-        """
-        before = time.time()
-        self._exec_method("echo w3af")
-        after = time.time()
-
-        # Estimate the time...
-        numberOfRequests = size / self._step
-        requestTime = after - before
-        timeTaken = round(requestTime * numberOfRequests)
-
-        self._output.debug(
-            'The file transfer will take "' + str(timeTaken) + '" seconds.'
+        return estimate_echo_transfer_time(
+            self._exec_method, self._output, self._step, size
         )
-        return int(timeTaken)
 
     def transfer(self, data_str, destination):
         """

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
+import time
 
 
 class BasePayloadTransfer:
@@ -81,3 +82,17 @@ class BasePayloadTransfer:
 
         # TODO: Hmmmmmmm....
         return True
+
+
+def estimate_echo_transfer_time(exec_method, output, step, size):
+    """Estimate the time required by an echo-based transfer."""
+    before = time.time()
+    exec_method("echo w3af")
+    after = time.time()
+
+    number_of_requests = size / step
+    request_time = after - before
+    time_taken = round(request_time * number_of_requests)
+
+    output.debug('The file transfer will take "' + str(time_taken) + '" seconds.')
+    return int(time_taken)
