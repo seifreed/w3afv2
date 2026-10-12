@@ -1,5 +1,6 @@
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
+from w3af.plugins.attack.payloads.payload_utils import int_to_dotted_quad
 
 
 class route(Payload):
@@ -26,16 +27,6 @@ class route(Payload):
 
             return parsed_data
 
-        def dec_to_dotted_quad(n):
-            d = 256 * 256 * 256
-            q = []
-            while d > 0:
-                m, n = divmod(n, d)
-                q.append(str(m))
-                d //= 256
-            q.reverse()
-            return ".".join(q)
-
         data = parse_route(self.shell.read("/proc/net/route"))
         result: dict[str, list[dict[str, str]]] = {"route": []}
 
@@ -44,9 +35,9 @@ class route(Payload):
                 result["route"].append(
                     {
                         "Iface": line[0][1:],
-                        "Destination": str(dec_to_dotted_quad(int(line[1], 16))),
-                        "Gateway": str(dec_to_dotted_quad(int(line[2], 16))),
-                        "Mask": str(dec_to_dotted_quad(int(line[7], 16))),
+                        "Destination": int_to_dotted_quad(int(line[1], 16)),
+                        "Gateway": int_to_dotted_quad(int(line[2], 16)),
+                        "Mask": int_to_dotted_quad(int(line[7], 16)),
                     }
                 )
 

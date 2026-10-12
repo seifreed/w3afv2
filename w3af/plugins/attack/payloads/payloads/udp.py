@@ -2,6 +2,7 @@ import re
 
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
+from w3af.plugins.attack.payloads.payload_utils import int_to_dotted_quad
 
 
 class udp(Payload):
@@ -34,16 +35,6 @@ class udp(Payload):
             ipPort = [ip[:8], ip[9:]]
             return ipPort
 
-        def dec_to_dotted_quad(n):
-            d = 256 * 256 * 256
-            q = []
-            while d > 0:
-                m, n = divmod(n, d)
-                q.append(str(m))
-                d //= 256
-            q.reverse()
-            return ".".join(q)
-
         etc = self.shell.read("/etc/passwd")
         # TODO: Read UDP and udp6?
         parsed_info = parse_udp(self.shell.read("/proc/net/udp"))
@@ -53,17 +44,13 @@ class udp(Payload):
                 if parsed_line[1] != "local_address":
                     ip = split_ip(parsed_line[1])
                     parsed_line[1] = (
-                        str(dec_to_dotted_quad(int(ip[0], 16)))
-                        + ":"
-                        + str(int(ip[1], 16))
+                        int_to_dotted_quad(int(ip[0], 16)) + ":" + str(int(ip[1], 16))
                     )
 
                 if parsed_line[2] != "rem_address":
                     ip = split_ip(parsed_line[2])
                     parsed_line[2] = (
-                        str(dec_to_dotted_quad(int(ip[0], 16)))
-                        + ":"
-                        + str(int(ip[1], 16))
+                        int_to_dotted_quad(int(ip[0], 16)) + ":" + str(int(ip[1], 16))
                     )
 
                 if parsed_line[7] == "tm->when":
