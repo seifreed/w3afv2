@@ -19,32 +19,29 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.csp import csp
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 
 PERMISSIVE_CSP = (
     "default-src *; script-src *; object-src *;" " def-src 'self'; sript-src 'self'"
 )
 
 
-class TestCSP(unittest.TestCase):
+class TestCSP(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = csp()
+        super().setUp()
+        self.plugin = self.configure_plugin(csp(db=get_default_temp_db_instance()))
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
-        kb.cleanup()
+        super().tearDown()
 
     def _grep(self, csp_value, url=None):
         url = url or self.url
@@ -91,6 +88,3 @@ class TestCSP(unittest.TestCase):
         vulns = kb.get("csp", "csp")
         vuln_urls = {v.get_url().url_string for v in vulns}
         self.assertEqual(vuln_urls, {self.url.url_string})
-
-
-kb = DBKnowledgeBase()

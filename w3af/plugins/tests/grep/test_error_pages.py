@@ -23,7 +23,9 @@ from typing import ClassVar
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants import severity
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -74,8 +76,9 @@ class TestErrorPages(PluginTest):
 
     def test_found_vuln_max_reports(self):
         kb.cleanup()
-        plugin = error_pages()
+        plugin = error_pages(db=get_default_temp_db_instance())
         plugin.set_knowledge_base(kb)
+        plugin.set_output(om.out)
 
         body = plugin.ERROR_PAGES[5]
         headers = Headers(list({"content-type": "text/html"}.items()))
@@ -95,8 +98,9 @@ class TestErrorPages(PluginTest):
 
     def test_found_vuln_max_reports_two_different(self):
         kb.cleanup()
-        plugin = error_pages()
+        plugin = error_pages(db=get_default_temp_db_instance())
         plugin.set_knowledge_base(kb)
+        plugin.set_output(om.out)
 
         body = plugin.ERROR_PAGES[5]
         headers = Headers(list({"content-type": "text/html"}.items()))
