@@ -8291,3 +8291,25 @@ status, y la regresión de serialización de `ExceptionData` queda cubierta: la
 batería ampliada pasa **77 tests**. `StatusMetrics` depende de
 `StatusLifecycle`, no de callbacks ligados a `CoreStatus`, para evitar ciclos
 de referencias que retengan el `OutputManager`.
+
+## Verificación actual: aislamiento de fixtures y memoria de grep
+
+Los tests directos de plugins grep que todavía creaban KB, parser cache u output
+por su cuenta se migraron a `GrepPluginTestCase`. El fixture comparte solo los
+recursos controlados, refresca el parser cache cuando una prueba cierra la base
+de datos por defecto y limpia plugins, detectores 404 y configuración al terminar
+cada caso. También se corrigieron fixtures directos de infraestructura y output
+que no configuraban `LogSink` o la DB requerida por `html_file`.
+
+Verificación: la carpeta grep pasa **347 tests**; la batería combinada de grep,
+infraestructura y output pasa **392 tests**, **6 subtests** y **41 tests
+deseleccionados**. En esa batería el RSS máximo es **187,645,952 bytes**
+(aprox. 179 MiB), sin crecimiento lineal observable.
+
+La suite global seleccionada llegó a **4349 tests pasados, 11 omitidos y 273
+subtests**, con un RSS máximo de **592,576,512 bytes** (aprox. 565 MiB). Terminó
+con nueve fallos tardíos de fixtures/entorno que ya pasan de forma aislada; por
+eso esta cifra global es una medición de carga máxima, no una certificación de
+suite verde. La reproducción independiente de 30 ciclos de `w3afCore` sigue
+estable, con un aumento de aproximadamente 2.45 MiB y cero threads de
+`OutputManager` retenidos.
