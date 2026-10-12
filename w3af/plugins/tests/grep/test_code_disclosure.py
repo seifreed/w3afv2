@@ -20,26 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.code_disclosure import code_disclosure
-from w3af.plugins.tests.helper import LOREM, configure_never_404
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
+from w3af.plugins.tests.helper import LOREM
 
 
-class TestCodeDisclosurePlugin(unittest.TestCase):
+class TestCodeDisclosurePlugin(GrepPluginTestCase):
 
     def setUp(self):
-        self.plugin = code_disclosure()
-        kb.clear("code_disclosure", "code_disclosure")
-        configure_never_404(self, URL("http://www.w3af.com/"))
+        super().setUp()
+        self.plugin = self.configure_plugin(code_disclosure())
+        self.save_config("never_404", [URL("http://www.w3af.com/").get_domain_path()])
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def _build_request_response(self, body, url=None, headers=None, method=None):
         url = url or URL("http://www.w3af.com/")
@@ -99,6 +98,3 @@ class TestCodeDisclosurePlugin(unittest.TestCase):
 
         self.plugin.grep(request, response)
         self.assertEqual(len(kb.get("code_disclosure", "code_disclosure")), 0)
-
-
-kb = DBKnowledgeBase()
