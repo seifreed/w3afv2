@@ -55,8 +55,6 @@ class VersionMgr:
             * callback_onupdate_error
                 If an SVNError occurs this callback is called in order to the
                 client class handles the error. Probably notify the user.
-        COMMIT:
-            {implementation pending}
     Events:
         ON_UPDATE
         ON_UPDATE_ADDED_DEP
@@ -232,10 +230,6 @@ class VersionMgr:
             self._start_cfg.last_upd = local_today()
             self._start_cfg.save()
 
-            # Reload all modules to make sure we have all the latest
-            # versions of py files in memory.
-            self.reload_all_modules()
-
             if self._added_new_dependencies(changelog):
                 self._notify(VersionMgr.ON_UPDATE_ADDED_DEP)
 
@@ -249,22 +243,6 @@ class VersionMgr:
                 )
 
         return (changelog, changelog.start, changelog.end)
-
-    def reload_all_modules(self):
-        """
-        After an update, which changes .py files, it is a good idea
-        to reload all modules (and get those changes from the py files into
-        memory) before continuing.
-
-        :return: None.
-
-        TODO: This still needs to be implemented, I tried some ideas from:
-        http://stackoverflow.com/questions/437589/how-do-i-unload-reload-a-python-module
-        http://code.activestate.com/recipes/81731-reloading-all-modules/
-
-        But both failed. What I want to avoid are bugs like the ones related to
-        the "complex type needs to implement..." DiskList.
-        """
 
     def register(self, event, func, msg):
         """
