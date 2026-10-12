@@ -1,10 +1,19 @@
 import unittest
 
-from w3af.core.data.wordnet_reader import wn
+from w3af.core.data.wordnet_reader import WordNetReader, wn
 from w3af.plugins.crawl.wordnet import wordnet
 
 
 class TestWordNetReader(unittest.TestCase):
+    def test_synsets_are_loaded_on_demand(self):
+        reader = WordNetReader()
+
+        self.assertEqual(reader._synsets, {})
+
+        reader.synsets("blue")
+
+        self.assertLess(len(reader._synsets), 100)
+
     def test_bundled_wordnet_relations(self):
         synset = wn.synsets("blue")[0]
         related = synset.hypernyms()[0].hyponyms()

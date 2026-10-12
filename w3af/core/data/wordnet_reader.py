@@ -1,7 +1,6 @@
 """Read the bundled WordNet 3.0 database for the crawl plugin."""
 
 from dataclasses import dataclass
-from functools import cached_property
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -29,7 +28,7 @@ class _Lemma:
             lemma
             for pointer in self.synset.pointers
             if pointer.symbol == "!" and pointer.source_word in (0, self.index + 1)
-            for lemma in self.synset.reader._synsets[pointer.target].lemmas()
+            for lemma in self.synset.reader._get_synset(pointer.target).lemmas()
             if pointer.target_word in (0, lemma.index + 1)
         ]
 
@@ -58,7 +57,7 @@ class _Synset:
 
     def _related(self, *symbols):
         return [
-            self.reader._synsets[pointer.target]
+            self.reader._get_synset(pointer.target)
             for pointer in self.pointers
             if pointer.symbol in symbols
         ]
@@ -71,14 +70,15 @@ class WordNetReader:
         self.database = database or (
             Path(ROOT_PATH) / "plugins" / "crawl" / "wordnet" / "wordnet.zip"
         )
-        self._index = {}
+        self._index: dict[str, list[tuple[str, int]]] = {}
+        self._index_loaded = False
+        self._data_lines: dict[str, dict[int, str]] = {}
+        self._synsets: dict[tuple[str, int], _Synset] = {}
 
-    @cached_property
-    def _synsets(self):
-        records: dict[tuple[str, int], tuple[tuple[str, ...], tuple[_Pointer, ...]]] = (
-            {}
-        )
-        indexes: dict[str, list[tuple[str, int]]] = {}
+    def _load_index(self):
+        if self._index_loaded:
+            return
+
         with ZipFile(self.database) as archive:
             for pos, filename in (
                 ("n", "noun"),
@@ -94,52 +94,63 @@ class WordNetReader:
                     fields = line.split()
                     pointer_count = int(fields[3])
                     first_offset = 6 + pointer_count
-                    indexes.setdefault(fields[0], []).extend(
+                    self._index.setdefault(fields[0], []).extend(
                         (pos, int(offset)) for offset in fields[first_offset:]
                     )
 
-                for line in (
-                    archive.read(f"wordnet/data.{filename}").decode().splitlines()
-                ):
-                    if not line or line.startswith(" "):
-                        continue
-                    fields = line.partition("|")[0].split()
-                    offset = int(fields[0])
-                    word_count = int(fields[3], 16)
-                    words = tuple(fields[4 + index * 2] for index in range(word_count))
-                    pointer_start = 4 + word_count * 2
-                    pointer_count = int(fields[pointer_start])
-                    pointers: list[_Pointer] = []
-                    for index in range(pointer_count):
-                        start = pointer_start + 1 + index * 4
-                        symbol, target_offset, target_pos, word_indexes = fields[
-                            start : start + 4
-                        ]
-                        pointers.append(
-                            _Pointer(
-                                symbol,
-                                (
-                                    "a" if target_pos == "s" else target_pos,
-                                    int(target_offset),
-                                ),
-                                int(f"0x{word_indexes[:2]}", base=0),
-                                int(f"0x{word_indexes[2:]}", base=0),
-                            )
-                        )
-                    records[(pos, offset)] = (words, tuple(pointers))
+        self._index_loaded = True
 
-        synsets = {
-            key: _Synset(self, key, words, pointers)
-            for key, (words, pointers) in records.items()
-        }
-        self._index = indexes
-        return synsets
+    def _load_data_lines(self, pos):
+        if pos in self._data_lines:
+            return self._data_lines[pos]
+
+        filename = {"n": "noun", "v": "verb", "a": "adj", "r": "adv"}[pos]
+        data_lines = {}
+        with ZipFile(self.database) as archive:
+            for raw_line in archive.open(f"wordnet/data.{filename}"):
+                line = raw_line.decode()
+                if not line or line.startswith(" "):
+                    continue
+                offset = int(line.partition("|")[0].split()[0])
+                data_lines[offset] = line
+
+        self._data_lines[pos] = data_lines
+        return data_lines
+
+    def _get_synset(self, key):
+        synset = self._synsets.get(key)
+        if synset is not None:
+            return synset
+
+        pos, offset = key
+        fields = self._load_data_lines(pos)[offset].partition("|")[0].split()
+        word_count = int(fields[3], 16)
+        words = tuple(fields[4 + index * 2] for index in range(word_count))
+        pointer_start = 4 + word_count * 2
+        pointer_count = int(fields[pointer_start])
+        pointers: list[_Pointer] = []
+        for index in range(pointer_count):
+            start = pointer_start + 1 + index * 4
+            symbol, target_offset, target_pos, word_indexes = fields[start : start + 4]
+            pointers.append(
+                _Pointer(
+                    symbol,
+                    ("a" if target_pos == "s" else target_pos, int(target_offset)),
+                    int(f"0x{word_indexes[:2]}", base=0),
+                    int(f"0x{word_indexes[2:]}", base=0),
+                )
+            )
+
+        synset = _Synset(self, key, words, tuple(pointers))
+        self._synsets[key] = synset
+        return synset
 
     def synsets(self, word):
         normalized = word.lower().replace(" ", "_")
-        synsets = self._synsets
+        self._load_index()
         return [
-            synsets[(pos, offset)] for pos, offset in self._index.get(normalized, ())
+            self._get_synset((pos, offset))
+            for pos, offset in self._index.get(normalized, ())
         ]
 
 
