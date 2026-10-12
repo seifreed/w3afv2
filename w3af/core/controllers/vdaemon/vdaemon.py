@@ -25,6 +25,7 @@ import tempfile
 import time
 
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    exec_and_log,
     get_remote_temp_file,
 )
 from w3af.core.controllers.misc.external_process import run_process, start_process
@@ -281,7 +282,4 @@ class vdaemon:
         """
         A wrapper for executing commands
         """
-        self._output.debug("Executing: " + command)
-        response = self._exec_method(*(command,))
-        self._output.debug('"' + command + '" returned: ' + response)
-        return response
+        return exec_and_log(self._exec_method, self._output, command)

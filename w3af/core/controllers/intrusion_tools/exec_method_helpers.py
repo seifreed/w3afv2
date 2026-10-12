@@ -60,6 +60,14 @@ def os_detection_exec(exec_method, output):
     raise BaseFrameworkException("Failed to get/identify the remote OS.")
 
 
+def exec_and_log(exec_method, output, command):
+    """Execute a remote command and log its request and response."""
+    output.debug("Executing: " + command)
+    response = exec_method(*(command,))
+    output.debug('"' + command + '" returned: ' + response)
+    return response
+
+
 def get_remote_temp_file(exec_method, output):
     """
     :return: The name of a file in the remote file system that the user that I'm

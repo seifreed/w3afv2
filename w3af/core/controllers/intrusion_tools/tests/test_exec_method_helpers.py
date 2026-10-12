@@ -26,6 +26,7 @@ import unittest
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     REMOTE_LINUX_TEMP_DIR,
+    exec_and_log,
     get_remote_temp_file,
     os_detection_exec,
 )
@@ -92,6 +93,14 @@ class TestExecHelpers(unittest.TestCase):
         self.assertRaises(
             BaseFrameworkException, os_detection_exec, exec_method, om.out
         )
+
+    def test_exec_and_log(self):
+        exec_method = RemoteShell({"echo hello": "world"})
+
+        result = exec_and_log(exec_method, om.out, "echo hello")
+
+        self.assertEqual(result, "world")
+        self.assertEqual(exec_method.executed, ["echo hello"])
 
     def test_get_remote_temp_file_linux(self):
         tempfile = get_remote_temp_file(RemoteShell(LINUX_SHELL), om.out)

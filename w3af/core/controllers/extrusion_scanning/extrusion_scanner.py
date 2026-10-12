@@ -29,6 +29,7 @@ from w3af.core.controllers.extrusion_scanning.server.extrusion_server import (
     extrusionServer,
 )
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    exec_and_log,
     get_remote_temp_file,
     os_detection_exec,
 )
@@ -247,10 +248,7 @@ class extrusionScanner:
         """
         A wrapper for executing commands
         """
-        self._output.debug("Executing: " + command)
-        response = self._exec_method(*(command,))
-        self._output.debug('"' + command + '" returned: ' + response)
-        return response
+        return exec_and_log(self._exec_method, self._output, command)
 
     def can_scan(self):
         try:
