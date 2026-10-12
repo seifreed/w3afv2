@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.controllers.plugins.plugin import Plugin
+from w3af.core.data.misc.encoding import smart_unicode
 
 
 class EvasionPlugin(Plugin):
@@ -45,6 +46,21 @@ class EvasionPlugin(Plugin):
         """
         msg = "Plugin is not implementing required method modify_request"
         raise NotImplementedError(msg)
+
+    def _modify_request_with_mutator(self, request, mutator):
+        """Copy a request after applying a mutator to its path and data."""
+        path = mutator(request.url_object.get_path())
+        new_url = request.url_object.copy()
+        new_url.set_path(path)
+
+        data = request.get_data()
+        if data:
+            data = mutator(smart_unicode(data))
+
+        new_request = request.copy()
+        new_request.set_uri(new_url)
+        new_request.set_data(data)
+        return new_request
 
     def set_url_opener(self, foo):
         pass

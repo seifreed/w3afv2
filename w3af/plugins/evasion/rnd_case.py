@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from secrets import randbelow
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
-from w3af.core.data.misc.encoding import smart_unicode
 
 
 class rnd_case(EvasionPlugin):
@@ -33,31 +32,7 @@ class rnd_case(EvasionPlugin):
     """
 
     def modify_request(self, request):
-        """
-        Mangles the request
-
-        :param request: HTTPRequest instance that is going to be modified
-                        by the evasion plugin
-        :return: The modified request
-        """
-        # First we mangle the URL
-        path = request.url_object.get_path()
-        path = self._mutate(path)
-
-        # Finally, we set all the mutants to the request in order to return it
-        new_url = request.url_object.copy()
-        new_url.set_path(path)
-
-        # Mangle the postdata
-        data = request.get_data()
-        if data:
-            data = self._mutate(smart_unicode(data))
-
-        new_req = request.copy()
-        new_req.set_uri(new_url)
-        new_req.set_data(data)
-
-        return new_req
+        return self._modify_request_with_mutator(request, self._mutate)
 
     def _mutate(self, data):
         """
