@@ -34,7 +34,6 @@ class atHandler(delayedExecution):
 
     def __init__(self, exec_method, output):
         super().__init__(exec_method, output)
-        self._exec_method = exec_method
 
     def can_delay(self):
         """
@@ -101,13 +100,7 @@ class atHandler(delayedExecution):
                 # one release to another...
                 seconds = time[2].split(",")[0]
 
-            # TODO ( see below )
-            if int(hour) > 12:
-                am_pm = ""
-            else:
-                # TODO !
-                # analyze... before I had am_pm = 'a' ; check if this is really necesary
-                am_pm = ""
+            am_pm = ""
         except (IndexError, ValueError):
             raise BaseFrameworkException(
                 "The time command of the remote server returned an unknown format."
