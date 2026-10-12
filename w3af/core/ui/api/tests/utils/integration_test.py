@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import fnmatch
 import logging
 import os
-import signal
+import subprocess
 import tempfile
 import time
 import unittest
@@ -54,7 +54,12 @@ class IntegrationTest(unittest.TestCase):
                 os.unlink(os.path.join(tempdir, _file))
 
     def tearDown(self):
-        os.killpg(self.process.pid, signal.SIGTERM)
+        self.process.terminate()
+        try:
+            self.process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            self.process.kill()
+            self.process.wait()
 
         tempdir = tempfile.gettempdir()
 
