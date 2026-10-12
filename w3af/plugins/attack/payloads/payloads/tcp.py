@@ -1,8 +1,11 @@
-import re
-
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
-from w3af.plugins.attack.payloads.payload_utils import int_to_dotted_quad
+from w3af.plugins.attack.payloads.payload_utils import (
+    get_process_username,
+    int_to_dotted_quad,
+    parse_proc_net,
+    split_proc_net_address,
+)
 
 
 class tcp(Payload):
@@ -13,42 +16,20 @@ class tcp(Payload):
     def api_read(self):
         result = {}
 
-        def parse_tcp(net_tcp):
-            new = []
-            list = net_tcp.split("\n")
-            list = [i for i in list if i != ""]
-            for item in list:
-                tmp = item.split(" ")
-                tmp = [i for i in tmp if i != ""]
-                new.append(tmp)
-            new = [i for i in new if i != ""]
-            return new
-
-        def get_username(etc_passwd, user):
-            user = re.search(r"(\w*):(\w*):\d*:" + user, etc_passwd, re.MULTILINE)
-            if user:
-                return user.group(1)
-            else:
-                return ""
-
-        def split_ip(ip):
-            ipPort = [ip[:8], ip[9:]]
-            return ipPort
-
         etc = self.shell.read("/etc/passwd")
         # TODO: Read UDP and TCP6?
-        parsed_info = parse_tcp(self.shell.read("/proc/net/tcp"))
+        parsed_info = parse_proc_net(self.shell.read("/proc/net/tcp"))
 
         for parsed_line in parsed_info:
             try:
                 if parsed_line[1] != "local_address":
-                    ip = split_ip(parsed_line[1])
+                    ip = split_proc_net_address(parsed_line[1])
                     parsed_line[1] = (
                         int_to_dotted_quad(int(ip[0], 16)) + ":" + str(int(ip[1], 16))
                     )
 
                 if parsed_line[2] != "rem_address":
-                    ip = split_ip(parsed_line[2])
+                    ip = split_proc_net_address(parsed_line[2])
                     parsed_line[2] = (
                         int_to_dotted_quad(int(ip[0], 16)) + ":" + str(int(ip[1], 16))
                     )
@@ -57,7 +38,7 @@ class tcp(Payload):
                     parsed_line[7] = "uid"
 
                 if parsed_line[7] != "uid":
-                    parsed_line[7] = get_username(etc, parsed_line[7])
+                    parsed_line[7] = get_process_username(etc, parsed_line[7])
 
                 if parsed_line[0] != "sl":
                     key = str(parsed_line[0].replace(":", ""))
