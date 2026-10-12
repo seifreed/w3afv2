@@ -20,26 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.oracle import oracle
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class test_oracle(unittest.TestCase):
+class test_oracle(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = oracle()
+        super().setUp()
+        self.plugin = self.configure_plugin(oracle())
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_oracle_empty(self):
         body = ""
@@ -69,6 +66,3 @@ class test_oracle(unittest.TestCase):
         request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
         self.assertEqual(len(kb.get("oracle", "oracle")), 1)
-
-
-kb = DBKnowledgeBase()

@@ -20,27 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.strange_reason import strange_reason
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestStrangeReason(unittest.TestCase):
+class TestStrangeReason(GrepPluginTestCase):
 
     def setUp(self):
-        kb.cleanup()
-        self.plugin = strange_reason()
+        super().setUp()
+        self.plugin = self.configure_plugin(strange_reason())
         self.url = URL("http://www.w3af.com/")
         self.headers = Headers([("content-type", "text/html")])
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_strange_reason_empty(self):
         response = HTTPResponse(
@@ -114,6 +113,3 @@ class TestStrangeReason(unittest.TestCase):
 
         info_sets = kb.get("strange_reason", "strange_reason")
         self.assertEqual(len(info_sets), 2)
-
-
-kb = DBKnowledgeBase()

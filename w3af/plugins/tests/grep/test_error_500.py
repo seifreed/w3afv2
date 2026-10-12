@@ -19,13 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.error_500 import error_500
 from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
-from w3af.core.data.db.dbms import get_default_temp_db_instance
 
 
 class TestError500(GrepPluginTestCase):

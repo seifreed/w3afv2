@@ -20,28 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.http_auth_detect import http_auth_detect
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class test_http_auth_detect(unittest.TestCase):
+class test_http_auth_detect(GrepPluginTestCase):
 
     def setUp(self):
+        super().setUp()
         self.url = URL("http://www.w3af.com/")
         self.headers = Headers(list({"content-type": "text/html"}.items()))
         self.request = FuzzableRequest(self.url, method="GET")
-        self.plugin = http_auth_detect()
-        self.plugin.set_knowledge_base(kb)
-        kb.cleanup()
+        self.plugin = self.configure_plugin(http_auth_detect())
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_http_auth_detect_negative(self):
         response = HTTPResponse(200, "", self.headers, self.url, self.url, _id=1)
@@ -80,6 +78,3 @@ class test_http_auth_detect(unittest.TestCase):
         self.plugin.grep(self.request, response)
         self.assertEqual(len(kb.get("http_auth_detect", "auth")), 1)
         self.assertEqual(len(kb.get("http_auth_detect", "userPassUri")), 0)
-
-
-kb = DBKnowledgeBase()

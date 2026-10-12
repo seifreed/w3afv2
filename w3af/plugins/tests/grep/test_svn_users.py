@@ -19,31 +19,28 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.svn_users import svn_users
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 SVN_SIGNATURE = "$Id: lzio.c,v 1.24 2003/03/20 16:00:56 roberto Exp $"
 
 
-class TestSVNUsers(unittest.TestCase):
+class TestSVNUsers(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = svn_users()
+        super().setUp()
+        self.plugin = self.configure_plugin(svn_users())
         self.url = URL("http://www.w3af.com/index.html")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def _grep(self, body, content_type="text/html"):
         headers = Headers([("content-type", content_type)])
@@ -74,6 +71,3 @@ class TestSVNUsers(unittest.TestCase):
     def test_not_text(self):
         self._grep(f"<html>{SVN_SIGNATURE}</html>", content_type="image/png")
         self.assertEqual(0, len(kb.get("svn_users", "users")))
-
-
-kb = DBKnowledgeBase()

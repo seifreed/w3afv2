@@ -20,27 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.strange_parameters import strange_parameters
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestStrangeParameters(unittest.TestCase):
+class TestStrangeParameters(GrepPluginTestCase):
 
     def setUp(self):
-        kb.cleanup()
-        self.plugin = strange_parameters()
+        super().setUp()
+        self.plugin = self.configure_plugin(strange_parameters())
         self.url = URL("http://www.w3af.com/")
         self.headers = Headers([("content-type", "text/html")])
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_strange_parameters_empty(self):
         body = ""
@@ -114,6 +113,3 @@ class TestStrangeParameters(unittest.TestCase):
         response = HTTPResponse(200, body, self.headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
         self.assertEqual(len(kb.get("strange_parameters", "strange_parameters")), 0)
-
-
-kb = DBKnowledgeBase()

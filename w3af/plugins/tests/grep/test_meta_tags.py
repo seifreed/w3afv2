@@ -19,22 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 from typing import ClassVar
 
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.meta_tags import meta_tags
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 from w3af.plugins.tests.helper import (
     MockResponse,
     PluginConfig,
     PluginTest,
-    configure_never_404,
 )
 
 META_BODY = (
@@ -88,15 +85,15 @@ class TestMetaTags(PluginTest):
         self.assertIn("verify-v1", joined_desc)
 
 
-class TestMetaTagsRaw(unittest.TestCase):
+class TestMetaTagsRaw(GrepPluginTestCase):
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = meta_tags()
-        configure_never_404(self, URL("http://www.w3af.com/"))
+        super().setUp()
+        self.save_config("never_404", [URL("http://www.w3af.com/").get_domain_path()])
+        self.plugin = self.configure_plugin(meta_tags())
 
     def tearDown(self):
-        kb.cleanup()
+        self.plugin.end()
+        super().tearDown()
 
     def test_meta_user(self):
         body = '<meta test="user/pass"></script>'
@@ -106,7 +103,6 @@ class TestMetaTagsRaw(unittest.TestCase):
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
 
         self.plugin.grep(request, resp)
-        self.plugin.end()
 
         infos = kb.get("meta_tags", "meta_tags")
         self.assertEqual(len(infos), 1)
@@ -126,7 +122,6 @@ class TestMetaTagsRaw(unittest.TestCase):
 
         self.plugin.grep(request, resp_1)
         self.plugin.grep(request, resp_2)
-        self.plugin.end()
 
         expected_desc = (
             "The application sent a <meta> tag with the"
@@ -140,6 +135,3 @@ class TestMetaTagsRaw(unittest.TestCase):
         (info_set,) = kb.get("meta_tags", "meta_tags")
         self.assertEqual(set(info_set.get_urls()), {url_1, url_2})
         self.assertEqual(info_set.get_desc(), expected_desc)
-
-
-kb = DBKnowledgeBase()

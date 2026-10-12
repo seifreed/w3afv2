@@ -20,21 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.user_defined_regex import user_defined_regex
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class test_user_defined_regex(unittest.TestCase):
+class test_user_defined_regex(GrepPluginTestCase):
 
     def setUp(self):
-        self.plugin = user_defined_regex()
-        self.plugin.set_knowledge_base(kb)
+        super().setUp()
+        self.plugin = self.configure_plugin(user_defined_regex())
 
     def test_user_defined_regex(self):
         body = '<html><head><script>xhr = new XMLHttpRequest(); xhr.open(GET, "data.txt",  true);'
@@ -58,6 +56,4 @@ class test_user_defined_regex(unittest.TestCase):
 
     def tearDown(self):
         self.plugin.end()
-
-
-kb = DBKnowledgeBase()
+        super().tearDown()

@@ -20,24 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.xss_protection_header import xss_protection_header
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestXSSProtectionHeader(unittest.TestCase):
+class TestXSSProtectionHeader(GrepPluginTestCase):
 
     def setUp(self):
-        self.plugin = xss_protection_header()
-        kb.clear("xss_protection_header", "xss_protection_header")
+        super().setUp()
+        self.plugin = self.configure_plugin(xss_protection_header())
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_no_xss_protection_header(self):
         body = ""
@@ -114,6 +113,3 @@ class TestXSSProtectionHeader(unittest.TestCase):
         info_set = info_sets[0]
         self.assertEqual(info_set.get_id(), [1, 3])
         self.assertEqual(info_set.get_desc(), expected_desc)
-
-
-kb = DBKnowledgeBase()

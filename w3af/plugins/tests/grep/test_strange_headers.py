@@ -21,27 +21,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
-import unittest
 
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.strange_headers import strange_headers
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestStrangeHeaders(unittest.TestCase):
+class TestStrangeHeaders(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = strange_headers()
-        self.plugin.set_knowledge_base(kb)
+        super().setUp()
+        self.plugin = self.configure_plugin(strange_headers())
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_strange_headers_positive(self):
         body = "Hello world"
@@ -130,6 +127,3 @@ class TestStrangeHeaders(unittest.TestCase):
 
         infos = kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(infos), 0)
-
-
-kb = DBKnowledgeBase()

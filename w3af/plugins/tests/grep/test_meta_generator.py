@@ -20,25 +20,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.meta_generator import meta_generator
-from w3af.plugins.tests.helper import configure_never_404
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestMetaGenerator(unittest.TestCase):
+class TestMetaGenerator(GrepPluginTestCase):
 
     def setUp(self):
-        kb.cleanup()
-
-        self.plugin = meta_generator()
+        super().setUp()
         self.url = URL("http://www.w3af.com/")
-        configure_never_404(self, self.url)
+        self.save_config("never_404", [self.url.get_domain_path()])
+        self.plugin = self.configure_plugin(meta_generator())
 
     def _generate_response(self, body):
         headers = Headers([("content-type", "text/html")])
@@ -47,6 +43,7 @@ class TestMetaGenerator(unittest.TestCase):
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_detects_meta_tags_with_generator(self):
         request = FuzzableRequest(self.url)
@@ -137,6 +134,3 @@ class TestMetaGenerator(unittest.TestCase):
         info_sets = kb.get("meta_generator", "content_generator")
 
         self.assertEqual(len(info_sets), 0)
-
-
-kb = DBKnowledgeBase()

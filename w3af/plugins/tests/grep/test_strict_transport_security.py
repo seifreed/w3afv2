@@ -20,26 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.strict_transport_security import strict_transport_security
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestSTSSecurity(unittest.TestCase):
+class TestSTSSecurity(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        self.plugin = strict_transport_security()
+        super().setUp()
+        self.plugin = self.configure_plugin(strict_transport_security())
 
     def tearDown(self):
         self.plugin.end()
-        kb.cleanup()
+        super().tearDown()
 
     def test_http_no_vuln(self):
         body = ""
@@ -133,6 +130,3 @@ class TestSTSSecurity(unittest.TestCase):
         self.assertEqual(
             info_set.get_name(), "Missing Strict Transport Security header"
         )
-
-
-kb = DBKnowledgeBase()

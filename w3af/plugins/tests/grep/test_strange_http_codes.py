@@ -20,26 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.strange_http_codes import strange_http_codes
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class test_strange_http_codes(unittest.TestCase):
+class test_strange_http_codes(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        self.plugin = strange_http_codes()
+        super().setUp()
+        self.plugin = self.configure_plugin(strange_http_codes())
 
     def tearDown(self):
         self.plugin.end()
-        kb.cleanup()
+        super().tearDown()
 
     def test_strange_http_codes(self):
         body = ""
@@ -127,6 +124,3 @@ class test_strange_http_codes(unittest.TestCase):
             kb.cleanup()
             self.plugin.grep(request, resp)
             self.assertEqual(len(kb.get("strange_http_codes", "heavy_load")), 1)
-
-
-kb = DBKnowledgeBase()
