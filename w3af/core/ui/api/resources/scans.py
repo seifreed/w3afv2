@@ -45,6 +45,22 @@ from w3af.core.ui.api.utils.scans import (
 STARTING = "Starting"
 
 
+def get_scan_list_status(scan_info: ScanInfo) -> str:
+    """Return a status that is safe for clients to use as a completion signal."""
+    core = scan_info.w3af_core
+    if core is None:
+        return STOPPED if scan_info.finished else STARTING
+
+    if scan_info.finished:
+        return STOPPED
+
+    if not core.status.has_started():
+        return STARTING
+
+    status = core.status.get_simplified_status()
+    return RUNNING if status == STOPPED else status
+
+
 @app.route("/scans/", methods=["POST"])
 @requires_auth
 def start_scan():
@@ -157,7 +173,7 @@ def list_scans():
         core = scan_info.w3af_core
         if core is None:
             continue
-        status = core.status.get_simplified_status()
+        status = get_scan_list_status(scan_info)
         errors = scan_info.exception is not None
 
         data.append(
