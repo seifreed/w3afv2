@@ -20,16 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import shlex
-import string
-from datetime import datetime
-
-from git.cmd import Git, GitCommandError
-
-from w3af.core.data.misc.local_date import local_today
-
-ALLOWED = string.digits + string.ascii_letters + "/.-_"
-
 
 def replace_file_special_chars(filename_path):
     """This is a *very* incomplete function which I added to fix a bug:
@@ -39,42 +29,3 @@ def replace_file_special_chars(filename_path):
     that worked for all platforms and when the thing to sanitize was a
     path+filename and not only a filename."""
     return filename_path.replace(":", "_")
-
-
-def days_since_file_update(path, days):
-    """
-    :return: True if the filename was updated earlier than @days before today
-    """
-    time_delta_days = get_days_since_last_update(path)
-    return time_delta_days > days
-
-
-def get_days_since_last_update(path):
-    """
-    :return: The days since the last update of any of the files in path. If the
-             path points to a filename, the last update of that filename is
-             returned.
-    """
-    git = Git(".")
-    cmd_str = f"git log -1 --format=%cd {path}"
-    cmd = shlex.split(cmd_str)
-
-    not_tracked = f'"{path}" is not tracked by this repository.'
-
-    try:
-        date_str = git.execute(command=cmd, with_extended_output=False)
-    except GitCommandError:
-        raise ValueError(not_tracked)
-
-    if not date_str:
-        raise ValueError(not_tracked)
-
-    # The date_str is in the following format: Sat Jun 21 10:20:31 2014 -0300
-    last_commit_time = datetime.strptime(date_str, "%a %b %d %H:%M:%S %Y %z")
-    last_commit_date = last_commit_time.date()
-
-    today_date = local_today()
-
-    time_delta = today_date - last_commit_date
-
-    return time_delta.days
