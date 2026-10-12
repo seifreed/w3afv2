@@ -19,31 +19,27 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.error_500 import error_500
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 
 
-class TestError500(unittest.TestCase):
+class TestError500(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = error_500()
-        self.plugin.set_output(om.out)
-        self.plugin.set_knowledge_base(kb)
+        super().setUp()
+        self.plugin = self.configure_plugin(
+            error_500(db=get_default_temp_db_instance())
+        )
         self.url = URL("http://www.w3af.com/500.py?id=1")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
-        kb.cleanup()
+        super().tearDown()
 
     def _grep(self, code, body="<html>error</html>", content_type="text/html"):
         headers = Headers([("content-type", content_type)])
@@ -93,6 +89,3 @@ class TestError500(unittest.TestCase):
         self.plugin.end()
 
         self.assertEqual(0, len(kb.get("error_500", "error_500")))
-
-
-kb = DBKnowledgeBase()

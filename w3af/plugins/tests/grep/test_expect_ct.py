@@ -20,26 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.expect_ct import expect_ct
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestECTSecurity(unittest.TestCase):
+class TestECTSecurity(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        self.plugin = expect_ct()
+        super().setUp()
+        self.plugin = self.configure_plugin(expect_ct())
 
     def tearDown(self):
         self.plugin.end()
-        kb.cleanup()
+        super().tearDown()
 
     def test_http_no_vuln(self):
         body = ""
@@ -125,6 +122,3 @@ class TestECTSecurity(unittest.TestCase):
         self.assertEqual(info_set.get_id(), [1, 2])
         self.assertEqual(info_set.get_desc(), expected_desc)
         self.assertEqual(info_set.get_name(), "Missing Expect-CT header")
-
-
-kb = DBKnowledgeBase()
