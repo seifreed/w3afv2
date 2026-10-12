@@ -27,8 +27,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import termcolor
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants import severity
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
@@ -114,11 +117,19 @@ class TestConsole(unittest.TestCase):
     def _force_colors(self):
         # termcolor only emits ANSI codes for terminals unless FORCE_COLOR is set
         previous = os.environ.get("FORCE_COLOR")
+        previous_no_color = os.environ.get("NO_COLOR")
         os.environ["FORCE_COLOR"] = "1"
+        os.environ.pop("NO_COLOR", None)
+        termcolor.can_colorize.cache_clear()
+        self.addCleanup(termcolor.can_colorize.cache_clear)
         if previous is None:
             self.addCleanup(os.environ.pop, "FORCE_COLOR", None)
         else:
             self.addCleanup(os.environ.__setitem__, "FORCE_COLOR", previous)
+        if previous_no_color is None:
+            self.addCleanup(os.environ.pop, "NO_COLOR", None)
+        else:
+            self.addCleanup(os.environ.__setitem__, "NO_COLOR", previous_no_color)
 
     def test_vulnerability_is_colored(self):
         self._force_colors()
@@ -344,7 +355,7 @@ class TestEmailReport(unittest.TestCase):
 class TestHTMLFileMessages(unittest.TestCase):
 
     def setUp(self):
-        self.plugin = html_file()
+        self.plugin = html_file(db=get_default_temp_db_instance())
 
     def test_messages_are_collected(self):
         self.plugin.debug("hidden debug")
@@ -368,8 +379,9 @@ class TestHTMLFileMessages(unittest.TestCase):
 
     def test_dumps_for_unknown_history_id(self):
         create_temp_dir()
-        self.assertIsNone(request_dump(987654321))
-        self.assertIsNone(response_dump(987654321))
+        database = get_default_temp_db_instance()
+        self.assertIsNone(request_dump(987654321, db=database))
+        self.assertIsNone(response_dump(987654321, db=database))
 
     def test_unknown_severity_icon(self):
         icon = get_severity_icon(self.plugin.template_root, "unknown-severity")

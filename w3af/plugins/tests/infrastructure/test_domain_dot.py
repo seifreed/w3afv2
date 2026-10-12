@@ -21,8 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import unittest
+from queue import Queue
 from typing import ClassVar
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -96,6 +98,9 @@ class TestDomainDotRequestError(unittest.TestCase):
         kb.cleanup()
         plugin = domain_dot()
         plugin.set_knowledge_base(kb)
+        output = LogSink(Queue())
+        plugin.set_output(output)
+        self.addCleanup(output.close)
         plugin._uri_opener = ExtendedUrllib()
         self.addCleanup(plugin._uri_opener.end)
 

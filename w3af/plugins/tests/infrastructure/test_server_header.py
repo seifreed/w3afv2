@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from queue import Queue
 from typing import ClassVar
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
@@ -99,6 +101,9 @@ class TestServerHeaderAnalysis(unittest.TestCase):
         self.addCleanup(kb.cleanup)
         self.plugin = server_header()
         self.plugin.set_knowledge_base(kb)
+        self.output = LogSink(Queue())
+        self.addCleanup(self.output.close)
+        self.plugin.set_output(self.output)
 
     def test_no_content_response_is_ignored(self):
         response = new_no_content_resp(URL("http://mock/"))

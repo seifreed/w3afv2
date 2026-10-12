@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import hashlib
 import os
 import unittest
+from queue import Queue
 from typing import ClassVar
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.plugins.infrastructure.favicon_identification import (
     favicon_identification,
 )
@@ -109,6 +111,9 @@ class TestNoFavicon(FaviconTest):
 class TestFaviconDatabase(unittest.TestCase):
     def test_missing_database(self):
         plugin = favicon_identification()
+        output = LogSink(Queue())
+        plugin.set_output(output)
+        self.addCleanup(output.close)
         plugin._db_file = os.path.join(os.path.dirname(__file__), "missing-md5-db")
 
         self.assertEqual(list(plugin._read_favicon_db()), [])
