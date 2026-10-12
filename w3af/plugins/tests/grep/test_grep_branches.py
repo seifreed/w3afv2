@@ -23,6 +23,7 @@ do not exercise (guards, error handling and reporting variations).
 import unittest
 
 from w3af.core.data.constants import severity
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.kb.info import Info
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins import grep
@@ -117,7 +118,9 @@ class TestCacheControlBranches(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
-        self.plugin = self.configure_plugin(cache_control())
+        self.plugin = self.configure_plugin(
+            cache_control(db=get_default_temp_db_instance())
+        )
 
     def _grep(self, response):
         self.plugin.grep(make_request(response.get_url()), response)
@@ -158,7 +161,9 @@ class TestClickJackingBranches(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
-        self.plugin = self.configure_plugin(click_jacking())
+        self.plugin = self.configure_plugin(
+            click_jacking(db=get_default_temp_db_instance())
+        )
 
     def _grep(self, response, method="GET"):
         self.plugin.grep(make_request(response.get_url(), method=method), response)
@@ -288,7 +293,7 @@ class TestCrossDomainJSBranches(GrepPluginTestCase):
 class TestCSPSharedVulnerability(GrepPluginTestCase):
 
     def test_vulnerability_shared_by_several_urls(self):
-        plugin = self.configure_plugin(csp())
+        plugin = self.configure_plugin(csp(db=get_default_temp_db_instance()))
         policy = ("Content-Security-Policy", "default-src *")
         for i in (1, 2):
             url = f"http://www.w3af.com/{i}"
@@ -304,7 +309,7 @@ class TestCSPSharedVulnerability(GrepPluginTestCase):
 class TestErrorPagesBranches(GrepPluginTestCase):
 
     def test_same_url_reported_once(self):
-        plugin = self.configure_plugin(error_pages())
+        plugin = self.configure_plugin(error_pages(db=get_default_temp_db_instance()))
         body = error_pages.ERROR_PAGES[0]
         plugin.grep(make_request(), make_response(body=body, _id=1))
         plugin.grep(make_request(), make_response(body=body, _id=2))
@@ -313,7 +318,7 @@ class TestErrorPagesBranches(GrepPluginTestCase):
         self.assertEqual(len(kb.get("error_pages", "error_page")), 1)
 
     def test_url_with_other_finding_is_not_reported(self):
-        plugin = self.configure_plugin(error_pages())
+        plugin = self.configure_plugin(error_pages(db=get_default_temp_db_instance()))
         plugin.grep(make_request(), make_response(body=error_pages.ERROR_PAGES[0]))
 
         other = Info("Other finding", "Some other finding description", 9, "x")
@@ -324,7 +329,7 @@ class TestErrorPagesBranches(GrepPluginTestCase):
         self.assertEqual(kb.get("error_pages", "error_page"), [])
 
     def test_version_numbers_in_error_pages(self):
-        plugin = self.configure_plugin(error_pages())
+        plugin = self.configure_plugin(error_pages(db=get_default_temp_db_instance()))
         body = "<html><address>Apache/2.2.22 (Ubuntu) Server</address></html>"
         plugin.grep(make_request(), make_response(body=body, code=404, _id=1))
         plugin.grep(make_request(), make_response(body=body, code=500, _id=2))
@@ -334,7 +339,7 @@ class TestErrorPagesBranches(GrepPluginTestCase):
         self.assertIn("Apache/2.2.22", servers[0].get_desc())
 
     def test_not_text(self):
-        plugin = self.configure_plugin(error_pages())
+        plugin = self.configure_plugin(error_pages(db=get_default_temp_db_instance()))
         body = error_pages.ERROR_PAGES[0]
         response = make_response(body=body, content_type="image/png")
         plugin.grep(make_request(), response)

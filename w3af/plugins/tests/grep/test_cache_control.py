@@ -20,26 +20,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.cache_control import cache_control
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestCacheControl(unittest.TestCase):
+class TestCacheControl(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = cache_control()
-
-    def tearDown(self):
-        kb.cleanup()
+        super().setUp()
+        self.plugin = self.configure_plugin(
+            cache_control(db=get_default_temp_db_instance())
+        )
 
     def test_cache_control_http(self):
         """
@@ -176,6 +172,3 @@ class TestCacheControl(unittest.TestCase):
 
         info = infos[0]
         self.assertEqual(info.get_name(), "Missing cache control for HTTPS content")
-
-
-kb = DBKnowledgeBase()
