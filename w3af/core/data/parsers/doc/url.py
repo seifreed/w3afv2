@@ -669,8 +669,17 @@ class URL(DiskItem):
                  encoded characters.
         """
         enc = self._encoding
-        unquoted_url = urllib.parse.unquote(str(self), encoding=enc, errors="ignore")
-        return URL(unquoted_url, enc)
+        parsed_url = urllib.parse.urlparse(str(self))
+        decoded_url = parsed_url._replace(
+            path=urllib.parse.unquote(parsed_url.path, encoding=enc, errors="ignore"),
+            params=urllib.parse.unquote(
+                parsed_url.params, encoding=enc, errors="ignore"
+            ),
+            fragment=urllib.parse.unquote(
+                parsed_url.fragment, encoding=enc, errors="ignore"
+            ),
+        )
+        return URL(urllib.parse.urlunparse(decoded_url), enc)
 
     def url_encode(self):
         """

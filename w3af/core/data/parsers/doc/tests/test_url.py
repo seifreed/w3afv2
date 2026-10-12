@@ -28,7 +28,6 @@ import urllib.request
 import warnings
 from multiprocessing import get_context
 from pathlib import Path
-from unittest import SkipTest
 
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
@@ -168,14 +167,6 @@ class TestURLParser(unittest.TestCase):
         self.assertEqual(qs_value, expected)
 
     def test_decode_url_encode_plus(self):
-        msg = (
-            "There is a bug which is triggered here between URL.url_decode"
-            " and the parsing being done when creating a new URL. If you"
-            ' add a "print self.querystring" at the end of URL.__init__'
-            " it shows the problem: id=1%2B2 and then id=1%202"
-        )
-        raise SkipTest(msg)
-
         qs_value = self.decode_get_qs("http://w3af.com/?id=1%2B2")
         expected = "1+2"
         self.assertEqual(qs_value, expected)
