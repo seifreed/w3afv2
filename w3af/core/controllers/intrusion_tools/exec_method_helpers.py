@@ -88,8 +88,6 @@ def get_remote_temp_file(exec_method, output):
             # Shit, the file exists, run again and see what we can do
             return get_remote_temp_file(exec_method, output)
 
-        return _filename
-
     elif os == "linux":
         _filename = posixpath.join(REMOTE_LINUX_TEMP_DIR, rand_alnum(6))
 
