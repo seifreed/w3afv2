@@ -30,7 +30,6 @@ from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
 )
 from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
 from w3af.core.controllers.payload_transfer.echo_windows import EchoWindows
-from w3af.core.controllers.payload_transfer.reverse_ftp import ReverseFTP
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -90,11 +89,7 @@ class payload_transfer_factory:
             )
             self._output.error(msg % w3)
         else:
-            to_test.append(ReverseFTP(self._exec_method, os, inbound_port))
-            if os == "windows":
-                # FIXME: Need to add something here!
-                pass
-            elif os == "linux":
+            if os == "linux":
                 reverse = ClientlessReverseHTTP(
                     self._exec_method,
                     os,
