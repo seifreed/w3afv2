@@ -2,7 +2,7 @@
 
 import unittest
 
-from w3af.plugins.audit.deserialization_generator_helpers import (
+from w3af.core.controllers.misc.deserialization_generator_helpers import (
     find_payload_offsets,
 )
 

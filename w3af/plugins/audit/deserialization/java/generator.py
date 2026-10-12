@@ -1,10 +1,10 @@
 import base64
 import json
 
-from w3af.core.controllers.misc.external_process import run_process
-from w3af.plugins.audit.deserialization_generator_helpers import (
+from w3af.core.controllers.misc.deserialization_generator_helpers import (
     find_payload_offsets,
 )
+from w3af.core.controllers.misc.external_process import run_process
 
 # java -jar ysoserial-0.0.6-SNAPSHOT-all.jar -h
 PAYLOADS = [
