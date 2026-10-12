@@ -65,6 +65,7 @@ class GrepPluginTestCase(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
         kb.cleanup()
+        _refresh_parser_cache()
         TEST_PARSER_CACHE.clear()
         self._fingerprint_404_detectors = []
 
@@ -116,4 +117,17 @@ cf = Config()
 kb = DBKnowledgeBase()
 
 
-TEST_PARSER_CACHE = ParserCache()
+TEST_PARSER_CACHE_DB = get_default_temp_db_instance()
+TEST_PARSER_CACHE = ParserCache(db=TEST_PARSER_CACHE_DB)
+
+
+def _refresh_parser_cache():
+    global TEST_PARSER_CACHE, TEST_PARSER_CACHE_DB
+
+    database = get_default_temp_db_instance()
+    if database is TEST_PARSER_CACHE_DB:
+        return
+
+    TEST_PARSER_CACHE.clear()
+    TEST_PARSER_CACHE = ParserCache(db=database)
+    TEST_PARSER_CACHE_DB = database
