@@ -1,6 +1,9 @@
 import base64
-import difflib
 import json
+
+from w3af.plugins.audit.deserialization_generator_helpers import (
+    find_payload_offsets,
+)
 
 PAYLOADS = [
     "ObjectDataProvider-FastJson",
@@ -80,41 +83,11 @@ def get_payload_bin(payload, seconds):
 def get_payload_bin_for_command_len(payload, command_len):
     sample_1 = SLEEP_SAMPLES[command_len][0]
     sample_2 = SLEEP_SAMPLES[command_len][1]
-
-    # Get two payloads, both with the same length of command but different
-    # commands, this will help me identify the differences using difflib
     payload_bin_1 = get_payload_bin(payload, sample_1)
     payload_bin_2 = get_payload_bin(payload, sample_2)
-
-    # Enable for debugging only
-    # file('%s-%s-a.bin' % (payload, command_len), 'w').write(payload_bin_1)
-    # file('%s-%s-b.bin' % (payload, command_len), 'w').write(payload_bin_2)
-
-    offsets = []
-
-    for a_index, b_index, size in difflib.SequenceMatcher(
-        None, payload_bin_1, payload_bin_2
-    ).get_matching_blocks():
-
-        # The last match is a dummy with size 0, we want to skip it
-        if size == 0:
-            break
-
-        equals_1 = False
-        equals_2 = False
-
-        bytes_at_p1 = payload_bin_1[a_index + size : a_index + size + command_len]
-        bytes_at_p2 = payload_bin_2[b_index + size : b_index + size + command_len]
-
-        if bytes_at_p1 == sample_1:
-            equals_1 = True
-
-        if bytes_at_p2 == sample_2:
-            equals_2 = True
-
-        if equals_1 and equals_2:
-            offsets.append(a_index + size)
-
+    offsets = find_payload_offsets(
+        payload_bin_1, payload_bin_2, sample_1, sample_2, command_len
+    )
     return payload_bin_1, offsets
 
 
