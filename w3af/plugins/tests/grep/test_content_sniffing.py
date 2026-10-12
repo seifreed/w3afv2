@@ -20,26 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.content_sniffing import content_sniffing
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
-class TestContentSniffingSecurity(unittest.TestCase):
+class TestContentSniffingSecurity(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        self.plugin = content_sniffing()
+        super().setUp()
+        self.plugin = self.configure_plugin(content_sniffing())
 
     def tearDown(self):
         self.plugin.end()
-        kb.cleanup()
+        super().tearDown()
 
     def test_has_content_sniffing_header(self):
         body = ""
@@ -109,6 +106,3 @@ class TestContentSniffingSecurity(unittest.TestCase):
         self.assertEqual(info_set.get_id(), [1, 2])
         self.assertEqual(info_set.get_desc(), expected_desc)
         self.assertEqual(info_set.get_name(), "Missing X-Content-Type-Options header")
-
-
-kb = DBKnowledgeBase()
