@@ -19,18 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 from typing import ClassVar
 
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.directory_indexing import directory_indexing
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 INDEX_BODY = (
     "<html><head><title>Index of /secret</title></head>"
@@ -67,17 +65,17 @@ class TestDirectoryIndexingIntegration(PluginTest):
         self.assertEqual("Directory indexing", v.get_name())
 
 
-class TestDirectoryIndexingUnit(unittest.TestCase):
+class TestDirectoryIndexingUnit(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = directory_indexing()
+        super().setUp()
+        self.plugin = self.configure_plugin(directory_indexing())
         self.url = URL("http://www.w3af.com/secret/")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_directory_indexing_found(self):
         headers = Headers([("content-type", "text/html")])
@@ -104,6 +102,3 @@ class TestDirectoryIndexingUnit(unittest.TestCase):
         self.plugin.grep(self.request, response)
         self.plugin.grep(self.request, response)
         self.assertEqual(len(kb.get("directory_indexing", "directory")), 1)
-
-
-kb = DBKnowledgeBase()
