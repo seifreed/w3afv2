@@ -8313,3 +8313,26 @@ eso esta cifra global es una medición de carga máxima, no una certificación d
 suite verde. La reproducción independiente de 30 ciclos de `w3afCore` sigue
 estable, con un aumento de aproximadamente 2.45 MiB y cero threads de
 `OutputManager` retenidos.
+
+## Verificación final de regresiones y memoria
+
+Después de completar el aislamiento de fixtures, la selección global de tests
+termina con **4358 tests pasados, 11 omitidos y 273 subtests**, sin fallos. La
+ejecución con `/usr/bin/time -l` registra un RSS máximo de
+**599,113,728 bytes** (aprox. 571 MiB) y un `peak memory footprint` de
+**631,605,696 bytes** (aprox. 602 MiB).
+
+El pico global no demuestra una fuga por sí mismo: la batería focalizada de
+grep, infraestructura y output pasa **392 tests** con un RSS máximo de
+**187,645,952 bytes** (aprox. 179 MiB), y la reproducción de 30 ciclos reales
+de `w3afCore` aumenta aproximadamente **2.45 MiB** y mantiene cero threads de
+`OutputManager` al terminar. La conclusión actual es que la RAM alta pertenece
+al coste acumulado de la suite completa y sus integraciones, no a un crecimiento
+lineal del ciclo de vida del core.
+
+La suite completa emite **989 warnings** procedentes principalmente de
+dependencias instaladas y muestra mensajes de entorno sobre puertos ocupados,
+traceroute y headers de prueba; no producen fallos. Black, Ruff, mypy sobre
+`w3af` y `pip-audit` pasan. El `mypy .` literal continúa limitado por dos
+errores del `venv/bin/activate_this.py` generado, y `bandit -r .` incluye
+dependencias, vendor y tests fuera de producción.
