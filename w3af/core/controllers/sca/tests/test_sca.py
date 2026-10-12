@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
-from unittest import SkipTest
 
 from w3af.core.controllers.sca.sca import CodeSyntaxError, PhpSCA, Scope
 
@@ -230,15 +229,10 @@ class TestPHPSCA(unittest.TestCase):
         ?>
         """
         analyzer = PhpSCA(code)
-        syscall, echocall = analyzer.get_func_calls()
+        syscall, echocall, filecall = analyzer.get_func_calls()
         self.assertTrue("OS_COMMANDING" in syscall.vulntypes)
         self.assertTrue("XSS" in echocall.vulntypes)
-
-        #
-        # FIXME: Not sure why this is failing... not important at the moment
-        #
-        raise SkipTest("FIXME")
-        self.assertTrue("FILE_DISCLOSURE" in echocall.vulntypes)
+        self.assertTrue("FILE_DISCLOSURE" in filecall.vulntypes)
 
     def test_vuln_functions_3(self):
         code = """

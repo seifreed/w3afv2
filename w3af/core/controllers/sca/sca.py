@@ -173,10 +173,12 @@ class PhpSCA:
         def locatescope():
             while True:
                 currscope = self._scopes[-1]
-                if (
-                    node.__class__.__name__ == "GlobalParentNodeType"
-                    or currscope._ast_node == node._parent_node
-                ):
+                parent = node
+                while parent:
+                    if currscope._ast_node == parent:
+                        return currscope
+                    parent = getattr(parent, "_parent_node", None)
+                if len(self._scopes) == 1:
                     return currscope
                 self._scopes.pop()
 
@@ -196,8 +198,8 @@ class PhpSCA:
             name = getattr(node, "name", node.__class__.__name__.lower())
             newobj = FuncCall(name, node.lineno, node, locatescope())
             self._functions.append(newobj)
-            # Stop parsing children nodes
-            stoponthis = True
+            # Inspect nested calls in output expressions as well.
+            stoponthis = nodety not in (phpast.Echo, phpast.Print)
 
         # Create the VariableDef
         elif nodety is phpast.Assignment:
