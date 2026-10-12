@@ -19,17 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 from typing import ClassVar
 
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.get_emails import get_emails
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 EMAILS_BODY = (
     "<html><body>"
@@ -83,14 +81,14 @@ class TestGetEmails(PluginTest):
         self.assertEqual(all_emails, expected)
 
 
-class RawTestGetEmail(unittest.TestCase):
+class RawTestGetEmail(GrepPluginTestCase):
     def setUp(self):
-        create_temp_dir()
-        kb.cleanup()
-        self.plugin = get_emails()
+        super().setUp()
+        self.plugin = self.configure_plugin(get_emails())
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     def test_group_by_email(self):
         headers = Headers([("content-type", "text/html")])
@@ -120,6 +118,3 @@ class RawTestGetEmail(unittest.TestCase):
         info_set = info_sets[0]
         self.assertEqual(info_set.get_id(), [1, 2])
         self.assertEqual(info_set.get_desc(), expected_desc)
-
-
-kb = DBKnowledgeBase()

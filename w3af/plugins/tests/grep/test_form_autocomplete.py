@@ -20,12 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.form_autocomplete import form_autocomplete
-from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 FORM_DEFAULT = '<form action="/login"><input type="password" name="p"></form>'
 FORM_ON = (
@@ -126,6 +125,3 @@ class TestFormAutocompleteRaw(GrepPluginTestCase):
         (info_set,) = kb.get("form_autocomplete", "form_autocomplete")
         self.assertEqual(set(info_set.get_urls()), {url_1, url_2})
         self.assertEqual(info_set.get_desc(), expected_desc)
-
-
-kb = DBKnowledgeBase()

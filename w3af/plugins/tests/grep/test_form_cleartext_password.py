@@ -20,12 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.form_cleartext_password import form_cleartext_password
-from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase, kb
 
 
 class TestFormCleartextPassword(GrepPluginTestCase):
@@ -287,6 +286,3 @@ class TestFormCleartextPassword(GrepPluginTestCase):
         self.assertEqual(
             len(kb.get("form_cleartext_password", "form_cleartext_password")), 0
         )
-
-
-kb = DBKnowledgeBase()
