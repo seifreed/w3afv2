@@ -281,12 +281,12 @@ class TestParserCacheBehaviour(unittest.TestCase):
         self.assertFalse(self.dpc.should_cache(_build_http_response(body, "text/html")))
 
     def test_no_parser_for_images(self):
-        image = _build_http_response("", "image/png")
+        image = _build_http_response(b"\x89PNG\r\n", "image/png")
 
         with self.assertRaisesRegex(BaseFrameworkException, "There is no parser"):
             self.dpc.get_document_parser_for(image)
 
-        self.assertEqual(self.dpc.get_tags_by_filter(image, None), [])
+        self.assertEqual(self.dpc.get_tags_by_filter(image, ("html",)), [])
 
     def test_parser_not_cached(self):
         first = self.dpc.get_document_parser_for(self.http_resp, cache=False)

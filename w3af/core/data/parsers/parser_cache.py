@@ -270,6 +270,8 @@ class ParserCache(CacheStats):
 
             for tag in tags:
                 lt_tag = f"<{tag}"
+                if isinstance(body_lower, bytes):
+                    lt_tag = lt_tag.encode("ascii")
                 if lt_tag in body_lower:
                     break
             else:
