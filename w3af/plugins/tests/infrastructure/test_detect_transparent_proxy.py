@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import socket
 import unittest
+from queue import Queue
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -51,11 +53,14 @@ class TestDetectTransparentProxy(unittest.TestCase):
     def setUp(self):
         kb.cleanup()
         self.addCleanup(kb.cleanup)
+        self.output = LogSink(Queue())
+        self.addCleanup(self.output.close)
 
     def test_every_probe_answered_is_a_transparent_proxy(self):
         address = listening_socket(self)
         plugin = detect_transparent_proxy(probe_addresses=(address, address))
         plugin.set_knowledge_base(kb)
+        plugin.set_output(self.output)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
@@ -68,6 +73,7 @@ class TestDetectTransparentProxy(unittest.TestCase):
         address = listening_socket(self)
         plugin = detect_transparent_proxy(probe_addresses=(address, closed_address()))
         plugin.set_knowledge_base(kb)
+        plugin.set_output(self.output)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
@@ -78,6 +84,7 @@ class TestDetectTransparentProxy(unittest.TestCase):
     def test_runs_once(self):
         plugin = detect_transparent_proxy(probe_addresses=(closed_address(),))
         plugin.set_knowledge_base(kb)
+        plugin.set_output(self.output)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
