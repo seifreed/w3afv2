@@ -222,6 +222,7 @@ class Plugin(Configurable):
         )
 
         if added_to_kb:
+            self._submit_llm_verification(info)
             output = self._output
             if output is None:
                 raise RuntimeError("Plugin output has not been configured")
@@ -249,6 +250,7 @@ class Plugin(Configurable):
         kb.kb.append a vulnerability to the KB
         """
         self._kb_append(location_a, location_b, info)
+        self._submit_llm_verification(info)
         output = self._output
         if output is None:
             raise RuntimeError("Plugin output has not been configured")
@@ -262,6 +264,15 @@ class Plugin(Configurable):
     def _configure_info(self, info):
         if self._configuration is not None and isinstance(info, Info):
             info.set_configuration(self._configuration)
+
+    def _submit_llm_verification(self, info):
+        service = (
+            self._runtime_context.verification_service
+            if self._runtime_context
+            else None
+        )
+        if service is not None:
+            service.submit(info)
 
     def __eq__(self, other):
         """

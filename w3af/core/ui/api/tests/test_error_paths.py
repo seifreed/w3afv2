@@ -117,6 +117,7 @@ class APIErrorPathsTest(APIUnitTest):
             f"/scans/{MISSING_SCAN_ID}/fuzzable-requests/",
             f"/scans/{MISSING_SCAN_ID}/urls/",
             f"/scans/{MISSING_SCAN_ID}/traffic/1",
+            f"/scans/{MISSING_SCAN_ID}/kb/0/verification",
         )
         for path in paths:
             with self.subTest(path=path):
@@ -125,6 +126,13 @@ class APIErrorPathsTest(APIUnitTest):
 
         response = self.app.post(
             f"/scans/{MISSING_SCAN_ID}/exceptions/", data="{}", headers=self.HEADERS
+        )
+        self.assertEqual(response.status_code, 404)
+
+        response = self.app.post(
+            f"/scans/{MISSING_SCAN_ID}/kb/0/verification/retry",
+            data="{}",
+            headers=self.HEADERS,
         )
         self.assertEqual(response.status_code, 404)
 

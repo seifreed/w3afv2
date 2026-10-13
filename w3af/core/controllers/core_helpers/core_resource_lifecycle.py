@@ -12,7 +12,12 @@ class CoreResourceLifecycle:
         self._parser_cache = parser_cache
         self._database = database
         self._worker_pool_manager = worker_pool_manager
+        self._verification_service = None
         self._stopped = False
+
+    def set_verification_service(self, verification_service):
+        """Bind the service created after the URL opener is available."""
+        self._verification_service = verification_service
 
     def stop(self):
         """Release every owned resource once."""
@@ -21,6 +26,8 @@ class CoreResourceLifecycle:
 
         self._stopped = True
         self._worker_pool_manager.terminate()
+        if self._verification_service is not None:
+            self._verification_service.shutdown()
         self._parser_cache.clear()
         self._dns_cache.clear()
         self._output_manager.stop()

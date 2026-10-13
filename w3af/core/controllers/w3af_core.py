@@ -94,6 +94,7 @@ from w3af.core.controllers.plugins.plugin_runtime_context import (
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
+from w3af.core.data.llm.verification import LLMVerificationService
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.filesystem import remove_temp_dir
 from w3af.core.paths import get_home_dir
@@ -210,6 +211,10 @@ class w3afCore:
             self.MIN_WORKER_THREADS,
             self.MAX_WORKER_THREADS,
         )
+        self._llm_verification = LLMVerificationService(
+            self._database, self.uri_opener, self._configuration
+        )
+        self._resource_lifecycle.set_verification_service(self._llm_verification)
         self._fingerprint_404_lifecycle = Fingerprint404Lifecycle(
             output,
             self._configuration,
@@ -227,6 +232,7 @@ class w3afCore:
             self.exception_handler,
             self._worker_pool_manager.get_pool,
             self._fingerprint_404_lifecycle.is_404,
+            self._llm_verification,
         )
         self.plugins = CorePlugins(self._plugin_runtime_context, output, manager)
         self._environment_validator = ScanEnvironmentValidator(
@@ -396,6 +402,10 @@ class w3afCore:
     @property
     def database(self):
         return self._database
+
+    @property
+    def llm_verification(self):
+        return self._llm_verification
 
     def can_cleanup(self):
         return self.status.get_simplified_status() == STOPPED

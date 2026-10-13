@@ -115,6 +115,13 @@ class MiscSettings(Configurable):
 
         # Language to use when reading from vulndb
         self._configuration.save("vulndb_language", DBVuln.DEFAULT_LANG)
+        self._configuration.save("llm_verification_enabled", False)
+        self._configuration.save("llm_provider", "")
+        self._configuration.save("llm_model", "")
+        self._configuration.save("llm_base_url", "")
+        self._configuration.save("llm_timeout", 60)
+        self._configuration.save("llm_workers", 2)
+        self._configuration.save("llm_max_poc_steps", 3)
 
     def get_options(self):
         """
@@ -465,6 +472,50 @@ class MiscSettings(Configurable):
         )
         ol.add(opt)
 
+        opt = opt_factory(
+            "llm_verification_enabled",
+            self._configuration.get("llm_verification_enabled"),
+            "Automatically verify vulnerabilities with an LLM",
+            BOOL,
+            help="Warning: the configured provider may receive complete HTTP traffic.",
+            tabid="LLM verification",
+        )
+        ol.add(opt)
+        for name, description, value in (
+            (
+                "llm_provider",
+                "LLM provider name",
+                self._configuration.get("llm_provider"),
+            ),
+            ("llm_model", "LLM model name", self._configuration.get("llm_model")),
+            (
+                "llm_base_url",
+                "LLM provider base URL",
+                self._configuration.get("llm_base_url"),
+            ),
+        ):
+            ol.add(
+                opt_factory(name, value, description, STRING, tabid="LLM verification")
+            )
+        for name, description, value in (
+            (
+                "llm_timeout",
+                "LLM and POC timeout in seconds",
+                self._configuration.get("llm_timeout"),
+            ),
+            (
+                "llm_workers",
+                "Maximum concurrent LLM verifications",
+                self._configuration.get("llm_workers"),
+            ),
+            (
+                "llm_max_poc_steps",
+                "Maximum HTTP requests in a generated POC",
+                self._configuration.get("llm_max_poc_steps"),
+            ),
+        ):
+            ol.add(opt_factory(name, value, description, INT, tabid="LLM verification"))
+
         return ol
 
     def get_desc(self):
@@ -503,6 +554,13 @@ class MiscSettings(Configurable):
             "params_max_variants",
             "max_equal_form_variants",
             "vulndb_language",
+            "llm_verification_enabled",
+            "llm_provider",
+            "llm_model",
+            "llm_base_url",
+            "llm_timeout",
+            "llm_workers",
+            "llm_max_poc_steps",
         )
 
         for name in to_save:

@@ -18,6 +18,7 @@ class PluginRuntimeContext:
         exception_handler: Any,
         worker_pool_provider: Callable[[], Any],
         is_404: Callable[[Any], bool],
+        verification_service: Any | None = None,
     ) -> None:
         self.database = database
         self.uri_opener = uri_opener
@@ -28,6 +29,7 @@ class PluginRuntimeContext:
         self.exception_handler = exception_handler
         self._worker_pool_provider = worker_pool_provider
         self._is_404 = is_404
+        self.verification_service = verification_service
         self._status: Any | None = None
 
     @property

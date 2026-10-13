@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from flask import Response, jsonify, request, stream_with_context
 
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
@@ -91,6 +92,47 @@ def get_kb(scan_id, vulnerability_id):
     abort(404, "Not found")
 
 
+@app.route(
+    "/scans/<int:scan_id>/kb/<int:vulnerability_id>/verification",
+    methods=["GET"],
+)
+@requires_auth
+def get_verification(scan_id, vulnerability_id):
+    finding = get_vulnerability(scan_id, vulnerability_id)
+    if not isinstance(finding, Vuln):
+        abort(404, "Verification is only available for vulnerabilities")
+    result = get_scan_core(get_scan_info_from_id(scan_id)).llm_verification.get(finding)
+    if result is None:
+        abort(404, "Verification not found")
+    return jsonify(result)
+
+
+@app.route(
+    "/scans/<int:scan_id>/kb/<int:vulnerability_id>/verification/retry",
+    methods=["POST"],
+)
+@requires_auth
+def retry_verification(scan_id, vulnerability_id):
+    finding = get_vulnerability(scan_id, vulnerability_id)
+    if not isinstance(finding, Vuln):
+        abort(404, "Verification is only available for vulnerabilities")
+    get_scan_core(get_scan_info_from_id(scan_id)).llm_verification.retry(finding)
+    return jsonify({"status": "pending", "finding_uniq_id": finding.get_uniq_id()})
+
+
+def get_vulnerability(scan_id, vulnerability_id):
+    """Return a finding using the existing API enumeration."""
+    scan_info = get_scan_info_from_id(scan_id)
+    if scan_info is None:
+        abort(404, "Scan not found")
+    for finding_id, finding in enumerate(
+        get_scan_core(scan_info).knowledge_base.get_all_findings_iter()
+    ):
+        if vulnerability_id == finding_id:
+            return finding
+    abort(404, "Not found")
+
+
 def matches_filter(finding, request):
     """
     Filters:
@@ -152,10 +194,21 @@ def finding_to_json(finding, scan_id, finding_id, detailed=False):
             traffic_hrefs.append(traffic_href)
 
         summary["traffic_hrefs"] = traffic_hrefs
+        if isinstance(finding, Vuln):
+            summary["verification"] = get_scan_core(
+                get_scan_info_from_id(scan_id)
+            ).llm_verification.get(finding)
     else:
         # Support findings without a URL
         url = finding.get_url().url_string if finding.get_url() else None
 
         summary.update({"name": finding.get_name(), "url": url})
+        if isinstance(finding, Vuln):
+            verification = get_scan_core(
+                get_scan_info_from_id(scan_id)
+            ).llm_verification.get(finding)
+            summary["verification_status"] = (
+                verification["status"] if verification else None
+            )
 
     return summary
