@@ -118,6 +118,7 @@ class APIErrorPathsTest(APIUnitTest):
             f"/scans/{MISSING_SCAN_ID}/urls/",
             f"/scans/{MISSING_SCAN_ID}/traffic/1",
             f"/scans/{MISSING_SCAN_ID}/kb/0/verification",
+            f"/scans/{MISSING_SCAN_ID}/kb/0/verification/evidence",
         )
         for path in paths:
             with self.subTest(path=path):

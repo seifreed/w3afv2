@@ -108,6 +108,17 @@ def get_verification(scan_id, vulnerability_id):
 
 
 @app.route(
+    "/scans/<int:scan_id>/kb/<int:vulnerability_id>/verification/evidence",
+    methods=["GET"],
+)
+@requires_auth
+def get_verification_evidence(scan_id, vulnerability_id):
+    verification = get_verification_record(scan_id, vulnerability_id)
+    evidence = (verification.get("result") or {}).get("evidence", [])
+    return jsonify(evidence)
+
+
+@app.route(
     "/scans/<int:scan_id>/kb/<int:vulnerability_id>/verification/retry",
     methods=["POST"],
 )
@@ -118,6 +129,17 @@ def retry_verification(scan_id, vulnerability_id):
         abort(404, "Verification is only available for vulnerabilities")
     get_scan_core(get_scan_info_from_id(scan_id)).llm_verification.retry(finding)
     return jsonify({"status": "pending", "finding_uniq_id": finding.get_uniq_id()})
+
+
+def get_verification_record(scan_id, vulnerability_id):
+    """Return a stored verification for a vulnerability."""
+    finding = get_vulnerability(scan_id, vulnerability_id)
+    if not isinstance(finding, Vuln):
+        abort(404, "Verification is only available for vulnerabilities")
+    result = get_scan_core(get_scan_info_from_id(scan_id)).llm_verification.get(finding)
+    if result is None:
+        abort(404, "Verification not found")
+    return result
 
 
 def get_vulnerability(scan_id, vulnerability_id):
