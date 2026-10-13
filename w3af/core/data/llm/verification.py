@@ -7,9 +7,11 @@ from urllib.parse import urlsplit
 
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.llm.providers import LLMProviderError, provider_from_configuration
 from w3af.core.data.llm.storage import VerificationStorage
+from w3af.core.data.parsers.doc.url import URL
 
 LOGGER = logging.getLogger(__name__)
 MAX_TRAFFIC_BYTES = 20_000
@@ -63,9 +65,7 @@ class LLMVerificationService:
             evidence = self._execute_poc(finding, result.get("poc", []))
             result["evidence"] = evidence
             status = (
-                "confirmed"
-                if evidence and any(e["success"] for e in evidence)
-                else "not_confirmed"
+                "confirmed" if result.get("confirmed") and evidence else "not_confirmed"
             )
             self._storage.update(
                 finding_id,
@@ -79,6 +79,7 @@ class LLMVerificationService:
             ValueError,
             KeyError,
             TypeError,
+            AttributeError,
             OSError,
             RuntimeError,
         ) as exc:
@@ -97,12 +98,8 @@ class LLMVerificationService:
             traffic.append(
                 {
                     "response_id": response_id,
-                    "request": item.request.dump()[:MAX_TRAFFIC_BYTES].decode(
-                        "utf-8", "replace"
-                    ),
-                    "response": item.response.dump()[:MAX_TRAFFIC_BYTES].decode(
-                        "utf-8", "replace"
-                    ),
+                    "request": self._bounded_text(item.request.dump()),
+                    "response": self._bounded_text(item.response.dump()),
                 }
             )
         payload = {
@@ -120,6 +117,13 @@ class LLMVerificationService:
             "The POC must use the same origin and only validate the finding.\n"
             + json.dumps(payload, ensure_ascii=True)
         )
+
+    @staticmethod
+    def _bounded_text(value: str | bytes) -> str:
+        """Normalize history dumps while keeping prompt memory bounded."""
+        if isinstance(value, bytes):
+            value = value[:MAX_TRAFFIC_BYTES].decode("utf-8", "replace")
+        return value[:MAX_TRAFFIC_BYTES]
 
     @staticmethod
     def _parse_answer(content: str) -> dict:
@@ -158,9 +162,9 @@ class LLMVerificationService:
                 raise LLMProviderError("POC headers must be an object")
             request_method = getattr(self._uri_opener, method)
             response = request_method(
-                url,
+                URL(url),
                 data=data,
-                headers=headers,
+                headers=Headers(list(headers.items())) if headers else Headers(),
                 grep=False,
                 cache=False,
                 timeout=int(self._configuration.get("llm_timeout") or 60),
@@ -171,8 +175,8 @@ class LLMVerificationService:
                     "method": method,
                     "url": url,
                     "code": response.get_code(),
-                    "success": response.get_code() < 500,
-                    "response": response.dump().decode("utf-8", "replace")[:10000],
+                    "success": True,
+                    "response": self._bounded_text(response.dump())[:10000],
                 }
             )
         return evidence

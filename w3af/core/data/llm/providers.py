@@ -136,8 +136,18 @@ def provider_from_configuration(configuration) -> HTTPProvider | None:
     base_url = configuration.get("llm_base_url") or os.getenv(
         "W3AF_LLM_BASE_URL", default_url
     )
-    api_key = os.getenv(
-        f"W3AF_LLM_{name.upper()}_API_KEY", os.getenv("W3AF_LLM_API_KEY", "")
-    )
+    api_key = os.getenv(f"W3AF_LLM_{name.upper()}_API_KEY")
+    if not api_key:
+        api_key = os.getenv(
+            {
+                "openai": "OPENAI_API_KEY",
+                "grok": "XAI_API_KEY",
+                "gemini": "GEMINI_API_KEY",
+                "anthropic": "ANTHROPIC_API_KEY",
+            }.get(name, ""),
+            "",
+        )
+    if not api_key:
+        api_key = os.getenv("W3AF_LLM_API_KEY", "")
     timeout = int(configuration.get("llm_timeout") or 60)
     return HTTPProvider(name, model, base_url, api_key, timeout)

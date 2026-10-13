@@ -24,3 +24,7 @@ class VerificationTest(unittest.TestCase):
             self.service._parse_answer("not json")
         with self.assertRaises(LLMProviderError):
             self.service._parse_answer('{"poc": {}}')
+
+    def test_bounded_text_accepts_bytes_and_strings(self):
+        self.assertEqual(self.service._bounded_text(b"response"), "response")
+        self.assertEqual(self.service._bounded_text("response"), "response")
