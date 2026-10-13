@@ -3,8 +3,8 @@
 import json
 import os
 from dataclasses import dataclass
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from http.client import HTTPConnection, HTTPSConnection
+from urllib.parse import urlsplit
 
 MAX_PROVIDER_RESPONSE_BYTES = 2_000_000
 
@@ -36,19 +36,31 @@ class HTTPProvider:
 
     def complete(self, prompt: str) -> LLMAnswer:
         url, payload, headers = self._request_data(prompt)
-        request = Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json", **headers},
-            method="POST",
+        parts = urlsplit(url)
+        if parts.scheme not in {"http", "https"} or not parts.netloc:
+            raise LLMProviderError("LLM provider URL must use HTTP or HTTPS")
+        connection_class = (
+            HTTPSConnection if parts.scheme == "https" else HTTPConnection
         )
+        connection = connection_class(parts.netloc, timeout=self.timeout)
         try:
-            with urlopen(request, timeout=self.timeout) as response:
+            connection.request(
+                "POST",
+                parts.path + (f"?{parts.query}" if parts.query else ""),
+                body=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json", **headers},
+            )
+            response = connection.getresponse()
+            if response.status >= 400:
+                raise LLMProviderError(f"LLM provider returned HTTP {response.status}")
+            with response:
                 data = json.loads(
                     response.read(MAX_PROVIDER_RESPONSE_BYTES).decode("utf-8")
                 )
-        except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+        except (TimeoutError, OSError, ValueError) as exc:
             raise LLMProviderError(f"LLM provider {self.name} failed: {exc}") from exc
+        finally:
+            connection.close()
 
         content = self._content_from_response(data)
         return LLMAnswer(content, self.name, self.model)

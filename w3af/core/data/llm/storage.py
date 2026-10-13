@@ -42,7 +42,7 @@ class VerificationStorage:
 
     def update(self, finding_uniq_id: str, status: str, **values: Any) -> None:
         self.database.execute(
-            f"UPDATE {self.TABLE} SET status=?, provider=?, model=?, result=?, error=? "
+            "UPDATE llm_verifications SET status=?, provider=?, model=?, result=?, error=? "
             "WHERE finding_uniq_id=?",
             (
                 status,
@@ -61,8 +61,8 @@ class VerificationStorage:
 
     def get(self, finding_uniq_id: str) -> dict[str, Any] | None:
         row = self.database.select_one(
-            f"SELECT finding_uniq_id, status, provider, model, result, error "
-            f"FROM {self.TABLE} WHERE finding_uniq_id=?",
+            "SELECT finding_uniq_id, status, provider, model, result, error "
+            "FROM llm_verifications WHERE finding_uniq_id=?",
             (finding_uniq_id,),
         )
         if row is None:
